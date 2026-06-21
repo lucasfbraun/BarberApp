@@ -20,7 +20,7 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const hint = useMemo(() => {
-    if (searchParams.get("registered") === "1") {
+    if (searchParams?.get("registered") === "1") {
       return "Conta criada com sucesso. Entre com seus dados para acessar o tenant.";
     }
 
