@@ -32,7 +32,7 @@ async function getBarbershop(slug: string) {
           id: true,
           name: true,
           bio: true,
-          avatarUrl: true,
+          photoUrl: true,
           displayOrder: true,
         },
         orderBy: [{ displayOrder: "asc" }, { name: "asc" }],
@@ -181,7 +181,7 @@ export default async function PublicBarbershopPage({ params }: { params: Promise
                 )}
                 <div className="mt-auto flex items-center justify-between pt-4">
                   <span className="text-sm text-slate-400">{formatDuration(service.durationMinutes)}</span>
-                  <span className="text-sm font-semibold text-cyan-200">{formatPrice(service.price)}</span>
+                  <span className="text-sm font-semibold text-cyan-200">{formatPrice(Number(service.price))}</span>
                 </div>
               </article>
             ))}

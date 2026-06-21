@@ -20,7 +20,7 @@ interface ProfessionalItem {
   id: string;
   name: string;
   bio: string | null;
-  avatarUrl: string | null;
+  photoUrl: string | null;
   services: { serviceId: string }[];
 }
 

@@ -44,7 +44,7 @@ export async function GET(
           id: true,
           name: true,
           bio: true,
-          avatarUrl: true,
+          photoUrl: true,
           displayOrder: true,
           services: {
             where: { active: true },

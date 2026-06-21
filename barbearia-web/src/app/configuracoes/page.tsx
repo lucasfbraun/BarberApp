@@ -95,7 +95,7 @@ export default function ConfiguracoesPage() {
           setTheme((current) => ({
             ...current,
             ...Object.fromEntries(
-              Object.entries(payload.barbershop).filter(([, value]) => value !== null && value !== undefined),
+              Object.entries(payload.barbershop ?? {}).filter(([, value]) => value !== null && value !== undefined),
             ),
           }));
           setStatus("Tema carregado com sucesso.");
