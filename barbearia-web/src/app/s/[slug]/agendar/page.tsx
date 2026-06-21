@@ -100,7 +100,8 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
 /* ────────────────────────────────────────────────── main */
 
 export default function AgendarPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const params = useParams<{ slug: string }>();
+  const slug = params?.slug ?? "";
   const router = useRouter();
 
   const [barbershop, setBarbershop] = useState<Barbershop | null>(null);
