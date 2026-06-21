@@ -13,7 +13,7 @@ const benefits = [
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/agenda";
+  const callbackUrl = searchParams?.get("callbackUrl") ?? "/agenda";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
