@@ -1,46 +1,44 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 
-interface Service {
-  id: string;
-  name: string;
-  description: string | null;
-  durationMinutes: number;
-  price: number;
-  category: { name: string } | null;
-}
+type Barbershop = Awaited<ReturnType<typeof getBarbershop>>;
 
-interface Professional {
-  id: string;
-  name: string;
-  bio: string | null;
-  avatarUrl: string | null;
-}
-
-interface Barbershop {
-  id: string;
-  name: string;
-  slug: string;
-  primaryColor: string | null;
-  accentColor: string | null;
-  logoUrl: string | null;
-  services: Service[];
-  professionals: Professional[];
-}
-
-async function getBarbershop(slug: string): Promise<Barbershop | null> {
-  try {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ?? `http://localhost:${process.env.PORT ?? 3000}`;
-    const res = await fetch(`${baseUrl}/api/public/barbershop/${encodeURIComponent(slug)}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    const { barbershop } = await res.json();
-    return barbershop as Barbershop;
-  } catch {
-    return null;
-  }
+async function getBarbershop(slug: string) {
+  return prisma.barbershop.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      primaryColor: true,
+      accentColor: true,
+      logoUrl: true,
+      services: {
+        where: { active: true },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          durationMinutes: true,
+          price: true,
+          category: { select: { name: true } },
+        },
+        orderBy: [{ category: { name: "asc" } }, { name: "asc" }],
+      },
+      professionals: {
+        where: { active: true },
+        select: {
+          id: true,
+          name: true,
+          bio: true,
+          avatarUrl: true,
+          displayOrder: true,
+        },
+        orderBy: [{ displayOrder: "asc" }, { name: "asc" }],
+      },
+    },
+  });
 }
 
 function formatDuration(minutes: number) {
@@ -59,7 +57,7 @@ export default async function PublicBarbershopPage({ params }: { params: Promise
   const slug = decodeURIComponent(rawSlug);
 
   const barbershop = await getBarbershop(slug);
-  if (!barbershop) notFound();
+  if (!barbershop) return notFound();
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
