@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 const protectedRoutes = ["/agenda", "/clientes", "/profissionais", "/servicos", "/configuracoes"];
 const publicOnlyRoutes = ["/login", "/cadastro"];
 
-export default async function middleware(request: Request & { nextUrl: URL; cookies: { get(name: string): { value: string } | undefined } }) {
+export default async function proxy(request: Request & { nextUrl: URL; cookies: { get(name: string): { value: string } | undefined } }) {
   const token = await getToken({ req: request as never, secret: process.env.NEXTAUTH_SECRET });
   const isLoggedIn = !!token;
   const { pathname } = request.nextUrl;
