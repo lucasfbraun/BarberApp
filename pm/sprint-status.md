@@ -10,3 +10,7 @@
 | 5 | Agendamento publico | Concluida | API publica de barbershop e agendamento. Pagina /s/[slug] com dados reais. Fluxo /s/[slug]/agendar com 4 etapas (servico, profissional, slots reais, dados do cliente) e tela de confirmacao. |
 | 6 | Atendimento e receita | Em andamento | Comanda, pagamento informativo e comissao simples |
 | 7 | Relatorios e estabilizacao | Pendente | Relatorio diario, UX e preparo para piloto |
+| 8 | Site de marketing lbraunapp | Pendente | Landing page com hero, funcionalidades, precos e CTA. Mesmo projeto Next.js. |
+| 9 | Revendedor e cupons | Pendente | Cadastro de revendedor, cupom unico, dashboard de uso e comissao percentual. |
+| 10 | Pacotes e admin de precos | Pendente | Painel admin para planos. Exibicao dinamica no site. |
+| 11 | Trial automatico | Pendente | Todo cadastro ganha X dias. Controle de expiracao, bloqueio e upgrade. |

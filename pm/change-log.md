@@ -28,6 +28,8 @@
 | 2026-06-21 | Pagina /s/[slug] reescrita com dados reais (servicos e profissionais do banco) | Claude | Implementado |
 | 2026-06-21 | Pagina /s/[slug]/agendar reescrita: fluxo 4 etapas (servico, profissional, slots reais, dados) + confirmacao | Claude | Implementado |
 | 2026-06-21 | Sprint 5 concluida. Sprint 6 (comanda e receita) iniciada. | Claude | Implementado |
+| 2026-06-22 | Novas features adicionadas ao escopo: site lbraunapp, revendedor com cupom e comissao percentual, pacotes com painel admin, trial automatico | Usuario | Planejado |
+| 2026-06-22 | Cronograma atualizado: Sprints 8-11 e IDs 24-29 adicionados ao MVP | Claude | Implementado |
 
 ## Regra
 Toda mudanca de escopo apos o baselining deve ser registrada aqui antes de virar desenvolvimento.
