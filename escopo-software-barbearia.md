@@ -1654,6 +1654,177 @@ subscriptions
 
 ---
 
+# 8A. Módulo de pagamento recorrente (SaaS billing)
+
+## Gateway recomendado: Stripe
+
+Para cobranças recorrentes em cartão de crédito, o **Stripe** é a opção recomendada pelo equilíbrio entre simplicidade de integração, robustez e suporte ao mercado brasileiro (BRL, CNPJ/CPF).
+
+### Por que Stripe
+
+| Critério | Stripe |
+|---|---|
+| Checkout hospedado | Sim — sem construir UI de cartão |
+| Recorrência nativa | Sim — Stripe Billing |
+| Consentimento de recorrência | Exibido automaticamente no Checkout |
+| Recibos e invoices PDF | Gerados automaticamente |
+| Portal do cliente | Stripe Customer Portal — troca de cartão, cancelamento, histórico |
+| Webhooks | Confiáveis, tipados, com retry |
+| Suporte Brasil (BRL) | Sim, desde 2023 |
+| Taxa | ~3,99% + R$ 0,39 por transação (sem mensalidade) |
+
+### Alternativa brasileira
+
+**Asaas** — mais simples de abrir conta, boa API de recorrência. Recomendado se houver dificuldade com o cadastro Stripe.
+
+---
+
+## 8A.1. Fluxo de assinatura
+
+```txt
+Barbearia chega ao fim do trial
+→ Página /trial-expirado exibe os planos ativos
+→ Usuário escolhe um plano e clica em "Assinar"
+→ Sistema chama POST /api/billing/checkout com o planId
+→ Sistema cria Stripe Customer (se não existir) e Checkout Session
+→ Usuário é redirecionado para o Stripe Checkout (página hospedada)
+→ Usuário informa cartão, vê resumo com valor e periodicidade
+→ Stripe exibe aviso de cobrança recorrente (consentimento automático)
+→ Stripe processa o pagamento
+→ Stripe dispara webhook checkout.session.completed
+→ Sistema cria registro Subscription no banco
+→ Sistema cria registro Invoice com link para recibo PDF
+→ Middleware libera acesso ao painel
+```
+
+## 8A.2. Fluxo de cobrança recorrente
+
+```txt
+A cada mês (data do aniversário da assinatura):
+→ Stripe cobra automaticamente o cartão cadastrado
+→ Se aprovado: Stripe dispara invoice.paid
+  → Sistema atualiza Invoice no banco com status = paid e receiptUrl
+→ Se recusado: Stripe tenta novamente (retry configurável: 3-4 tentativas)
+  → Stripe dispara invoice.payment_failed
+  → Sistema muda subscriptionStatus para past_due
+  → Middleware mostra banner de pagamento pendente
+  → Após todas as tentativas falharem: subscription vai para cancelled
+  → Middleware bloqueia acesso
+```
+
+## 8A.3. Modelos de dados necessários
+
+```txt
+Subscription
+- id
+- barbershopId (unique)
+- planId
+- stripeCustomerId
+- stripeSubscriptionId (unique)
+- status          -- active | trialing | past_due | cancelled | incomplete
+- currentPeriodEnd
+- cancelledAt
+- createdAt
+- updatedAt
+
+Invoice
+- id
+- barbershopId
+- subscriptionId
+- stripeInvoiceId (unique)
+- amount
+- currency        -- BRL
+- status          -- paid | open | void | uncollectible
+- paidAt
+- receiptUrl      -- link público para recibo HTML (Stripe)
+- invoicePdfUrl   -- link para PDF do recibo
+- createdAt
+```
+
+## 8A.4. Webhooks a processar
+
+| Evento Stripe | Ação no sistema |
+|---|---|
+| `checkout.session.completed` | Criar Subscription + primeiro Invoice |
+| `invoice.paid` | Atualizar Invoice status = paid, salvar receiptUrl/pdfUrl |
+| `invoice.payment_failed` | Atualizar subscriptionStatus = past_due, notificar |
+| `customer.subscription.updated` | Atualizar status e currentPeriodEnd |
+| `customer.subscription.deleted` | Marcar Subscription como cancelled, bloquear acesso |
+
+## 8A.5. Consentimento do usuário
+
+O Stripe Checkout exibe automaticamente:
+- Valor e periodicidade ("R$ 99,00/mês").
+- "Você autoriza cobranças recorrentes até cancelar".
+- Política de cancelamento configurável no dashboard Stripe.
+
+Não é necessário construir tela de consentimento customizada.
+
+---
+
+## 8A.6. Bloqueio pós-trial e upgrade
+
+### Regras de acesso
+
+| Condição | Acesso ao painel |
+|---|---|
+| Em trial (trialEndsAt > hoje) | Permitido. Banner de aviso nos últimos 7 dias. |
+| Trial expirado + sem assinatura | Bloqueado. Redireciona para /trial-expirado. |
+| Assinatura ativa | Permitido. |
+| Assinatura past_due | Permitido com banner de alerta de pagamento pendente. |
+| Assinatura cancelada | Bloqueado. Redireciona para /trial-expirado. |
+
+### Página /trial-expirado
+
+- Exibe os planos ativos do banco (nome, preço, features).
+- Botão "Assinar" por plano → inicia Stripe Checkout.
+- Link para suporte via WhatsApp.
+- Nota: "Já assinou? Saia e entre novamente para atualizar."
+
+---
+
+## 8A.7. Área de faturamento (/configuracoes/assinatura)
+
+A barbearia deve ter acesso ao histórico de cobranças e recibos.
+
+### Informações exibidas
+
+- Plano atual (nome, preço, próxima cobrança).
+- Status da assinatura.
+- Histórico de faturas: data, valor, status, botão "Baixar recibo PDF".
+- Botão "Gerenciar assinatura" → Stripe Customer Portal (troca de cartão, cancelamento, histórico completo).
+
+### API necessária
+
+```txt
+GET  /api/billing/invoices     — lista invoices da barbearia no banco
+POST /api/billing/portal       — cria Stripe Billing Portal session, retorna URL
+POST /api/billing/checkout     — cria Stripe Checkout Session, retorna URL
+POST /api/webhooks/stripe      — recebe e processa eventos Stripe (assinar com secret)
+```
+
+---
+
+## 8A.8. Visão admin
+
+Em `/admin/barbearias`, exibir:
+- Status da subscription (ativo / inadimplente / cancelado / sem assinatura).
+- Filtro por inadimplentes.
+- Ação manual de cancelar subscription via API.
+
+---
+
+## 8A.9. Sprints planejadas
+
+| Sprint | Escopo |
+|---|---|
+| Sprint 18 | Conta Stripe, schema Subscription+Invoice, API /api/billing/checkout, webhook handler |
+| Sprint 19 | Página /trial-expirado com seleção de plano, middleware com subscriptionStatus no JWT |
+| Sprint 20 | Área de faturamento /configuracoes/assinatura, Stripe Customer Portal, admin visibilidade |
+
+
+---
+
 # 9. Requisitos não funcionais
 
 ## 9.1. Segurança
@@ -2399,6 +2570,18 @@ A arquitetura recomendada é Next.js na Vercel, PostgreSQL, storage externo para
 - [x] Admin: gestão de planos — CRUD completo com features, preço e limite de profissionais.
 - [x] Admin: gestão de barbearias — lista com filtros/busca, status de trial, detalhe com ações (extender trial, trocar plano, ativar/desativar).
 - [x] Admin: gestão de revendedores — lista com receita e comissão acumuladas, ações (aprovar, desativar, editar taxa).
+
+## Pagamento e faturamento (Sprints 18-20)
+
+- [ ] Conta Stripe configurada com produtos e preços recorrentes.
+- [ ] Schema Subscription e Invoice no banco.
+- [ ] API POST /api/billing/checkout — Stripe Checkout Session.
+- [ ] Webhook POST /api/webhooks/stripe — processar eventos de cobrança.
+- [ ] Página /trial-expirado com seleção de plano e botão assinar.
+- [ ] Middleware verifica subscriptionStatus além de trialEndsAt.
+- [ ] Área de faturamento /configuracoes/assinatura com histórico e recibos PDF.
+- [ ] Stripe Customer Portal para autoatendimento (troca de cartão, cancelamento).
+- [ ] Admin: status de subscription em /admin/barbearias.
 
 ## Fase 2
 
