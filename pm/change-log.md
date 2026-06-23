@@ -31,6 +31,16 @@
 | 2026-06-22 | Novas features adicionadas ao escopo: site lbraunapp, revendedor com cupom e comissao percentual, pacotes com painel admin, trial automatico | Usuario | Planejado |
 | 2026-06-22 | Cronograma atualizado: Sprints 8-11 e IDs 24-29 adicionados ao MVP | Claude | Implementado |
 
+| 2026-06-22 | Sprint 6 concluida: comanda simples, fechamento com pagamento e calculo de comissao por profissional | Claude | Implementado |
+| 2026-06-22 | Sprint 7 concluida: relatorio diario com cards, breakdown por profissional e tabela de comandas | Claude | Implementado |
+| 2026-06-22 | Sprint 8 concluida: landing page lbraunapp com route group sem sidebar | Claude | Implementado |
+| 2026-06-22 | Sprint 9 concluida: modulo revendedor — cadastro, cupom unico NOME-XXXX, dashboard publico, vinculo no onboarding | Claude | Implementado |
+| 2026-06-22 | Sprint 10 concluida: model Plan, migration SQL com seed, API CRUD admin/planos, painel /admin | Claude | Implementado |
+| 2026-06-22 | Sprint 11 concluida: trial automatico (trialEndsAt, JWT, middleware, banner, pagina /trial-expirado) | Claude | Implementado |
+| 2026-06-22 | Sprint 12 concluida: admin barbearias com lista, filtros, detalhe e acoes (trial, plano, status) | Claude | Implementado |
+| 2026-06-22 | Sprint 13 concluida: admin revendedores com PATCH e landing page com planos dinamicos do banco | Claude | Implementado |
+| 2026-06-22 | Cronograma Excel e escopo-software-barbearia.md atualizados — IDs 28-33 concluidos, checklist MVP marcado, secao 8 atualizada | Claude | Implementado |
+
+
 ## Regra
 Toda mudanca de escopo apos o baselining deve ser registrada aqui antes de virar desenvolvimento.
-| 2026-06-22 | Painel admin master antecipado: features de barbearias/trials, revendedores e planos levantadas. Sprints 12-13 e IDs 30-33 adicionados ao cronograma. | Usuario | Planejado |

@@ -83,6 +83,8 @@ A aplicação deve ser dividida em fases para evitar que o MVP fique grande dema
 
 O objetivo da primeira versão é validar o produto com barbearias reais.
 
+> **Status:** MVP completo e em produção na Vercel. Além do MVP original, foram implementados landing page de marketing, módulo de revendedores com cupom, trial automático e painel admin master.
+
 Deve conter:
 
 1. Multiempresa / multi-tenant.
@@ -1573,9 +1575,11 @@ Dashboards avançados podem ajudar o dono da barbearia a tomar decisões.
 
 Além do painel da barbearia, o produto precisa de um painel interno para o dono da plataforma.
 
+> **Status de implementação:** painel admin master implementado nas Sprints 10–13. Acesso via `/admin`, protegido por role `SUPERADMIN`.
+
 ## 8.1. Superadmin
 
-### Funcionalidades
+### Funcionalidades planejadas
 
 - Ver todas as barbearias.
 - Criar barbearia manualmente.
@@ -1588,6 +1592,15 @@ Além do painel da barbearia, o produto precisa de um painel interno para o dono
 - Consultar uso da plataforma.
 - Gerenciar limites por plano.
 - Ver métricas do SaaS.
+
+### Implementado (Sprints 10–13)
+
+- [x] Painel `/admin` protegido por role `SUPERADMIN` via middleware.
+- [x] Layout admin com sidebar separado do painel da barbearia.
+- [x] `/admin/planos` — CRUD de planos (nome, preço, features, limite de profissionais, status).
+- [x] `/admin/barbearias` — lista com filtros por status (trial/ativo/expirado/inativo), busca por nome/slug, badges, dias de trial restantes.
+- [x] `/admin/barbearias/[id]` — detalhe com stats, extender trial (+7/+30 dias), trocar plano, ativar/desativar barbearia.
+- [x] `/admin/revendedores` — lista com receita gerada e comissão acumulada por revendedor, ações de aprovar/desativar e edição de taxa de comissão.
 
 ## 8.2. Planos e cobrança do SaaS
 
@@ -2353,27 +2366,39 @@ A arquitetura recomendada é Next.js na Vercel, PostgreSQL, storage externo para
 
 ## MVP
 
-- [ ] SaaS multiempresa.
-- [ ] Cadastro da barbearia.
-- [ ] Slug público.
-- [ ] Logo.
-- [ ] Paleta de cores.
-- [ ] Preview de tema.
-- [ ] Login.
-- [ ] Usuários e perfis básicos.
-- [ ] Cadastro de profissionais.
-- [ ] Cadastro de serviços.
-- [ ] Jornada de trabalho.
-- [ ] Bloqueios de agenda.
-- [ ] Página pública.
-- [ ] Agendamento público.
-- [ ] Agenda interna.
-- [ ] Clientes.
-- [ ] Status de agendamento.
-- [ ] Comanda simples.
-- [ ] Registro de pagamento.
-- [ ] Comissão simples.
-- [ ] Relatório diário.
+- [x] SaaS multiempresa.
+- [x] Cadastro da barbearia.
+- [x] Slug público.
+- [x] Logo.
+- [x] Paleta de cores.
+- [x] Preview de tema.
+- [x] Login.
+- [x] Usuários e perfis básicos.
+- [x] Cadastro de profissionais.
+- [x] Cadastro de serviços.
+- [x] Jornada de trabalho.
+- [x] Bloqueios de agenda.
+- [x] Página pública.
+- [x] Agendamento público.
+- [x] Agenda interna.
+- [x] Clientes.
+- [x] Status de agendamento.
+- [x] Comanda simples.
+- [x] Registro de pagamento.
+- [x] Comissão simples.
+- [x] Relatório diário.
+
+### Módulos SaaS implementados além do MVP original
+
+- [x] Landing page lbraunapp (hero, funcionalidades, planos, revendedor, CTA).
+- [x] Planos dinâmicos no banco — admin cadastra, landing exibe automaticamente.
+- [x] Programa de revendedores — cadastro público, geração de cupom único, dashboard /revendedor/[coupon].
+- [x] Vínculo cupom no onboarding — campo opcional no cadastro, vincula barbearia ao revendedor.
+- [x] Trial automático de 30 dias — definido no onboarding, middleware bloqueia acesso expirado, banner de aviso nos últimos 7 dias.
+- [x] Painel admin master (/admin) — layout separado, protegido por role SUPERADMIN.
+- [x] Admin: gestão de planos — CRUD completo com features, preço e limite de profissionais.
+- [x] Admin: gestão de barbearias — lista com filtros/busca, status de trial, detalhe com ações (extender trial, trocar plano, ativar/desativar).
+- [x] Admin: gestão de revendedores — lista com receita e comissão acumuladas, ações (aprovar, desativar, editar taxa).
 
 ## Fase 2
 
