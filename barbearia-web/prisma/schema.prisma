@@ -76,11 +76,27 @@ model User {
   professionals Professional[]
 }
 
+model Plan {
+  id               String       @id @default(cuid())
+  name             String
+  slug             String       @unique
+  description      String?
+  price            Decimal      @db.Decimal(10, 2)
+  maxProfessionals Int          @default(-1)
+  features         Json         @default("[]")
+  isActive         Boolean      @default(true)
+  displayOrder     Int          @default(0)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  barbershops      Barbershop[]
+}
+
 model Barbershop {
   id                 String              @id @default(cuid())
   name               String
   slug               String              @unique
   couponCode         String?
+  planId             String?
   description        String?
   phone              String?
   whatsapp           String?
@@ -114,6 +130,7 @@ model Barbershop {
   reviews            Review[]
   scheduleBlocks     ScheduleBlock[]
   resellerLink       BarbershopReseller?
+  plan               Plan?               @relation(fields: [planId], references: [id])
 }
 
 model BarbershopUser {
