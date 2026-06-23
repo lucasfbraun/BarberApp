@@ -80,6 +80,7 @@ model Barbershop {
   id                 String              @id @default(cuid())
   name               String
   slug               String              @unique
+  couponCode         String?
   description        String?
   phone              String?
   whatsapp           String?
@@ -112,6 +113,7 @@ model Barbershop {
   payments           Payment[]
   reviews            Review[]
   scheduleBlocks     ScheduleBlock[]
+  resellerLink       BarbershopReseller?
 }
 
 model BarbershopUser {
@@ -401,4 +403,30 @@ model ScheduleBlock {
   @@index([barbershopId])
   @@index([professionalId])
   @@index([startsAt])
+}
+
+model Reseller {
+  id             String               @id @default(cuid())
+  name           String
+  email          String               @unique
+  phone          String?
+  couponCode     String               @unique
+  commissionRate Float                @default(10)
+  status         String               @default("PENDING")
+  notes          String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  referrals      BarbershopReseller[]
+}
+
+model BarbershopReseller {
+  id           String     @id @default(cuid())
+  barbershopId String     @unique
+  resellerId   String
+  couponCode   String
+  createdAt    DateTime   @default(now())
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+  reseller     Reseller   @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+
+  @@index([resellerId])
 }

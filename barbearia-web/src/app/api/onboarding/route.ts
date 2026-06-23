@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 import { UserRole } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = prisma as any;
 
 type OnboardingPayload = {
   barbershopName?: string;
@@ -13,6 +15,7 @@ type OnboardingPayload = {
   password?: string;
   phone?: string;
   whatsapp?: string;
+  couponCode?: string;
 };
 
 export async function POST(request: Request) {
@@ -84,6 +87,22 @@ export async function POST(request: Request) {
         },
       });
     });
+
+    // Link reseller if couponCode provided
+    if (payload.couponCode) {
+      const code = payload.couponCode.trim().toUpperCase();
+      const reseller = await db.reseller.findUnique({ where: { couponCode: code } });
+      if (reseller) {
+        const barbershop = await prisma.barbershop.findUnique({ where: { slug } });
+        if (barbershop) {
+          await db.barbershopReseller.upsert({
+            where: { barbershopId: barbershop.id },
+            create: { barbershopId: barbershop.id, resellerId: reseller.id, couponCode: code },
+            update: {},
+          }).catch(() => null);
+        }
+      }
+    }
 
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch (error) {

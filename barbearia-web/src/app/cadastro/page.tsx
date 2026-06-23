@@ -21,6 +21,7 @@ export default function CadastroPage() {
     password: "",
     phone: "",
     whatsapp: "",
+    couponCode: "",
   });
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -160,6 +161,15 @@ export default function CadastroPage() {
                   onChange={(event) => setForm((current) => ({ ...current, whatsapp: event.target.value }))}
                   className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/40"
                   placeholder="(11) 99999-9999"
+                />
+              </label>
+              <label className="space-y-2 sm:col-span-2">
+                <span className="text-sm text-slate-300">Cupom de revendedor <span className="text-slate-500">(opcional)</span></span>
+                <input
+                  value={form.couponCode}
+                  onChange={(event) => setForm((current) => ({ ...current, couponCode: event.target.value.toUpperCase() }))}
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/40"
+                  placeholder="EX: JOAO-AB12"
                 />
               </label>
             </div>
