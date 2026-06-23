@@ -97,6 +97,7 @@ model Barbershop {
   slug               String              @unique
   couponCode         String?
   planId             String?
+  trialEndsAt        DateTime?
   description        String?
   phone              String?
   whatsapp           String?
