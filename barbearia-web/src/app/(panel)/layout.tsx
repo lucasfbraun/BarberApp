@@ -5,6 +5,7 @@ const navigation = [
   { href: "/clientes", label: "Clientes" },
   { href: "/profissionais", label: "Profissionais" },
   { href: "/servicos", label: "Serviços" },
+  { href: "/relatorio", label: "Relatório" },
   { href: "/configuracoes", label: "Configurações" },
 ];
 
