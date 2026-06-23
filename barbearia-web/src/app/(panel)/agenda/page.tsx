@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 // ─── tipos ────────────────────────────────────────────────────────────────────
 
@@ -65,6 +66,7 @@ function todayStr() {
 // ─── componente ──────────────────────────────────────────────────────────────
 
 export default function AgendaPage() {
+  const router = useRouter();
   const [date, setDate] = useState(todayStr());
   const [filterProf, setFilterProf] = useState("");
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -367,6 +369,29 @@ export default function AgendaPage() {
                     <button onClick={() => updateStatus(a.id, "COMPLETED")}
                       className="rounded-xl border border-sky-400/20 bg-sky-400/10 px-3 py-2 text-xs text-sky-300 transition hover:bg-sky-400/20">
                       Concluir
+                    </button>
+                  )}
+                  {a.status === "COMPLETED" && (
+                    <button
+                      onClick={async () => {
+                        const res = await fetch("/api/comandas", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            appointmentId: a.id,
+                            customerId: a.customer?.id,
+                            professionalId: a.professional?.id,
+                            items: a.service ? [{ serviceId: a.service.id, name: a.service.name, quantity: 1, unitPrice: Number(a.service.price) }] : [],
+                          }),
+                        });
+                        if (res.ok) {
+                          const order = await res.json();
+                          router.push(`/comanda/${order.id}`);
+                        }
+                      }}
+                      className="rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-xs text-cyan-300 transition hover:bg-cyan-400/20"
+                    >
+                      Abrir comanda
                     </button>
                   )}
                   {!["COMPLETED", "CANCELLED", "NO_SHOW", "RESCHEDULED"].includes(a.status) && (

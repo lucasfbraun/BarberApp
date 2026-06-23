@@ -33,3 +33,4 @@
 
 ## Regra
 Toda mudanca de escopo apos o baselining deve ser registrada aqui antes de virar desenvolvimento.
+| 2026-06-22 | Painel admin master antecipado: features de barbearias/trials, revendedores e planos levantadas. Sprints 12-13 e IDs 30-33 adicionados ao cronograma. | Usuario | Planejado |

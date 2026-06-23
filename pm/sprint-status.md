@@ -14,3 +14,5 @@
 | 9 | Revendedor e cupons | Pendente | Cadastro de revendedor, cupom unico, dashboard de uso e comissao percentual. |
 | 10 | Pacotes e admin de precos | Pendente | Painel admin para planos. Exibicao dinamica no site. |
 | 11 | Trial automatico | Pendente | Todo cadastro ganha X dias. Controle de expiracao, bloqueio e upgrade. |
+| 12 | Admin Master: barbearias e trials | Pendente | Dashboard geral do SaaS: lista de barbearias, status (trial/ativo/cancelado), data de expiracao e plano. Rota /admin protegida por SUPERADMIN. |
+| 13 | Admin Master: revendedores e planos | Pendente | Gestao de revendedores (aprovacao, cupom, comissao). CRUD de planos com exibicao dinamica na landing page. |
