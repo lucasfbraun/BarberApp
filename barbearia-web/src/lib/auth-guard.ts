@@ -48,6 +48,29 @@ export function guardRole(
   return null;
 }
 
+/**
+ * Valida sessão e exige role SUPERADMIN.
+ * Não requer barbershopId — usado nas rotas /api/admin/*.
+ */
+export async function resolveAdmin(
+  request: Request,
+): Promise<{ userId: string; role: UserRole } | NextResponse> {
+  const token = await getToken({
+    req: request as never,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  if (!token?.userId) {
+    return NextResponse.json({ error: "Nao autorizado." }, { status: 401 });
+  }
+
+  if (token.role !== UserRole.SUPERADMIN) {
+    return NextResponse.json({ error: "Acesso restrito ao admin master." }, { status: 403 });
+  }
+
+  return { userId: token.userId as string, role: token.role as UserRole };
+}
+
 /** Roles que podem gerenciar a barbearia (owner e manager) */
 export const MANAGER_ROLES: UserRole[] = [UserRole.OWNER, UserRole.MANAGER];
 

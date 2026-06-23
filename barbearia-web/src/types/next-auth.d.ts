@@ -8,6 +8,7 @@ declare module "next-auth" {
       role: UserRole | null;
       activeBarbershopId: string | null;
       activeBarbershopSlug: string | null;
+      trialEndsAt: string | null;
     } & DefaultSession["user"];
   }
 
@@ -15,6 +16,7 @@ declare module "next-auth" {
     activeBarbershopId?: string | null;
     activeBarbershopSlug?: string | null;
     role?: UserRole | null;
+    trialEndsAt?: string | null;
   }
 }
 
@@ -24,5 +26,6 @@ declare module "next-auth/jwt" {
     role?: UserRole | null;
     activeBarbershopId?: string | null;
     activeBarbershopSlug?: string | null;
+    trialEndsAt?: string | null;
   }
 }

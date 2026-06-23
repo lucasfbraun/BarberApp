@@ -60,6 +60,7 @@ export const authOptions: NextAuthOptions = {
           role: membership?.role ?? null,
           activeBarbershopId: activeBarbershop?.id ?? null,
           activeBarbershopSlug: activeBarbershop?.slug ?? null,
+          trialEndsAt: activeBarbershop?.trialEndsAt?.toISOString() ?? null,
         };
       },
     }),
@@ -71,6 +72,7 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role ?? null;
         token.activeBarbershopId = user.activeBarbershopId ?? null;
         token.activeBarbershopSlug = user.activeBarbershopSlug ?? null;
+        token.trialEndsAt = user.trialEndsAt ?? null;
       }
 
       return token;
@@ -81,6 +83,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role ?? null;
         session.user.activeBarbershopId = token.activeBarbershopId ?? null;
         session.user.activeBarbershopSlug = token.activeBarbershopSlug ?? null;
+        session.user.trialEndsAt = token.trialEndsAt ?? null;
       }
 
       return session;
