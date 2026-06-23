@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 
 const features = [
   {
@@ -33,55 +34,49 @@ const features = [
   },
 ];
 
-const plans = [
-  {
-    name: "Básico",
-    price: "R$ 49",
-    period: "/mês",
-    description: "Ideal para barbearias que estão começando.",
-    highlight: false,
-    features: [
-      "Até 2 profissionais",
-      "Agendamento online",
-      "Página pública da barbearia",
-      "Agenda interna",
-      "Suporte por e-mail",
-    ],
-    cta: "Começar grátis",
-  },
-  {
-    name: "Profissional",
-    price: "R$ 99",
-    period: "/mês",
-    description: "Para barbearias em crescimento com equipe ativa.",
-    highlight: true,
-    features: [
-      "Até 8 profissionais",
-      "Tudo do Básico",
-      "Relatórios de faturamento",
-      "Controle de comissões",
-      "Suporte prioritário via WhatsApp",
-    ],
-    cta: "Começar grátis",
-  },
-  {
-    name: "Premium",
-    price: "R$ 199",
-    period: "/mês",
-    description: "Para redes de barbearias com múltiplas unidades.",
-    highlight: false,
-    features: [
-      "Profissionais ilimitados",
-      "Tudo do Profissional",
-      "Múltiplas unidades",
-      "API de integração",
-      "Gerente de conta dedicado",
-    ],
-    cta: "Falar com consultor",
-  },
-];
+type Plan = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  price: number;
+  maxProfessionals: number;
+  features: string[];
+  displayOrder: number;
+};
 
-export default function LandingPage() {
+async function getPlans(): Promise<Plan[]> {
+  try {
+    const plans = await prisma.plan.findMany({
+      where: { isActive: true },
+      orderBy: { displayOrder: "asc" },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        price: true,
+        maxProfessionals: true,
+        features: true,
+        displayOrder: true,
+      },
+    });
+    return plans.map((p) => ({
+      ...p,
+      price: Number(p.price),
+      features: Array.isArray(p.features) ? (p.features as string[]) : [],
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export default async function LandingPage() {
+  const plans = await getPlans();
+
+  // Highlight the middle plan
+  const highlighted = plans.length > 1 ? plans[Math.floor(plans.length / 2)]?.id : null;
+
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       {/* Nav */}
@@ -187,7 +182,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Planos */}
+      {/* Planos — dinâmicos do banco */}
       <section id="planos" className="bg-slate-900/50 px-6 py-24 sm:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="text-center">
@@ -199,52 +194,66 @@ export default function LandingPage() {
               Comece grátis por 30 dias. Sem cobranças surpresa.
             </p>
           </div>
-          <div className="mt-16 grid gap-8 lg:grid-cols-3">
-            {plans.map((plan) => (
-              <article
-                key={plan.name}
-                className={[
-                  "relative rounded-3xl border p-8",
-                  plan.highlight
-                    ? "border-cyan-400/40 bg-gradient-to-b from-cyan-400/10 to-slate-950"
-                    : "border-white/10 bg-white/5",
-                ].join(" ")}
-              >
-                {plan.highlight && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="rounded-full bg-cyan-400 px-4 py-1 text-xs font-bold text-slate-950">
-                      Mais popular
-                    </span>
-                  </div>
-                )}
-                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">{plan.name}</p>
-                <div className="mt-3 flex items-end gap-1">
-                  <span className="text-4xl font-bold text-white">{plan.price}</span>
-                  <span className="mb-1 text-slate-400">{plan.period}</span>
-                </div>
-                <p className="mt-2 text-sm text-slate-400">{plan.description}</p>
-                <ul className="mt-6 space-y-3">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-3 text-sm text-slate-300">
-                      <span className="mt-0.5 text-cyan-400">✓</span>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href="/cadastro"
-                  className={[
-                    "mt-8 block rounded-2xl py-3 text-center text-sm font-semibold transition",
-                    plan.highlight
-                      ? "bg-cyan-400 text-slate-950 hover:bg-cyan-300"
-                      : "border border-white/10 bg-white/5 text-white hover:bg-white/10",
-                  ].join(" ")}
-                >
-                  {plan.cta}
-                </Link>
-              </article>
-            ))}
-          </div>
+          {plans.length > 0 ? (
+            <div className="mt-16 grid gap-8 lg:grid-cols-3">
+              {plans.map((plan) => {
+                const isHighlighted = plan.id === highlighted;
+                return (
+                  <article
+                    key={plan.id}
+                    className={[
+                      "relative rounded-3xl border p-8",
+                      isHighlighted
+                        ? "border-cyan-400/40 bg-gradient-to-b from-cyan-400/10 to-slate-950"
+                        : "border-white/10 bg-white/5",
+                    ].join(" ")}
+                  >
+                    {isHighlighted && (
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                        <span className="rounded-full bg-cyan-400 px-4 py-1 text-xs font-bold text-slate-950">
+                          Mais popular
+                        </span>
+                      </div>
+                    )}
+                    <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">{plan.name}</p>
+                    <div className="mt-3 flex items-end gap-1">
+                      <span className="text-4xl font-bold text-white">
+                        R$ {Number(plan.price).toFixed(0)}
+                      </span>
+                      <span className="mb-1 text-slate-400">/mês</span>
+                    </div>
+                    {plan.description && (
+                      <p className="mt-2 text-sm text-slate-400">{plan.description}</p>
+                    )}
+                    {plan.maxProfessionals !== -1 && (
+                      <p className="mt-1 text-xs text-slate-500">Até {plan.maxProfessionals} profissionais</p>
+                    )}
+                    <ul className="mt-6 space-y-3">
+                      {plan.features.map((f) => (
+                        <li key={f} className="flex items-start gap-3 text-sm text-slate-300">
+                          <span className="mt-0.5 text-cyan-400">✓</span>
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                    <Link
+                      href="/cadastro"
+                      className={[
+                        "mt-8 block rounded-2xl py-3 text-center text-sm font-semibold transition",
+                        isHighlighted
+                          ? "bg-cyan-400 text-slate-950 hover:bg-cyan-300"
+                          : "border border-white/10 bg-white/5 text-white hover:bg-white/10",
+                      ].join(" ")}
+                    >
+                      Começar grátis
+                    </Link>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="mt-16 text-center text-slate-500">Planos em breve.</p>
+          )}
         </div>
       </section>
 
@@ -280,7 +289,7 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <Link
-                  href="/cadastro"
+                  href="/revendedor/cadastro"
                   className="mt-10 inline-block rounded-2xl bg-cyan-400 px-8 py-4 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
                 >
                   Quero ser revendedor
@@ -342,6 +351,7 @@ export default function LandingPage() {
           <div className="flex gap-6 text-xs text-slate-500">
             <Link href="/login" className="transition hover:text-white">Entrar</Link>
             <Link href="/cadastro" className="transition hover:text-white">Cadastrar</Link>
+            <Link href="/revendedor/cadastro" className="transition hover:text-white">Revendedor</Link>
           </div>
         </div>
       </footer>
