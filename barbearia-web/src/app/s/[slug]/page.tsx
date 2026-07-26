@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import InstallPrompt from "@/components/InstallPrompt";
 
 /* Página pública da barbearia — navegação LIVRE (sem login).
    O login só é exigido no fluxo de agendar (/s/[slug]/agendar). */
@@ -406,6 +407,10 @@ export default function PublicBarbershopPage() {
         )}
       </div>
       </div>
+
+      {/* Convite para instalar — acima do botão flutuante do carrinho.
+          Esta costuma ser a primeira tela do cliente (link da barbearia). */}
+      {!cartOpen && <InstallPrompt bottomClass="bottom-24" />}
 
       {/* Botão flutuante do carrinho */}
       <button

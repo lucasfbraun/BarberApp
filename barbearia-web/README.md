@@ -1,5 +1,10 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Documentação do projeto
+
+- [`PWA.md`](./PWA.md) — app instalável da área do cliente (service worker, cache, como testar)
+- [`SECURITY.md`](./SECURITY.md) — segredos, variáveis de ambiente e rotação de credenciais
+
 ## Getting Started
 
 First, run the development server:

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#2563eb" />
+    <title>Sem conexão — lbraunapp</title>
+    <!--
+      Fallback servido pelo service worker (public/sw.js) quando uma navegação
+      falha e não há versão em cache. Precisa ser autossuficiente: sem Tailwind,
+      sem JS externo, sem chamadas de rede.
+    -->
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: #f1f5f9;
+        color: #0f172a;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      .card {
+        width: 100%;
+        max-width: 380px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 32px 24px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      }
+      .logo {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16px;
+        background: #2563eb;
+        color: #fff;
+        font-size: 20px;
+        font-weight: 700;
+      }
+      h1 { margin: 0 0 8px; font-size: 20px; }
+      p { margin: 0; font-size: 14px; line-height: 1.6; color: #64748b; }
+      button {
+        margin-top: 24px;
+        width: 100%;
+        padding: 14px;
+        border: 0;
+        border-radius: 16px;
+        background: #2563eb;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button:hover { background: #1d4ed8; }
+      .hint { margin-top: 16px; font-size: 12px; color: #94a3b8; }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="logo">lb</div>
+      <h1>Você está sem conexão</h1>
+      <p>
+        Não conseguimos carregar esta tela agora. Verifique sua internet e tente
+        novamente — seus agendamentos continuam salvos.
+      </p>
+      <button type="button" onclick="location.reload()">Tentar novamente</button>
+      <p class="hint">As telas já visitadas continuam disponíveis offline.</p>
+    </main>
+  </body>
+</html>

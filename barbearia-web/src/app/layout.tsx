@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,8 +28,11 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport = {
+export const viewport: Viewport = {
   themeColor: "#2563eb",
+  // `cover` e o que faz `env(safe-area-inset-*)` valer no iPhone — sem isso a
+  // barra inferior do cliente fica atras do indicador de home.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -42,6 +46,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-slate-950 text-slate-100">
+        <ServiceWorkerRegister />
         {children}
       </body>
     </html>

@@ -42,7 +42,11 @@ function recentlyDismissed(): boolean {
   }
 }
 
-export default function InstallPrompt() {
+export default function InstallPrompt({
+  /* Distância do rodapé. Padrão assume a barra inferior do cliente;
+     telas com botão flutuante (ex.: carrinho em /s/[slug]) usam um valor maior. */
+  bottomClass = "bottom-16",
+}: { bottomClass?: string } = {}) {
   const [mode, setMode] = useState<"hidden" | "android" | "ios">("hidden");
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [showIosSteps, setShowIosSteps] = useState(false);
@@ -82,7 +86,7 @@ export default function InstallPrompt() {
   if (mode === "hidden") return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-16 z-40 px-4 pb-2">
+    <div className={`fixed inset-x-0 ${bottomClass} z-40 px-4 pb-2`}>
       <div className="mx-auto max-w-lg rounded-2xl border border-slate-200 bg-white p-4 shadow-lg">
         <div className="flex items-start gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-lg font-bold text-white">

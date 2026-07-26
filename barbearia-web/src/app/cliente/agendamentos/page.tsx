@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ClienteBottomNav from "@/components/ClienteBottomNav";
+import InstallPrompt from "@/components/InstallPrompt";
 
 type Appt = {
   id: string;
@@ -139,6 +140,7 @@ export default function ClienteAgendamentosPage() {
           </>
         )}
       </div>
+      <InstallPrompt />
       <ClienteBottomNav active="agendamentos" />
     </div>
   );
