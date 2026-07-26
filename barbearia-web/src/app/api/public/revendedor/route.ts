@@ -39,8 +39,10 @@ export async function POST(request: Request) {
       if (++attempts > 10) couponCode = `REV-${Date.now().toString(36).toUpperCase()}`;
     }
 
+    // Cadastro publico entra como PENDING: a ativacao (e o pagamento de
+    // comissao) so valem apos aprovacao no painel SUPERADMIN.
     const reseller = await db.reseller.create({
-      data: { name, email, phone: phone || null, couponCode, commissionRate: 10, status: "ACTIVE" },
+      data: { name, email, phone: phone || null, couponCode, commissionRate: 10, status: "PENDING" },
     });
 
     return NextResponse.json({
@@ -49,10 +51,12 @@ export async function POST(request: Request) {
       email: reseller.email,
       couponCode: reseller.couponCode,
       commissionRate: reseller.commissionRate,
+      status: reseller.status,
+      pendingApproval: true,
       dashboardUrl: `/revendedor/${reseller.couponCode}`,
     }, { status: 201 });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Erro inesperado.";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("[public/revendedor]", error);
+    return NextResponse.json({ error: "Nao foi possivel concluir o cadastro." }, { status: 500 });
   }
 }

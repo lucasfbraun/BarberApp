@@ -56,12 +56,32 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   if (body.action === "add_item" && body.item) {
     const item = body.item;
+
+    // Valida valores do item (evita total negativo / manipulacao).
+    if (!item.name?.trim() || item.quantity == null || item.quantity <= 0 || item.unitPrice == null || item.unitPrice < 0) {
+      return NextResponse.json(
+        { error: "Item invalido: informe nome, quantidade > 0 e preco >= 0." },
+        { status: 400 },
+      );
+    }
+
+    // Se referenciar um servico, ele precisa pertencer a esta barbearia.
+    if (item.serviceId) {
+      const svc = await prisma.service.findFirst({
+        where: { id: item.serviceId, barbershopId: tenant.barbershopId },
+        select: { id: true },
+      });
+      if (!svc) {
+        return NextResponse.json({ error: "Servico nao encontrado." }, { status: 404 });
+      }
+    }
+
     await prisma.orderItem.create({
       data: {
         orderId: id,
         type: item.serviceId ? "service" : "custom",
         serviceId: item.serviceId ?? null,
-        name: item.name,
+        name: item.name.trim(),
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         total: item.unitPrice * item.quantity,
@@ -78,7 +98,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   if (body.action === "remove_item" && body.itemId) {
-    await prisma.orderItem.delete({ where: { id: body.itemId } });
+    // Escopo do delete ao pedido atual: impede remover item de comanda de outro tenant (IDOR).
+    const del = await prisma.orderItem.deleteMany({ where: { id: body.itemId, orderId: id } });
+    if (del.count === 0) {
+      return NextResponse.json({ error: "Item nao encontrado nesta comanda." }, { status: 404 });
+    }
     const allItems = await prisma.orderItem.findMany({ where: { orderId: id } });
     const subtotal = allItems.reduce((s, i) => s + Number(i.total), 0);
     const updated = await prisma.order.update({

@@ -48,9 +48,12 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // Seleciona apenas um vinculo ATIVO em barbearia ATIVA.
+        // Sem fallback para memberships[0]: desativar o vinculo (active=false)
+        // nao deve conceder acesso ao painel/tenant.
         const membership = user.memberships.find(
           (item) => item.active && item.barbershop.status === "ACTIVE",
-        ) ?? user.memberships[0];
+        );
         const activeBarbershop = membership?.barbershop ?? null;
 
         return {

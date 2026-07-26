@@ -1,2 +1,7 @@
 .vercel
 .env*
+
+# Auditoria e cronograma de correcoes (uso interno, nao versionar)
+AUDITORIA-barbearia-web.md
+cronograma_correcoes_barbearia.xlsx
+cronograma_correcoes_barbearia.md

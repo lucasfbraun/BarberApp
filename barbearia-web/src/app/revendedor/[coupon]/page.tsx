@@ -4,22 +4,15 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-type Barbershop = { id: string; name: string; slug: string; since: string; revenue: number };
+type Barbershop = { id: string; name: string; slug: string; since: string };
 type Dashboard = {
   name: string;
-  email: string;
   couponCode: string;
   commissionRate: number;
   status: string;
   totalBarbershops: number;
-  totalRevenue: number;
-  totalCommission: number;
   barbershops: Barbershop[];
 };
-
-function fmt(v: number) {
-  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
 
 export default function RevendedorDashboard() {
   const params = useParams<{ coupon: string }>();
@@ -44,6 +37,8 @@ export default function RevendedorDashboard() {
   );
   if (!data) return null;
 
+  const pending = data.status && data.status.toUpperCase() !== "ACTIVE";
+
   return (
     <div className="min-h-screen bg-slate-950 px-6 py-12 text-white sm:px-10">
       <div className="mx-auto max-w-4xl space-y-8">
@@ -60,12 +55,18 @@ export default function RevendedorDashboard() {
           </div>
         </div>
 
+        {pending && (
+          <div className="rounded-2xl border border-amber-400/30 bg-amber-400/5 px-5 py-4 text-sm text-amber-300">
+            Seu cadastro está <span className="font-semibold">pendente de aprovação</span>. Você já pode divulgar
+            seu cupom; a comissão passa a contar após a aprovação.
+          </div>
+        )}
+
         {/* Cards */}
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           {[
-            { label: "Barbearias ativas", value: String(data.totalBarbershops), color: "text-cyan-400" },
-            { label: "Receita gerada", value: fmt(data.totalRevenue), color: "text-emerald-400" },
-            { label: "Comissão acumulada", value: fmt(data.totalCommission), color: "text-amber-400" },
+            { label: "Barbearias indicadas", value: String(data.totalBarbershops), color: "text-cyan-400" },
+            { label: "Sua comissão", value: `${data.commissionRate}%`, color: "text-amber-400" },
           ].map((c) => (
             <div key={c.label} className="rounded-2xl border border-white/10 bg-white/5 p-5">
               <p className="text-xs uppercase tracking-widest text-slate-500">{c.label}</p>
@@ -78,7 +79,8 @@ export default function RevendedorDashboard() {
         <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
           <p className="text-sm text-slate-400">
             Você recebe <span className="font-semibold text-cyan-400">{data.commissionRate}%</span> de comissão sobre
-            a receita gerada por cada barbearia que se cadastrou usando seu cupom.
+            a receita gerada por cada barbearia que se cadastrou usando seu cupom. Os valores consolidados ficam
+            disponíveis com a equipe lbraunapp.
           </p>
         </div>
 
@@ -98,8 +100,6 @@ export default function RevendedorDashboard() {
                   <tr className="border-b border-white/10 text-left text-xs uppercase tracking-widest text-slate-500">
                     <th className="px-5 py-3">Barbearia</th>
                     <th className="px-5 py-3">Desde</th>
-                    <th className="px-5 py-3 text-right">Receita</th>
-                    <th className="px-5 py-3 text-right">Sua comissão</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -108,10 +108,6 @@ export default function RevendedorDashboard() {
                       <td className="px-5 py-3 font-medium text-white">{b.name}</td>
                       <td className="px-5 py-3 text-slate-400">
                         {new Date(b.since).toLocaleDateString("pt-BR")}
-                      </td>
-                      <td className="px-5 py-3 text-right text-emerald-300">{fmt(b.revenue)}</td>
-                      <td className="px-5 py-3 text-right font-semibold text-amber-300">
-                        {fmt(b.revenue * (data.commissionRate / 100))}
                       </td>
                     </tr>
                   ))}

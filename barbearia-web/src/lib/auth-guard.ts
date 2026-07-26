@@ -1,6 +1,7 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import { UserRole } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 
 export type TenantContext = {
   barbershopId: string;
@@ -9,8 +10,12 @@ export type TenantContext = {
 };
 
 /**
- * Extrai o contexto do tenant a partir do JWT.
- * Retorna um NextResponse 401 se não autenticado, ou o contexto se OK.
+ * Extrai e REVALIDA o contexto do tenant a partir do JWT.
+ * - 401 se nao autenticado.
+ * - 403 se o vinculo foi desativado ou a barbearia nao esta ATIVA.
+ * Revalida no banco a cada request para que desativar usuario/tenant tenha
+ * efeito imediato (sem esperar o JWT de 30 dias expirar). O role tambem vem
+ * do banco, refletindo mudancas de permissao na hora.
  */
 export async function resolveTenant(
   request: Request,
@@ -24,16 +29,36 @@ export async function resolveTenant(
     return NextResponse.json({ error: "Nao autorizado." }, { status: 401 });
   }
 
-  return {
-    barbershopId: token.activeBarbershopId as string,
-    userId: token.userId as string,
-    role: token.role as UserRole,
-  };
+  const barbershopId = token.activeBarbershopId as string;
+  const userId = token.userId as string;
+
+  try {
+    const membership = await prisma.barbershopUser.findUnique({
+      where: { barbershopId_userId: { barbershopId, userId } },
+      include: {
+        barbershop: { select: { status: true } },
+        user: { select: { active: true } },
+      },
+    });
+
+    if (
+      !membership ||
+      !membership.active ||
+      !membership.user.active ||
+      membership.barbershop.status !== "ACTIVE"
+    ) {
+      return NextResponse.json({ error: "Acesso revogado." }, { status: 403 });
+    }
+
+    return { barbershopId, userId, role: membership.role };
+  } catch {
+    return NextResponse.json({ error: "Banco de dados indisponivel." }, { status: 503 });
+  }
 }
 
 /**
- * Verifica se o role está na lista de permitidos.
- * Retorna NextResponse 403 se não tiver permissão, ou null se OK.
+ * Verifica se o role esta na lista de permitidos.
+ * Retorna NextResponse 403 se nao tiver permissao, ou null se OK.
  */
 export function guardRole(
   role: UserRole,
@@ -49,8 +74,8 @@ export function guardRole(
 }
 
 /**
- * Valida sessão e exige role SUPERADMIN.
- * Não requer barbershopId — usado nas rotas /api/admin/*.
+ * Valida sessao e exige role SUPERADMIN ativo. Usado nas rotas /api/admin/*.
+ * Revalida no banco que o usuario ainda e um SUPERADMIN ativo.
  */
 export async function resolveAdmin(
   request: Request,
@@ -68,7 +93,19 @@ export async function resolveAdmin(
     return NextResponse.json({ error: "Acesso restrito ao admin master." }, { status: 403 });
   }
 
-  return { userId: token.userId as string, role: token.role as UserRole };
+  const userId = token.userId as string;
+
+  try {
+    const admin = await prisma.barbershopUser.findFirst({
+      where: { userId, role: UserRole.SUPERADMIN, active: true, user: { active: true } },
+    });
+    if (!admin) {
+      return NextResponse.json({ error: "Acesso restrito ao admin master." }, { status: 403 });
+    }
+    return { userId, role: UserRole.SUPERADMIN };
+  } catch {
+    return NextResponse.json({ error: "Banco de dados indisponivel." }, { status: 503 });
+  }
 }
 
 /** Roles que podem gerenciar a barbearia (owner e manager) */
