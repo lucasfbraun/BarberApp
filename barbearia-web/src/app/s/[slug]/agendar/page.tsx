@@ -135,6 +135,23 @@ export default function AgendarPage() {
     customer: { name: string };
   } | null>(null);
 
+  /* exige login do cliente: sem sessao, redireciona para o login
+     com retorno para esta pagina; logado, pre-preenche nome/telefone */
+  useEffect(() => {
+    fetch("/api/cliente/me").then(async (r) => {
+      if (r.status === 401) {
+        const target = `/s/${encodeURIComponent(slug)}/agendar`;
+        router.push(`/login?callbackUrl=${encodeURIComponent(target)}`);
+        return;
+      }
+      if (r.ok) {
+        const data = await r.json();
+        setCustomerName((prev) => prev || data.user?.name || "");
+        setCustomerPhone((prev) => prev || data.user?.phone || "");
+      }
+    }).catch(() => null);
+  }, [slug, router]);
+
   /* fetch barbershop */
   useEffect(() => {
     fetch(`/api/public/barbershop/${encodeURIComponent(slug)}`)

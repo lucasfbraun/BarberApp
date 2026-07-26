@@ -139,6 +139,37 @@ export async function resolveAdmin(
 }
 
 /**
+ * Contexto do CLIENTE FINAL logado (nao exige vinculo com barbearia).
+ * - 401 se nao autenticado ou usuario inativo.
+ * Usado nas rotas /api/cliente/* e no agendamento publico logado.
+ */
+export async function resolveCustomer(
+  request: Request,
+): Promise<{ userId: string; name: string; email: string; phone: string | null } | NextResponse> {
+  const token = await getToken({
+    req: request as never,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  if (!token?.userId) {
+    return NextResponse.json({ error: "Faca login para continuar." }, { status: 401 });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: token.userId as string },
+      select: { id: true, name: true, email: true, phone: true, active: true },
+    });
+    if (!user || !user.active) {
+      return NextResponse.json({ error: "Conta inativa." }, { status: 403 });
+    }
+    return { userId: user.id, name: user.name, email: user.email, phone: user.phone };
+  } catch {
+    return NextResponse.json({ error: "Banco de dados indisponivel." }, { status: 503 });
+  }
+}
+
+/**
  * Resolve o registro Professional vinculado ao usuario logado neste tenant.
  * Usado para restringir PROFESSIONAL a propria agenda/bloqueios.
  * Retorna null se o usuario nao tem profissional vinculado (Professional.userId).

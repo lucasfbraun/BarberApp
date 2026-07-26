@@ -45,6 +45,7 @@
 | 2026-07-26 | Isencao de contrato: campo billingExempt + acao set_exempt no admin, badge/filtro "Isenta"; correcao: plano ativo nao e mais bloqueado por trial vencido | Usuario | Implementado |
 | 2026-07-26 | Bloqueios de agenda: PROFESSIONAL cria bloqueio na propria agenda; desbloqueio exclusivo de OWNER/MANAGER; doc em pm/bloqueios-de-agenda.md | Usuario | Implementado |
 | 2026-07-26 | Modulo de estoque: Product + StockMovement, APIs produtos/movimentacoes/resumo, pagina /estoque, venda de produto na comanda com baixa automatica e lucro; doc em pm/estoque.md | Usuario | Implementado |
+| 2026-07-26 | Area do cliente final: conta com login obrigatorio p/ agendar, diretorio de barbearias com busca, ultima barbearia em destaque, meus agendamentos com cancelamento; doc em pm/area-do-cliente.md | Usuario | Implementado |
 
 
 ## Regra

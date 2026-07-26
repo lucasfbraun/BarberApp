@@ -1,13 +1,19 @@
 /**
  * POST /api/public/agendamentos
- * Rota pública — sem autenticação.
- * Cria um agendamento via página pública; resolve barbershopId a partir do professionalId.
+ * Agendamento da página pública — EXIGE cliente logado.
+ * Resolve barbershopId a partir do professionalId, vincula o Customer da
+ * barbearia à conta do cliente e grava a última barbearia acessada.
  */
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { AppointmentStatus } from "@prisma/client";
+import { resolveCustomer } from "@/lib/auth-guard";
 import { getClientIp, isRateLimited, rateLimitResponse } from "@/lib/rate-limit";
+
+// Cast temporario ate o Prisma Client ser regenerado (Customer.userId, User.lastBarbershopId).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = prisma as any;
 
 export async function POST(request: Request) {
   // M6: throttle por IP — 10 agendamentos por minuto.
@@ -15,22 +21,27 @@ export async function POST(request: Request) {
     return rateLimitResponse();
   }
 
+  // Cliente precisa estar logado para agendar.
+  const customer = await resolveCustomer(request);
+  if (customer instanceof NextResponse) return customer;
+
   try {
     const body = (await request.json()) as {
       professionalId: string;
       serviceId: string;
       startsAt: string; // ISO string
-      customerName: string;
+      customerName?: string;
       customerPhone?: string;
       notes?: string;
     };
 
-    const { professionalId, serviceId, startsAt: startsAtStr, customerName, customerPhone, notes } =
-      body;
+    const { professionalId, serviceId, startsAt: startsAtStr, notes } = body;
+    const customerName = body.customerName?.trim() || customer.name;
+    const customerPhone = body.customerPhone?.trim() || customer.phone || undefined;
 
-    if (!professionalId || !serviceId || !startsAtStr || !customerName?.trim()) {
+    if (!professionalId || !serviceId || !startsAtStr) {
       return NextResponse.json(
-        { error: "professionalId, serviceId, startsAt e customerName são obrigatórios." },
+        { error: "professionalId, serviceId e startsAt são obrigatórios." },
         { status: 400 },
       );
     }
@@ -79,26 +90,29 @@ export async function POST(request: Request) {
     const durationMinutes = ps.customDurationMinutes ?? service.durationMinutes;
     const endsAt = new Date(startsAt.getTime() + durationMinutes * 60_000);
 
-    // Cria ou recupera cliente
+    // Cria ou recupera o registro Customer desta barbearia, sempre
+    // vinculado a conta do cliente logado (userId).
     let customerId: string | null = null;
     const phone = customerPhone?.trim() || null;
 
-    const existingCustomer = phone
-      ? await prisma.customer.findFirst({ where: { barbershopId, phone } })
-      : null;
+    const existingCustomer =
+      (await db.customer.findFirst({ where: { barbershopId, userId: customer.userId } })) ??
+      (phone ? await prisma.customer.findFirst({ where: { barbershopId, phone } }) : null);
 
     if (existingCustomer) {
       customerId = existingCustomer.id;
-      await prisma.customer.update({
+      await db.customer.update({
         where: { id: existingCustomer.id },
-        data: { lastVisitAt: startsAt },
+        data: { lastVisitAt: startsAt, userId: customer.userId, ...(phone ? { phone } : {}) },
       });
     } else {
-      const newCustomer = await prisma.customer.create({
+      const newCustomer = await db.customer.create({
         data: {
           barbershopId,
-          name: customerName.trim(),
+          userId: customer.userId,
+          name: customerName,
           phone,
+          email: customer.email,
           firstVisitAt: startsAt,
           lastVisitAt: startsAt,
         },
@@ -154,6 +168,11 @@ export async function POST(request: Request) {
         { status: 409 },
       );
     }
+
+    // "Última barbearia": próximo acesso do cliente abre esta barbearia.
+    await db.user
+      .update({ where: { id: customer.userId }, data: { lastBarbershopId: barbershopId } })
+      .catch(() => null);
 
     return NextResponse.json({ appointment }, { status: 201 });
   } catch (err) {

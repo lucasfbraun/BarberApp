@@ -70,6 +70,7 @@ model User {
   passwordHash  String
   avatarUrl     String?
   active        Boolean          @default(true)
+  lastBarbershopId String?       // ultima barbearia em que o cliente agendou
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   memberships   BarbershopUser[]
@@ -233,6 +234,7 @@ model ProfessionalService {
 model Customer {
   id           String        @id @default(cuid())
   barbershopId String
+  userId       String?       // conta do cliente final (login), se houver
   name         String
   phone        String?
   email        String?
@@ -252,6 +254,7 @@ model Customer {
   reviews      Review[]
 
   @@index([barbershopId])
+  @@index([userId])
 }
 
 model Appointment {
