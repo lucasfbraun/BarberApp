@@ -27,4 +27,6 @@
 | 22 | Agendamento reformulado e fuso por tenant | Concluida | Fluxo de 4 para 3 etapas com profissional e agenda na mesma tela. Correcoes: horarios em branco, fuso do servidor na disponibilidade (B4 parcial) e vinculo automatico profissional<->servico com migration de backfill. Doc: pm/agendamento-e-fuso.md. |
 | 23 | Upload de imagem no painel | Concluida | Logo da barbearia com upload (redimensionamento no navegador, data URL no banco) e validacao no servidor; campo de URL mantido. Capa, foto de profissional e imagem de servico seguem por URL. Doc: pm/upload-de-imagens.md. |
 
-> Sprints 20-23 foram executadas antes das 17-19, que continuam planejadas. A numeracao segue a ordem de registro, nao a cronologica.
+| 24 | Identidade visual da area do cliente | Concluida | Redesign editorial das 6 telas do cliente para se afastar da semelhanca com o AppBarber: listas com divisoria no lugar de cartoes, sem sombra, cantos retos, paleta neutra e mudancas estruturais (dias, profissionais, horarios, abas, carrinho). Barra inferior mantida. Vocabulario em src/lib/ui.ts. Doc: pm/identidade-area-do-cliente.md. |
+
+> Sprints 20-24 foram executadas antes das 17-19, que continuam planejadas. A numeracao segue a ordem de registro, nao a cronologica.

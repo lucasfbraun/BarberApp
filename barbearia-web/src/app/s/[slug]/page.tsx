@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import InstallPrompt from "@/components/InstallPrompt";
+import { BUTTON, LABEL, MUTED, TITLE } from "@/lib/ui";
 
 /* Página pública da barbearia — navegação LIVRE (sem login).
    O login só é exigido no fluxo de agendar (/s/[slug]/agendar). */
@@ -76,19 +77,27 @@ function money(v: number) {
 }
 function Stars({ rating }: { rating: number }) {
   return (
-    <span className="text-amber-600">
-      {"★".repeat(Math.round(rating))}<span className="text-slate-400">{"★".repeat(5 - Math.round(rating))}</span>
+    <span className="text-neutral-900">
+      {"★".repeat(Math.round(rating))}
+      <span className="text-neutral-300">{"★".repeat(5 - Math.round(rating))}</span>
     </span>
   );
 }
 function ComingSoon({ title }: { title: string }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-slate-50 p-10 text-center">
-      <p className="text-2xl">🔜</p>
-      <h3 className="mt-3 text-lg font-semibold text-slate-900">{title} em breve</h3>
-      <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
-        Esta barbearia ainda não ativou este recurso. Fique de olho — novidades chegando!
-      </p>
+    <p className="border-l-2 border-neutral-900 py-1 pl-4 text-sm leading-relaxed text-neutral-500">
+      <span className="block font-medium text-neutral-900">{title} em breve</span>
+      Esta barbearia ainda não ativou este recurso.
+    </p>
+  );
+}
+
+/** Linha de informação — rótulo à esquerda, valor à direita. */
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-6 border-b border-neutral-200 py-3.5">
+      <dt className="shrink-0 text-neutral-500">{label}</dt>
+      <dd className="text-right font-medium text-neutral-900">{value}</dd>
     </div>
   );
 }
@@ -174,166 +183,161 @@ export default function PublicBarbershopPage() {
   }, [slug]);
 
   if (loading) {
-    return <main className="flex min-h-screen items-center justify-center bg-white text-sm text-slate-400">Carregando...</main>;
+    return <main className="flex min-h-screen items-center justify-center bg-white text-sm text-neutral-400">Carregando…</main>;
   }
   if (!shop) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-white text-slate-500">
-        <p>Barbearia não encontrada.</p>
-        <Link href="/cliente" className="text-cyan-700 hover:underline">Ver todas as barbearias</Link>
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white text-neutral-500">
+        <p className="text-sm">Barbearia não encontrada.</p>
+        <Link href="/cliente" className="text-sm text-neutral-900 underline underline-offset-4">Ver todas as barbearias</Link>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-white"><div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-      {/* Hero */}
-      <section className="overflow-hidden rounded-[32px] border border-slate-200 bg-slate-50 shadow-sm">
-        {shop.coverImageUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={shop.coverImageUrl} alt="" className="h-44 w-full object-cover" />
-        )}
-        <div className="flex flex-wrap items-center justify-between gap-6 p-6 sm:p-8">
-          <div className="flex items-center gap-4">
-            {shop.logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={shop.logoUrl} alt={shop.name} className="h-16 w-16 rounded-2xl object-cover" />
-            ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-100 text-2xl font-bold text-cyan-700">
-                {shop.name.charAt(0)}
-              </div>
-            )}
-            <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-slate-900">{shop.name}</h1>
-              <p className="mt-1 text-sm text-slate-500">
-                {[shop.city, shop.state].filter(Boolean).join(" · ") || `/${shop.slug}`}
-              </p>
-              {shop.ratingAverage !== null && (
-                <p className="mt-1 text-sm">
-                  <Stars rating={shop.ratingAverage} />{" "}
-                  <span className="text-slate-500">
-                    {shop.ratingAverage.toFixed(1)} ({shop.reviewCount} avaliaç{shop.reviewCount === 1 ? "ão" : "ões"})
-                  </span>
-                </p>
-              )}
+    <main className="min-h-screen bg-white text-neutral-900"><div className="mx-auto w-full max-w-3xl px-5 pb-24">
+      {/* Capa em faixa larga, sem moldura arredondada */}
+      {shop.coverImageUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={shop.coverImageUrl} alt="" className="-mx-5 h-40 w-[calc(100%+2.5rem)] max-w-none object-cover" />
+      )}
+
+      <section className={shop.coverImageUrl ? "pt-8" : "pt-12"}>
+        <Link href="/cliente" className={`${LABEL} transition hover:text-neutral-900`}>
+          ← Barbearias
+        </Link>
+
+        <div className="mt-5 flex items-start gap-5">
+          {shop.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={shop.logoUrl} alt={shop.name} className="h-16 w-16 shrink-0 border border-neutral-200 object-cover" />
+          ) : (
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center border border-neutral-200 bg-neutral-50 text-2xl font-light text-neutral-400">
+              {shop.name.charAt(0).toUpperCase()}
             </div>
-          </div>
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:gap-3">
-            <Link href={`/s/${shop.slug}/agendar`}
-              className="rounded-2xl bg-cyan-400 px-6 py-3 text-center text-sm font-semibold text-slate-950 transition hover:bg-cyan-300">
-              Agendar agora
-            </Link>
-            <Link href="/cliente"
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-center text-sm font-semibold text-slate-800 transition hover:border-cyan-300">
-              Outras barbearias
-            </Link>
+          )}
+          <div className="min-w-0">
+            <h1 className={TITLE}>{shop.name}</h1>
+            <p className={`${MUTED} mt-1`}>
+              {[shop.city, shop.state].filter(Boolean).join(" · ") || `/${shop.slug}`}
+            </p>
+            {shop.ratingAverage !== null && (
+              <p className="mt-1 text-sm text-neutral-500">
+                <Stars rating={shop.ratingAverage} />{" "}
+                {shop.ratingAverage.toFixed(1)} · {shop.reviewCount} avaliaç{shop.reviewCount === 1 ? "ão" : "ões"}
+              </p>
+            )}
           </div>
         </div>
+
+        <Link href={`/s/${shop.slug}/agendar`} className={`${BUTTON} mt-7 block text-center`}>
+          Agendar horário
+        </Link>
       </section>
 
-      {/* Abas */}
-      <div className="mt-6 flex gap-2 overflow-x-auto pb-1">
-        {TABS.map((t) => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            className={[
-              "shrink-0 rounded-xl border px-4 py-2 text-sm transition",
-              tab === t.key
-                ? "border-cyan-400 bg-cyan-50 text-cyan-700"
-                : "border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-900",
-            ].join(" ")}>
-            {t.label}
-            {t.soon && <span className="ml-1.5 rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] uppercase text-slate-400">breve</span>}
-          </button>
-        ))}
+      {/* Abas: texto sublinhado, não pílulas */}
+      <div className="-mx-5 mt-10 overflow-x-auto border-b border-neutral-200 px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex gap-7">
+          {TABS.map((t) => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className={[
+                "shrink-0 whitespace-nowrap border-b-2 pb-3 text-sm transition",
+                tab === t.key
+                  ? "border-neutral-900 font-medium text-neutral-900"
+                  : "border-transparent text-neutral-400 hover:text-neutral-900",
+              ].join(" ")}>
+              {t.label}
+              {t.soon && <span className="ml-1.5 text-[10px] uppercase tracking-wide text-neutral-300">breve</span>}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-8">
         {tab === "servicos" && (
           shop.services.length === 0 ? (
-            <p className="text-sm text-slate-500">Nenhum serviço disponível no momento.</p>
+            <p className={MUTED}>Nenhum serviço disponível no momento.</p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="border-t border-neutral-200">
               {shop.services.map((service) => (
-                <article key={service.id} className="flex flex-col rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                  {service.category && (
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{service.category.name}</p>
-                  )}
-                  <p className="mt-2 text-lg font-semibold text-slate-900">{service.name}</p>
-                  {service.description && (
-                    <p className="mt-2 line-clamp-2 text-sm text-slate-500">{service.description}</p>
-                  )}
-                  <div className="mt-auto flex items-center justify-between pt-4">
-                    <span className="text-sm text-slate-500">{formatDuration(service.durationMinutes)}</span>
-                    <span className="text-sm font-semibold text-cyan-700">{money(service.price)}</span>
-                  </div>
-                  <Link href={`/s/${shop.slug}/agendar`}
-                    className="mt-4 rounded-xl border border-cyan-300 bg-cyan-50 px-4 py-2 text-center text-xs font-semibold text-cyan-700 transition hover:bg-cyan-100">
-                    🛒 Reservar horário
+                <li key={service.id} className="border-b border-neutral-200">
+                  <Link href={`/s/${shop.slug}/agendar`} className="group flex items-baseline justify-between gap-6 py-5">
+                    <span className="min-w-0">
+                      {service.category && <span className={`${LABEL} block`}>{service.category.name}</span>}
+                      <span className="mt-1 block text-lg font-medium tracking-tight group-hover:underline group-hover:underline-offset-4">
+                        {service.name}
+                      </span>
+                      {service.description && (
+                        <span className="mt-1 block line-clamp-1 text-sm text-neutral-500">{service.description}</span>
+                      )}
+                      <span className="mt-2 block text-xs text-neutral-400">{formatDuration(service.durationMinutes)}</span>
+                    </span>
+                    <span className="shrink-0 text-base font-medium tabular-nums">{money(service.price)}</span>
                   </Link>
-                </article>
+                </li>
               ))}
-            </div>
+            </ul>
           )
         )}
 
         {tab === "detalhes" && (
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-              <h3 className="font-semibold text-slate-900">Sobre</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
+          <div className="space-y-10">
+            <div>
+              <h3 className={LABEL}>Sobre</h3>
+              <p className="mt-3 text-base leading-relaxed text-neutral-600">
                 {shop.description || "Esta barbearia ainda não escreveu uma descrição."}
               </p>
             </div>
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 space-y-3 text-sm">
-              <h3 className="font-semibold text-slate-900">Contato e endereço</h3>
-              {shop.address && (
-                <p className="text-slate-600">📍 {shop.address}{shop.city ? ` — ${shop.city}` : ""}{shop.state ? `/${shop.state}` : ""}{shop.zipCode ? ` · CEP ${shop.zipCode}` : ""}</p>
-              )}
-              {!shop.address && (shop.city || shop.state) && (
-                <p className="text-slate-600">📍 {[shop.city, shop.state].filter(Boolean).join("/")}</p>
-              )}
-              {shop.phone && <p className="text-slate-600">📞 {shop.phone}</p>}
-              {shop.whatsapp && (
-                <p>
-                  <a href={`https://wa.me/${shop.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer"
-                    className="text-green-600 hover:underline">💬 WhatsApp: {shop.whatsapp}</a>
-                </p>
-              )}
-              {shop.email && <p className="text-slate-600">✉️ {shop.email}</p>}
-              {!shop.phone && !shop.whatsapp && !shop.email && !shop.address && (
-                <p className="text-slate-400">Sem informações de contato cadastradas.</p>
-              )}
+            <div>
+              <h3 className={LABEL}>Contato e endereço</h3>
+              <dl className="mt-3 border-t border-neutral-200 text-sm">
+                {shop.address && (
+                  <InfoRow label="Endereço" value={`${shop.address}${shop.city ? ` — ${shop.city}` : ""}${shop.state ? `/${shop.state}` : ""}${shop.zipCode ? ` · CEP ${shop.zipCode}` : ""}`} />
+                )}
+                {!shop.address && (shop.city || shop.state) && (
+                  <InfoRow label="Cidade" value={[shop.city, shop.state].filter(Boolean).join("/")} />
+                )}
+                {shop.phone && <InfoRow label="Telefone" value={shop.phone} />}
+                {shop.whatsapp && (
+                  <div className="flex items-baseline justify-between gap-6 border-b border-neutral-200 py-3.5">
+                    <dt className="shrink-0 text-neutral-500">WhatsApp</dt>
+                    <dd className="text-right">
+                      <a href={`https://wa.me/${shop.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer"
+                        className="font-medium text-neutral-900 underline underline-offset-4">{shop.whatsapp}</a>
+                    </dd>
+                  </div>
+                )}
+                {shop.email && <InfoRow label="E-mail" value={shop.email} />}
+                {!shop.phone && !shop.whatsapp && !shop.email && !shop.address && (
+                  <p className="py-3.5 text-neutral-400">Sem informações de contato cadastradas.</p>
+                )}
+              </dl>
             </div>
           </div>
         )}
 
         {tab === "profissionais" && (
           shop.professionals.length === 0 ? (
-            <p className="text-sm text-slate-500">Nenhum profissional cadastrado.</p>
+            <p className={MUTED}>Nenhum profissional cadastrado.</p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3">
               {shop.professionals.map((p) => (
-                <article key={p.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                  <div className="flex items-center gap-4">
-                    {p.photoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.photoUrl} alt={p.name} className="h-14 w-14 rounded-2xl object-cover" />
-                    ) : (
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-xl font-bold text-slate-600">
-                        {p.name.charAt(0)}
-                      </div>
-                    )}
-                    <div>
-                      <p className="font-semibold text-slate-900">{p.name}</p>
-                      <p className="text-xs text-slate-400">Barbeiro</p>
+                <div key={p.id}>
+                  {p.photoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={p.photoUrl} alt={p.name} className="aspect-[3/4] w-full border border-neutral-200 object-cover grayscale transition hover:grayscale-0" />
+                  ) : (
+                    <div className="flex aspect-[3/4] w-full items-center justify-center border border-neutral-200 bg-neutral-50 text-3xl font-light text-neutral-400">
+                      {p.name.charAt(0).toUpperCase()}
                     </div>
-                  </div>
-                  {p.bio && <p className="mt-3 line-clamp-3 text-sm text-slate-500">{p.bio}</p>}
+                  )}
+                  <p className="mt-3 text-sm font-medium tracking-tight">{p.name}</p>
+                  {p.bio && <p className="mt-1 line-clamp-2 text-xs text-neutral-500">{p.bio}</p>}
                   <Link href={`/s/${shop.slug}/agendar`}
-                    className="mt-4 inline-block rounded-xl border border-cyan-300 bg-cyan-50 px-4 py-2 text-xs font-semibold text-cyan-700 transition hover:bg-cyan-100">
-                    Agendar com {p.name.split(" ")[0]}
+                    className="mt-2 inline-block text-xs text-neutral-500 underline underline-offset-4 transition hover:text-neutral-900">
+                    Agendar
                   </Link>
-                </article>
+                </div>
               ))}
             </div>
           )
@@ -341,32 +345,31 @@ export default function PublicBarbershopPage() {
 
         {tab === "produtos" && (
           shop.products.length === 0 ? (
-            <p className="text-sm text-slate-500">Nenhum produto à venda no momento.</p>
+            <p className={MUTED}>Nenhum produto à venda no momento.</p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="border-t border-neutral-200">
               {shop.products.map((p) => (
-                <article key={p.id} className="flex flex-col rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                  {p.category && (
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{p.category}</p>
-                  )}
-                  <p className="mt-2 text-lg font-semibold text-slate-900">{p.name}</p>
-                  {p.description && <p className="mt-2 line-clamp-2 text-sm text-slate-500">{p.description}</p>}
-                  <div className="mt-auto flex items-center justify-between pt-4">
-                    <span className={`text-xs ${p.stockQuantity > 0 ? "text-green-600" : "text-red-600"}`}>
-                      {p.stockQuantity > 0 ? "Disponível" : "Esgotado"}
-                    </span>
-                    <span className="text-sm font-semibold text-cyan-700">{money(p.salePrice)}</span>
+                <li key={p.id} className="flex items-start justify-between gap-6 border-b border-neutral-200 py-5">
+                  <div className="min-w-0">
+                    {p.category && <p className={LABEL}>{p.category}</p>}
+                    <p className="mt-1 text-base font-medium tracking-tight">{p.name}</p>
+                    {p.description && <p className="mt-1 line-clamp-1 text-sm text-neutral-500">{p.description}</p>}
+                    <p className={`mt-2 text-xs ${p.stockQuantity > 0 ? "text-neutral-400" : "text-red-600"}`}>
+                      {p.stockQuantity > 0 ? "Disponível · reserve e pague na barbearia" : "Esgotado"}
+                    </p>
                   </div>
-                  <button
-                    disabled={p.stockQuantity <= 0 || cartBusy === p.id}
-                    onClick={() => addToCart(p.id)}
-                    className="mt-4 rounded-xl bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40">
-                    {cartBusy === p.id ? "Adicionando..." : "🛒 Adicionar ao carrinho"}
-                  </button>
-                  <p className="mt-2 text-center text-xs text-slate-400">Reserva sem pagamento — pague na barbearia.</p>
-                </article>
+                  <div className="shrink-0 text-right">
+                    <p className="text-base font-medium tabular-nums">{money(p.salePrice)}</p>
+                    <button
+                      disabled={p.stockQuantity <= 0 || cartBusy === p.id}
+                      onClick={() => addToCart(p.id)}
+                      className="mt-2 border border-neutral-300 px-3 py-1.5 text-xs font-medium transition hover:border-neutral-900 disabled:opacity-30">
+                      {cartBusy === p.id ? "Reservando…" : "Reservar"}
+                    </button>
+                  </div>
+                </li>
               ))}
-            </div>
+            </ul>
           )
         )}
 
@@ -376,32 +379,39 @@ export default function PublicBarbershopPage() {
 
         {tab === "avaliacoes" && (
           shop.reviews.length === 0 ? (
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-10 text-center">
-              <p className="text-2xl">⭐</p>
-              <h3 className="mt-3 text-lg font-semibold text-slate-900">Ainda sem avaliações</h3>
-              <p className="mt-2 text-sm text-slate-500">Seja o primeiro a agendar e avaliar esta barbearia.</p>
-            </div>
+            <p className="border-l-2 border-neutral-900 py-1 pl-4 text-sm text-neutral-500">
+              Ainda sem avaliações. Seja o primeiro a agendar e avaliar esta barbearia.
+            </p>
           ) : (
-            <div className="space-y-3">
+            <div>
               {shop.ratingAverage !== null && (
-                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                  <p className="text-2xl font-bold text-slate-900">
-                    {shop.ratingAverage.toFixed(1)} <Stars rating={shop.ratingAverage} />
+                <div className="pb-6">
+                  <p className="text-5xl font-semibold tracking-tight tabular-nums">
+                    {shop.ratingAverage.toFixed(1)}
                   </p>
-                  <p className="text-sm text-slate-500">{shop.reviewCount} avaliaç{shop.reviewCount === 1 ? "ão" : "ões"}</p>
+                  <p className="mt-2 text-sm text-neutral-500">
+                    <Stars rating={shop.ratingAverage} /> · {shop.reviewCount} avaliaç
+                    {shop.reviewCount === 1 ? "ão" : "ões"}
+                  </p>
                 </div>
               )}
-              {shop.reviews.map((r) => (
-                <div key={r.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-slate-900">{r.customer?.name ?? "Cliente"}</p>
-                    <Stars rating={r.rating} />
-                  </div>
-                  {r.professional && <p className="mt-0.5 text-xs text-slate-400">Atendido por {r.professional.name}</p>}
-                  {r.comment && <p className="mt-2 text-sm text-slate-600">{r.comment}</p>}
-                  <p className="mt-2 text-xs text-slate-400">{new Date(r.createdAt).toLocaleDateString("pt-BR")}</p>
-                </div>
-              ))}
+              <ul className="border-t border-neutral-200">
+                {shop.reviews.map((r) => (
+                  <li key={r.id} className="border-b border-neutral-200 py-5">
+                    <div className="flex items-baseline justify-between gap-4">
+                      <p className="text-sm font-medium">{r.customer?.name ?? "Cliente"}</p>
+                      <Stars rating={r.rating} />
+                    </div>
+                    {r.professional && (
+                      <p className="mt-0.5 text-xs text-neutral-400">Atendido por {r.professional.name}</p>
+                    )}
+                    {r.comment && <p className="mt-2 text-sm leading-relaxed text-neutral-600">{r.comment}</p>}
+                    <p className="mt-2 text-xs text-neutral-400">
+                      {new Date(r.createdAt).toLocaleDateString("pt-BR")}
+                    </p>
+                  </li>
+                ))}
+              </ul>
             </div>
           )
         )}
@@ -415,12 +425,12 @@ export default function PublicBarbershopPage() {
       {/* Botão flutuante do carrinho */}
       <button
         onClick={() => setCartOpen(true)}
-        aria-label="Abrir carrinho"
-        className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-cyan-400 text-2xl shadow-lg transition hover:bg-cyan-300"
+        aria-label="Abrir reservas"
+        className="fixed bottom-5 right-5 z-40 flex items-center gap-2 bg-neutral-900 px-5 py-3.5 text-sm font-medium tracking-wide text-white transition hover:bg-neutral-700"
       >
-        🛒
+        Reservas
         {(cart?.count ?? 0) > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+          <span className="flex h-5 min-w-5 items-center justify-center bg-white px-1 text-xs font-semibold tabular-nums text-neutral-900">
             {cart!.count}
           </span>
         )}
@@ -428,99 +438,98 @@ export default function PublicBarbershopPage() {
 
       {/* Drawer do carrinho */}
       {cartOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40" onClick={() => setCartOpen(false)}>
+        <div className="fixed inset-0 z-50 flex justify-end bg-neutral-900/30" onClick={() => setCartOpen(false)}>
           <div
-            className="flex h-full w-full max-w-md flex-col bg-white shadow-2xl"
+            className="flex h-full w-full max-w-md flex-col border-l border-neutral-200 bg-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-slate-200 p-5">
-              <h3 className="text-lg font-bold text-slate-900">🛒 Meu carrinho</h3>
-              <button onClick={() => setCartOpen(false)} className="rounded-xl px-3 py-1 text-slate-500 hover:text-slate-900">✕</button>
+            <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-5">
+              <h3 className="text-lg font-semibold tracking-tight text-neutral-900">Suas reservas</h3>
+              <button onClick={() => setCartOpen(false)} aria-label="Fechar" className="text-neutral-400 hover:text-neutral-900">✕</button>
             </div>
 
-            <div className="flex-1 space-y-5 overflow-y-auto p-5">
+            <div className="flex-1 space-y-8 overflow-y-auto px-5 py-6">
               {cartMsg && (
-                <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">{cartMsg}</p>
+                <p className="border-l-2 border-red-600 py-1 pl-4 text-sm text-red-600">{cartMsg}</p>
               )}
 
               {!cart || cart.count === 0 ? (
-                <div className="py-10 text-center text-sm text-slate-500">
-                  <p className="text-3xl">🛒</p>
-                  <p className="mt-3">Seu carrinho está vazio.</p>
-                  <p className="mt-1 text-xs text-slate-400">Reserve um horário ou adicione produtos.</p>
-                </div>
+                <p className="border-l-2 border-neutral-900 py-1 pl-4 text-sm leading-relaxed text-neutral-500">
+                  <span className="block font-medium text-neutral-900">Nada reservado ainda</span>
+                  Reserve um horário ou adicione produtos.
+                </p>
               ) : (
                 <>
                   {/* Serviços reservados */}
                   {cart.appointments.length > 0 && (
                     <div>
-                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-700">Serviços reservados</p>
-                      <div className="space-y-2">
+                      <p className={LABEL}>Serviços reservados</p>
+                      <ul className="mt-3 border-t border-neutral-200">
                         {cart.appointments.map((a) => (
-                          <div key={a.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                            <div className="flex items-start justify-between gap-2">
-                              <div>
-                                <p className="text-sm font-semibold text-slate-900">{a.service?.name ?? "Serviço"}</p>
-                                <p className="text-xs text-slate-500">
+                          <li key={a.id} className="border-b border-neutral-200 py-4">
+                            <div className="flex items-baseline justify-between gap-4">
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-neutral-900">{a.service?.name ?? "Serviço"}</p>
+                                <p className="mt-0.5 text-xs text-neutral-500">
                                   {a.professional ? `com ${a.professional.name} · ` : ""}
                                   {new Date(a.startsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}{" "}
                                   às {new Date(a.startsAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                                 </p>
                               </div>
-                              <span className="text-sm font-semibold text-cyan-700">{money(Number(a.service?.price ?? 0))}</span>
+                              <span className="shrink-0 text-sm font-medium tabular-nums">{money(Number(a.service?.price ?? 0))}</span>
                             </div>
                             <button
                               disabled={cartBusy === a.id}
                               onClick={() => removeAppointment(a.id)}
-                              className="mt-2 text-xs text-red-600 hover:underline disabled:opacity-50">
-                              {cartBusy === a.id ? "Removendo..." : "Remover reserva"}
+                              className="mt-2 text-xs text-red-600 underline underline-offset-4 disabled:opacity-40">
+                              {cartBusy === a.id ? "Removendo…" : "Remover reserva"}
                             </button>
-                          </div>
+                          </li>
                         ))}
-                      </div>
+                      </ul>
                     </div>
                   )}
 
                   {/* Produtos */}
                   {cart.order && cart.order.items.length > 0 && (
                     <div>
-                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-700">Produtos</p>
-                      <div className="space-y-2">
+                      <p className={LABEL}>Produtos</p>
+                      <ul className="mt-3 border-t border-neutral-200">
                         {cart.order.items.map((i) => (
-                          <div key={i.id} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                            <div>
-                              <p className="text-sm font-semibold text-slate-900">{i.name}</p>
-                              <p className="text-xs text-slate-500">{i.quantity}x · {money(Number(i.unitPrice))}</p>
+                          <li key={i.id} className="flex items-baseline justify-between gap-4 border-b border-neutral-200 py-4">
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-neutral-900">{i.name}</p>
+                              <p className="mt-0.5 text-xs text-neutral-500">{i.quantity}× · {money(Number(i.unitPrice))}</p>
                               <button
                                 disabled={cartBusy === i.id}
                                 onClick={() => removeProduct(i.id)}
-                                className="mt-1 text-xs text-red-600 hover:underline disabled:opacity-50">
-                                {cartBusy === i.id ? "Removendo..." : "Remover"}
+                                className="mt-2 text-xs text-red-600 underline underline-offset-4 disabled:opacity-40">
+                                {cartBusy === i.id ? "Removendo…" : "Remover"}
                               </button>
                             </div>
-                            <span className="text-sm font-semibold text-cyan-700">{money(Number(i.total))}</span>
-                          </div>
+                            <span className="shrink-0 text-sm font-medium tabular-nums">{money(Number(i.total))}</span>
+                          </li>
                         ))}
-                      </div>
+                      </ul>
                     </div>
                   )}
                 </>
               )}
             </div>
 
-            <div className="space-y-3 border-t border-slate-200 p-5">
+            <div className="border-t border-neutral-200 px-5 py-5">
               {cart && cart.count > 0 && (
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">Total estimado</span>
-                  <span className="text-lg font-bold text-slate-900">{money(cart.totals.estimated)}</span>
+                <div className="flex items-baseline justify-between pb-4">
+                  <span className="text-sm text-neutral-500">Total estimado</span>
+                  <span className="text-2xl font-semibold tracking-tight tabular-nums">
+                    {money(cart.totals.estimated)}
+                  </span>
                 </div>
               )}
-              <p className="text-xs text-slate-400">
-                Nada é cobrado agora — tudo fica <span className="font-semibold text-slate-600">reservado</span> e você paga na barbearia.
+              <p className="text-xs leading-relaxed text-neutral-400">
+                Nada é cobrado agora. Tudo fica reservado e você paga na barbearia.
               </p>
-              <Link
-                href={`/s/${slug}/agendar`}
-                className="block rounded-2xl bg-cyan-400 px-4 py-3 text-center text-sm font-semibold text-slate-950 transition hover:bg-cyan-300">
+              <Link href={`/s/${slug}/agendar`} className={`${BUTTON} mt-4 block text-center`}>
                 {cart && cart.appointments.length > 0 ? "Reservar outro serviço" : "Reservar um serviço"}
               </Link>
             </div>

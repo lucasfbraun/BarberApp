@@ -58,14 +58,14 @@ export default function SocialLoginButtons({ callbackUrl }: { callbackUrl: strin
   if (ids.length === 0) return null;
 
   return (
-    <div className="mt-5">
-      <div className="flex items-center gap-3">
-        <span className="h-px flex-1 bg-slate-200" />
-        <span className="text-xs text-slate-400">ou</span>
-        <span className="h-px flex-1 bg-slate-200" />
+    <div className="mt-8">
+      <div className="flex items-center gap-4">
+        <span className="h-px flex-1 bg-neutral-200" />
+        <span className="text-[11px] uppercase tracking-[0.18em] text-neutral-400">ou</span>
+        <span className="h-px flex-1 bg-neutral-200" />
       </div>
 
-      <div className="mt-4 space-y-2.5">
+      <div className="mt-6 space-y-3">
         {ids.map((id) => (
           <button
             key={id}
@@ -75,15 +75,15 @@ export default function SocialLoginButtons({ callbackUrl }: { callbackUrl: strin
               setBusy(id);
               signIn(id, { callbackUrl });
             }}
-            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-3 border border-neutral-300 px-5 py-4 text-sm font-medium tracking-wide text-neutral-900 transition hover:border-neutral-900 disabled:opacity-40"
           >
             {id === "google" ? <GoogleIcon /> : <FacebookIcon />}
-            {busy === id ? "Redirecionando..." : LABELS[id]}
+            {busy === id ? "Redirecionando…" : LABELS[id]}
           </button>
         ))}
       </div>
 
-      <p className="mt-3 text-center text-xs text-slate-400">
+      <p className="mt-4 text-center text-xs text-neutral-400">
         Usamos apenas seu nome e e-mail para criar a conta.
       </p>
     </div>

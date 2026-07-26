@@ -3,6 +3,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import ClienteBottomNav from "@/components/ClienteBottomNav";
 import InstallPrompt from "@/components/InstallPrompt";
+import { HEADING, LABEL, MUTED, TITLE } from "@/lib/ui";
+
+/* Home da área do cliente. Linguagem visual em src/lib/ui.ts:
+   listas com divisória fina no lugar de cartões, sem sombra, paleta neutra. */
 
 type Shop = {
   id: string; name: string; slug: string; description: string | null;
@@ -18,37 +22,40 @@ type Appt = {
   service: { name: string } | null;
 };
 
-const BANNERS = [
-  {
-    title: "Agende sem ligar, direto pelo app",
-    subtitle: "Escolha serviço, profissional e horário em poucos toques.",
-    cls: "from-blue-600 to-cyan-500",
-  },
-  {
-    title: "Seu horário fica reservado no carrinho",
-    subtitle: "Nada é cobrado online — você paga na barbearia.",
-    cls: "from-slate-800 to-slate-600",
-  },
-  {
-    title: "Produtos da sua barbearia favorita",
-    subtitle: "Reserve cosméticos e retire no balcão.",
-    cls: "from-cyan-600 to-teal-500",
-  },
-];
-
 function formatToday() {
-  const s = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "short", year: "numeric" });
+  const s = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function ShopAvatar({ shop, size }: { shop: { name: string; logoUrl: string | null }; size: string }) {
+/** Marca da barbearia em quadrado, não em círculo. */
+function ShopMark({ shop, size }: { shop: { name: string; logoUrl: string | null }; size: string }) {
   return shop.logoUrl ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={shop.logoUrl} alt={shop.name} className={`${size} rounded-full border border-slate-200 object-cover`} />
+    <img src={shop.logoUrl} alt={shop.name} className={`${size} border border-neutral-200 object-cover`} />
   ) : (
-    <div className={`${size} flex items-center justify-center rounded-full bg-blue-100 font-bold text-blue-700`}>
-      {shop.name.charAt(0)}
+    <div className={`${size} flex items-center justify-center border border-neutral-200 bg-neutral-50 text-lg font-light text-neutral-400`}>
+      {shop.name.charAt(0).toUpperCase()}
     </div>
+  );
+}
+
+/** Linha de barbearia — divisória fina, sem cartão. */
+function ShopRow({ shop }: { shop: Shop }) {
+  return (
+    <li className="border-b border-neutral-200">
+      <Link href={`/s/${shop.slug}`} className="group flex items-center gap-4 py-4">
+        <ShopMark shop={shop} size="h-14 w-14 shrink-0" />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-base font-medium tracking-tight text-neutral-900 group-hover:underline group-hover:underline-offset-4">
+            {shop.name}
+          </span>
+          <span className="mt-0.5 block truncate text-sm text-neutral-500">
+            {[shop.city, shop.state].filter(Boolean).join(" · ") || shop.description || ""}
+          </span>
+        </span>
+        <span className="shrink-0 text-neutral-300 transition group-hover:text-neutral-900">→</span>
+      </Link>
+    </li>
   );
 }
 
@@ -59,7 +66,6 @@ export default function ClienteHomePage() {
   const [appts, setAppts] = useState<Appt[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [banner, setBanner] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -87,12 +93,6 @@ export default function ClienteHomePage() {
 
   useEffect(() => { loadShops(); }, [loadShops]);
 
-  /* carrossel automático */
-  useEffect(() => {
-    const t = setInterval(() => setBanner((b) => (b + 1) % BANNERS.length), 5000);
-    return () => clearInterval(t);
-  }, []);
-
   const firstName = me?.user.name.split(" ")[0];
   const lastAppt = appts[0] ?? null;
 
@@ -110,169 +110,136 @@ export default function ClienteHomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 pb-24 text-slate-800">
-      <div className="mx-auto max-w-lg">
-        {/* Header */}
-        <div className="bg-slate-100 px-4 pt-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">
-                Olá {firstName ? <span className="text-blue-600">{firstName}</span> : <span className="text-blue-600">visitante</span>}
-              </h1>
-              <p className="mt-0.5 text-sm text-slate-500">{formatToday()}</p>
-            </div>
-            <button aria-label="Notificações" className="mt-1 text-slate-500">
-              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 8-3 8h18s-3-1-3-8" /><path d="M13.7 21a2 2 0 0 1-3.4 0" />
-              </svg>
+    <div className="min-h-screen bg-white pb-24 text-neutral-900">
+      <div className="mx-auto max-w-lg px-5">
+        {/* Cabeçalho editorial: data pequena em cima, nome grande embaixo. */}
+        <header className="pt-10">
+          <p className={LABEL}>{formatToday()}</p>
+          <h1 className={`${TITLE} mt-3`}>
+            {firstName ? `Olá, ${firstName}` : "Encontre sua barbearia"}
+          </h1>
+        </header>
+
+        {/* Busca: campo com linha embaixo, sem caixa. */}
+        <div className="mt-8 flex items-center gap-3 border-b border-neutral-300 pb-2 focus-within:border-neutral-900">
+          <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-neutral-400" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+            <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            ref={searchRef}
+            placeholder="Buscar por nome ou cidade"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-transparent py-1.5 text-base text-neutral-900 outline-none placeholder:text-neutral-400"
+          />
+          {search && (
+            <button onClick={() => setSearch("")} aria-label="Limpar busca" className="text-sm text-neutral-400 hover:text-neutral-900">
+              ✕
             </button>
-          </div>
-
-          {/* Busca */}
-          <div className="relative mt-4 pb-5">
-            <svg viewBox="0 0 24 24" className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-              <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
-            </svg>
-            <input
-              ref={searchRef}
-              placeholder="Encontre um estabelecimento"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 shadow-sm outline-none placeholder:text-slate-400 focus:border-blue-400"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-6 px-4 pt-5">
-          {/* Resultados da busca */}
-          {search.trim() ? (
-            <section>
-              <h2 className="mb-3 text-lg font-bold text-slate-900">Resultados</h2>
-              {loading ? (
-                <p className="text-sm text-slate-400">Buscando...</p>
-              ) : shops.length === 0 ? (
-                <p className="rounded-2xl bg-white p-5 text-sm text-slate-500 shadow-sm">
-                  Nenhum estabelecimento encontrado para “{search}”.
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {shops.map((s) => (
-                    <Link key={s.id} href={`/s/${s.slug}`}
-                      className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition hover:border-blue-300">
-                      <ShopAvatar shop={s} size="h-12 w-12 text-lg" />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-semibold text-slate-900">{s.name}</p>
-                        <p className="truncate text-xs text-slate-500">{[s.city, s.state].filter(Boolean).join(" · ") || s.description || ""}</p>
-                      </div>
-                      <span className="text-blue-600">›</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </section>
-          ) : (
-            <>
-              {/* Último agendamento */}
-              {lastAppt && (
-                <section>
-                  <h2 className="mb-3 text-lg font-bold text-slate-900">Último agendamento</h2>
-                  <Link
-                    href={`/s/${lastAppt.barbershop.slug}`}
-                    className="flex items-center gap-3 rounded-full border-2 border-slate-900/80 bg-white p-2 pr-4 shadow-sm transition hover:border-blue-400"
-                  >
-                    <ShopAvatar shop={lastAppt.barbershop} size="h-12 w-12 text-lg" />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-semibold text-slate-900">{lastAppt.barbershop.name}</p>
-                      <p className="truncate text-xs text-slate-500">
-                        {lastAppt.service?.name ?? "Serviço"} ·{" "}
-                        {new Date(lastAppt.startsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
-                      </p>
-                    </div>
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-green-500 text-green-600">›</span>
-                  </Link>
-                </section>
-              )}
-
-              {/* Banner carrossel */}
-              <section>
-                <div className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${BANNERS[banner].cls} p-6 text-white shadow-sm`}>
-                  <p className="max-w-[85%] text-lg font-bold leading-snug">{BANNERS[banner].title}</p>
-                  <p className="mt-2 max-w-[85%] text-sm text-white/80">{BANNERS[banner].subtitle}</p>
-                </div>
-                <div className="mt-2 flex justify-center gap-1.5">
-                  {BANNERS.map((_, i) => (
-                    <button key={i} onClick={() => setBanner(i)} aria-label={`Banner ${i + 1}`}
-                      className={`h-2 rounded-full transition-all ${i === banner ? "w-4 bg-blue-600" : "w-2 bg-slate-300"}`} />
-                  ))}
-                </div>
-              </section>
-
-              {/* Últimos acessos */}
-              {recentShops.length > 0 && (
-                <section>
-                  <div className="mb-3 flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-slate-900">Últimos acessos</h2>
-                    <Link href="/cliente/agendamentos" className="text-sm text-blue-600">Ver tudo</Link>
-                  </div>
-                  <div className="flex gap-5 overflow-x-auto pb-2">
-                    {recentShops.map((s) => (
-                      <Link key={s.id} href={`/s/${s.slug}`} className="flex w-20 shrink-0 flex-col items-center gap-2 text-center">
-                        <ShopAvatar shop={s} size="h-16 w-16 text-xl" />
-                        <span className="line-clamp-2 text-xs text-slate-700">{s.name}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {/* Estabelecimentos */}
-              <section>
-                <h2 className="mb-3 text-lg font-bold text-slate-900">Estabelecimentos</h2>
-                {loading ? (
-                  <p className="text-sm text-slate-400">Carregando...</p>
-                ) : (
-                  <div className="space-y-2">
-                    {shops.map((s) => (
-                      <Link key={s.id} href={`/s/${s.slug}`}
-                        className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition hover:border-blue-300">
-                        <ShopAvatar shop={s} size="h-12 w-12 text-lg" />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-semibold text-slate-900">{s.name}</p>
-                          <p className="truncate text-xs text-slate-500">{[s.city, s.state].filter(Boolean).join(" · ") || s.description || ""}</p>
-                        </div>
-                        <span className="text-blue-600">›</span>
-                      </Link>
-                    ))}
-                    {shops.length === 0 && (
-                      <p className="rounded-2xl bg-white p-5 text-sm text-slate-500 shadow-sm">Nenhum estabelecimento cadastrado ainda.</p>
-                    )}
-                  </div>
-                )}
-              </section>
-            </>
           )}
         </div>
+
+        {search.trim() ? (
+          <section className="mt-10">
+            <h2 className={LABEL}>Resultados</h2>
+            {loading ? (
+              <p className={`${MUTED} mt-4`}>Buscando…</p>
+            ) : shops.length === 0 ? (
+              <p className="mt-4 border-l-2 border-neutral-900 py-1 pl-4 text-sm text-neutral-500">
+                Nada encontrado para “{search}”.
+              </p>
+            ) : (
+              <ul className="mt-2 border-t border-neutral-200">
+                {shops.map((s) => <ShopRow key={s.id} shop={s} />)}
+              </ul>
+            )}
+          </section>
+        ) : (
+          <>
+            {/* Próximo agendamento em destaque tipográfico. */}
+            {lastAppt && (
+              <section className="mt-12">
+                <h2 className={LABEL}>Seu último agendamento</h2>
+                <Link href={`/s/${lastAppt.barbershop.slug}`} className="group mt-3 block">
+                  <p className="text-2xl font-semibold tracking-tight group-hover:underline group-hover:underline-offset-4">
+                    {lastAppt.barbershop.name}
+                  </p>
+                  <p className="mt-1 text-sm text-neutral-500">
+                    {lastAppt.service?.name ?? "Serviço"} ·{" "}
+                    {new Date(lastAppt.startsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "long" })}
+                    {" · "}
+                    {new Date(lastAppt.startsAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </Link>
+              </section>
+            )}
+
+            {/* Últimos acessos: marcas quadradas em linha. */}
+            {recentShops.length > 0 && (
+              <section className="mt-12">
+                <div className="flex items-baseline justify-between gap-4">
+                  <h2 className={LABEL}>Você já esteve aqui</h2>
+                  <Link href="/cliente/agendamentos" className="text-xs text-neutral-500 underline underline-offset-4 hover:text-neutral-900">
+                    Ver tudo
+                  </Link>
+                </div>
+                <div className="-mx-5 mt-4 overflow-x-auto px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="flex gap-4">
+                    {recentShops.map((s) => (
+                      <Link key={s.id} href={`/s/${s.slug}`} className="w-20 shrink-0">
+                        <ShopMark shop={s} size="h-20 w-20" />
+                        <span className="mt-2 block line-clamp-2 text-xs text-neutral-600">{s.name}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            <section className="mt-12">
+              <h2 className={HEADING}>Barbearias</h2>
+              {loading ? (
+                <p className={`${MUTED} mt-4`}>Carregando…</p>
+              ) : shops.length === 0 ? (
+                <p className="mt-4 border-l-2 border-neutral-900 py-1 pl-4 text-sm text-neutral-500">
+                  Nenhuma barbearia cadastrada ainda.
+                </p>
+              ) : (
+                <ul className="mt-4 border-t border-neutral-200">
+                  {shops.map((s) => <ShopRow key={s.id} shop={s} />)}
+                </ul>
+              )}
+            </section>
+          </>
+        )}
       </div>
 
-      {/* Menu (bottom sheet) */}
+      {/* Menu inferior */}
       {menuOpen && (
-        <div className="fixed inset-0 z-50 flex items-end bg-slate-900/40" onClick={() => setMenuOpen(false)}>
-          <div className="w-full rounded-t-3xl bg-white p-5 pb-8" onClick={(e) => e.stopPropagation()}>
-            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-slate-300" />
-            <div className="space-y-1">
-              {me ? (
-                <>
-                  <p className="px-3 pb-2 text-sm text-slate-500">Conectado como <span className="font-semibold text-slate-800">{me.user.name}</span></p>
-                  <Link href="/cliente/agendamentos" className="block rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-slate-100">📅 Meus agendamentos</Link>
-                  <Link href="/api/auth/signout?callbackUrl=/cliente" className="block rounded-xl px-3 py-3 text-sm font-medium text-red-600 hover:bg-red-50">Sair da conta</Link>
-                </>
-              ) : loggedOut ? (
-                <>
-                  <Link href="/cliente/login?callbackUrl=/cliente" className="block rounded-xl px-3 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50">Entrar</Link>
-                  <Link href="/cliente/cadastro" className="block rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-slate-100">Criar conta</Link>
-                </>
-              ) : null}
-            </div>
+        <div className="fixed inset-0 z-50 flex items-end bg-neutral-900/30" onClick={() => setMenuOpen(false)}>
+          <div className="w-full border-t border-neutral-200 bg-white px-5 pb-10 pt-6" onClick={(e) => e.stopPropagation()}>
+            {me ? (
+              <>
+                <p className={LABEL}>Conectado como {me.user.name}</p>
+                <div className="mt-4 border-t border-neutral-200">
+                  <Link href="/cliente/agendamentos" className="block border-b border-neutral-200 py-4 text-base font-medium">
+                    Meus agendamentos
+                  </Link>
+                  <Link href="/api/auth/signout?callbackUrl=/cliente" className="block py-4 text-base font-medium text-red-600">
+                    Sair da conta
+                  </Link>
+                </div>
+              </>
+            ) : loggedOut ? (
+              <div className="border-t border-neutral-200">
+                <Link href="/cliente/login?callbackUrl=/cliente" className="block border-b border-neutral-200 py-4 text-base font-medium">
+                  Entrar
+                </Link>
+                <Link href="/cliente/cadastro" className="block py-4 text-base font-medium">
+                  Criar conta
+                </Link>
+              </div>
+            ) : null}
           </div>
         </div>
       )}

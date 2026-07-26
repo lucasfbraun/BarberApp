@@ -3,16 +3,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { BUTTON, HEADING, INPUT, LABEL, MUTED, TILE, TILE_OFF, TILE_ON, TITLE } from "@/lib/ui";
 
 /**
  * Fluxo de agendamento da barbearia (área do cliente).
  *
  * 1. servico  — escolhe o que vai fazer
- * 2. agenda   — faixa de dias + profissional + horários livres na mesma tela
+ * 2. agenda   — dia + profissional + horários livres na mesma tela
  * 3. resumo   — confere e confirma (nome/telefone vêm da conta logada)
  * 4. ok       — comprovante
  *
  * Exige login: sem sessão, manda para /cliente/login e volta para cá.
+ * Linguagem visual em src/lib/ui.ts.
  */
 
 /* ────────────────────────────────────────────────── types */
@@ -50,10 +52,16 @@ interface Slot {
 }
 
 type Step = "servico" | "agenda" | "resumo" | "ok";
+type Period = "manha" | "tarde" | "noite";
 
 /* ────────────────────────────────────────────────── helpers */
 
-const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+const WEEKDAYS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+const PERIOD_LABEL: Record<Period, string> = {
+  manha: "Manhã",
+  tarde: "Tarde",
+  noite: "Noite",
+};
 
 /** Quantos dias para frente a faixa de datas oferece. */
 const DAYS_AHEAD = 60;
@@ -92,118 +100,52 @@ function slotLabel(iso: string) {
   return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
+function periodOf(iso: string): Period {
+  const hour = new Date(iso).getHours();
+  if (hour < 12) return "manha";
+  if (hour < 18) return "tarde";
+  return "noite";
+}
+
 function longDate(iso: string) {
-  return capitalize(
-    fromISODate(iso).toLocaleDateString("pt-BR", {
-      weekday: "long",
-      day: "2-digit",
-      month: "long",
-    }),
-  );
-}
-
-/* ────────────────────────────────────────────────── ícones */
-
-function ChevronLeft() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m15 18-6-6 6-6" />
-    </svg>
-  );
-}
-
-function CalendarIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="5" width="18" height="16" rx="2" />
-      <path d="M8 3v4M16 3v4M3 10h18" />
-    </svg>
-  );
-}
-
-function ClockIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5l3 2" />
-    </svg>
-  );
+  return fromISODate(iso).toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+  });
 }
 
 /* ────────────────────────────────────────────────── UI compartilhada */
 
-function Header({
-  title,
-  onBack,
-  right,
-}: {
-  title: string;
-  onBack: () => void;
-  right?: React.ReactNode;
-}) {
+/** Cabeçalho: link de voltar em texto, sem botão redondo. */
+function TopBar({ onBack, label }: { onBack: () => void; label: string }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200 bg-slate-100/95 px-4 py-3 backdrop-blur">
-      <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
+    <header className="border-b border-neutral-200">
+      <div className="mx-auto max-w-lg px-5 py-4">
         <button
           type="button"
           onClick={onBack}
-          aria-label="Voltar"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
+          className="text-[11px] font-medium uppercase tracking-[0.18em] text-neutral-400 transition hover:text-neutral-900"
         >
-          <ChevronLeft />
+          ← {label}
         </button>
-
-        <h1 className="truncate text-center text-base font-bold text-slate-900">{title}</h1>
-
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center">{right}</div>
       </div>
     </header>
   );
 }
 
-/** Cartão de aviso — mesmo padrão em "sem profissional" e "sem horário". */
-function InfoCard({ children }: { children: React.ReactNode }) {
+/** Aviso em linha, sem cartão nem sombra. */
+function Notice({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <span className="mt-0.5 shrink-0">
-        <ClockIcon />
-      </span>
-      <p className="text-sm leading-5 text-slate-400">{children}</p>
-    </div>
-  );
-}
-
-function Avatar({
-  professional,
-  selected,
-}: {
-  professional: ProfessionalItem;
-  selected: boolean;
-}) {
-  const ring = selected ? "ring-2 ring-blue-600 ring-offset-2" : "ring-1 ring-slate-200";
-  return professional.photoUrl ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={professional.photoUrl}
-      alt={professional.name}
-      className={`h-16 w-16 rounded-full object-cover ${ring}`}
-    />
-  ) : (
-    <div className={`flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 text-xl font-bold text-blue-700 ${ring}`}>
-      {professional.name.charAt(0).toUpperCase()}
-    </div>
+    <p className="border-l-2 border-neutral-900 py-1 pl-4 text-sm leading-relaxed text-neutral-500">
+      {children}
+    </p>
   );
 }
 
 /* ────────────────────────────────────────────────── faixa de datas */
 
-function DateStrip({
-  selected,
-  onSelect,
-}: {
-  selected: string;
-  onSelect: (iso: string) => void;
-}) {
+function DateStrip({ selected, onSelect }: { selected: string; onSelect: (iso: string) => void }) {
   const selectedRef = useRef<HTMLButtonElement>(null);
 
   const days = useMemo(() => {
@@ -216,15 +158,15 @@ function DateStrip({
     });
   }, []);
 
-  // Mantém o dia escolhido visível ao pular por uma data distante.
   useEffect(() => {
     selectedRef.current?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
   }, [selected]);
 
   return (
-    <div className="-mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <div className="flex gap-1.5">
-        {days.map((day) => {
+    <div className="-mx-5 overflow-x-auto px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* Blocos retangulares, não círculos: dia da semana em cima, número grande embaixo. */}
+      <div className="flex">
+        {days.map((day, index) => {
           const iso = toISODate(day);
           const isSelected = iso === selected;
           return (
@@ -233,16 +175,18 @@ function DateStrip({
               ref={isSelected ? selectedRef : undefined}
               type="button"
               onClick={() => onSelect(iso)}
-              className="flex w-12 shrink-0 flex-col items-center gap-1.5 rounded-2xl py-1"
+              className={`w-14 shrink-0 border-y border-r py-3 text-center transition ${
+                index === 0 ? "border-l" : ""
+              } ${isSelected ? TILE_ON : "border-neutral-200 hover:border-neutral-400"}`}
             >
-              <span className="text-xs text-slate-400">{WEEKDAYS[day.getDay()]}</span>
               <span
-                className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition ${
-                  isSelected ? "bg-slate-900 text-white" : "text-slate-800 hover:bg-slate-200"
+                className={`block text-[10px] uppercase tracking-[0.14em] ${
+                  isSelected ? "text-neutral-400" : "text-neutral-400"
                 }`}
               >
-                {day.getDate()}
+                {WEEKDAYS[day.getDay()]}
               </span>
+              <span className="mt-1 block text-lg font-semibold tabular-nums">{day.getDate()}</span>
             </button>
           );
         })}
@@ -311,7 +255,6 @@ export default function AgendarPage() {
       .finally(() => setLoading(false));
   }, [slug]);
 
-  /* Só os profissionais que fazem o serviço escolhido. */
   const professionals = useMemo(
     () =>
       barbershop?.professionals.filter(
@@ -352,6 +295,15 @@ export default function AgendarPage() {
     void loadSlots();
   }, [step, professional, loadSlots]);
 
+  /* Horários agrupados por período — lista, não grade solta de pílulas. */
+  const slotsByPeriod = useMemo(() => {
+    const groups: Record<Period, Slot[]> = { manha: [], tarde: [], noite: [] };
+    for (const s of slots) groups[periodOf(s.startsAt)].push(s);
+    return (Object.keys(groups) as Period[])
+      .filter((p) => groups[p].length > 0)
+      .map((p) => ({ period: p, items: groups[p] }));
+  }, [slots]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!professional || !service || !slot || !customerName.trim()) return;
@@ -386,17 +338,17 @@ export default function AgendarPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-100">
-        <p className="text-sm text-slate-500">Carregando…</p>
+      <main className="flex min-h-screen items-center justify-center bg-white">
+        <p className={MUTED}>Carregando…</p>
       </main>
     );
   }
 
   if (!barbershop) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-100 px-4">
-        <p className="text-sm text-slate-500">Barbearia não encontrada.</p>
-        <Link href="/cliente" className="text-sm font-semibold text-blue-600 hover:underline">
+      <main className="flex min-h-screen flex-col items-center justify-center gap-5 bg-white px-5">
+        <p className={MUTED}>Barbearia não encontrada.</p>
+        <Link href="/cliente" className="text-sm font-medium text-neutral-900 underline underline-offset-4">
           Voltar
         </Link>
       </main>
@@ -408,41 +360,34 @@ export default function AgendarPage() {
   if (step === "ok" && confirmed) {
     const dt = new Date(confirmed.startsAt);
     return (
-      <main className="min-h-screen bg-slate-100 px-4 py-10 text-slate-800">
-        <div className="mx-auto w-full max-w-lg">
-          <div className="rounded-3xl border border-slate-200 bg-white p-7 text-center shadow-sm">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl text-green-600">
-              ✓
-            </div>
-            <h2 className="mt-5 text-xl font-bold text-slate-900">Horário reservado!</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Nada foi cobrado agora — você paga em {barbershop.name}.
-            </p>
+      <main className="min-h-screen bg-white text-neutral-900">
+        <div className="mx-auto max-w-lg px-5 py-16">
+          <p className={LABEL}>Reservado</p>
+          <h1 className={`${TITLE} mt-3`}>
+            {capitalize(dt.toLocaleDateString("pt-BR", { weekday: "long" }))}, {dt.getDate()} de{" "}
+            {dt.toLocaleDateString("pt-BR", { month: "long" })}
+          </h1>
+          <p className="mt-2 text-5xl font-semibold tracking-tight tabular-nums">
+            {dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+          </p>
 
-            <div className="mt-6 space-y-2.5 rounded-2xl bg-slate-50 p-4 text-left text-sm">
-              <Row label="Serviço" value={confirmed.service.name} />
-              <Row label="Profissional" value={confirmed.professional.name} />
-              <Row
-                label="Data"
-                value={capitalize(
-                  dt.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" }),
-                )}
-              />
-              <Row
-                label="Horário"
-                value={dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-              />
-            </div>
+          <dl className="mt-10 border-t border-neutral-200">
+            <Row label="Barbearia" value={barbershop.name} />
+            <Row label="Serviço" value={confirmed.service.name} />
+            <Row label="Profissional" value={confirmed.professional.name} />
+          </dl>
 
-            <Link
-              href="/cliente/agendamentos"
-              className="mt-6 block rounded-2xl bg-blue-600 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-500"
-            >
+          <p className="mt-8 text-sm leading-relaxed text-neutral-500">
+            Nada foi cobrado agora. O pagamento é feito na barbearia.
+          </p>
+
+          <div className="mt-8 space-y-3">
+            <Link href="/cliente/agendamentos" className={`${BUTTON} block text-center`}>
               Ver meus agendamentos
             </Link>
             <Link
               href={`/s/${encodeURIComponent(slug)}`}
-              className="mt-2 block rounded-2xl px-4 py-3 text-sm font-medium text-slate-500 hover:text-slate-700"
+              className="block py-3 text-center text-sm text-neutral-500 transition hover:text-neutral-900"
             >
               Voltar para a barbearia
             </Link>
@@ -456,56 +401,60 @@ export default function AgendarPage() {
 
   if (step === "servico") {
     return (
-      <main className="min-h-screen bg-slate-100 pb-10 text-slate-800">
-        <Header
-          title="Escolha o serviço"
-          onBack={() => router.push(`/s/${encodeURIComponent(slug)}`)}
-        />
+      <main className="min-h-screen bg-white pb-16 text-neutral-900">
+        <TopBar onBack={() => router.push(`/s/${encodeURIComponent(slug)}`)} label={barbershop.name} />
 
-        <div className="mx-auto max-w-lg px-4 pt-5">
+        <div className="mx-auto max-w-lg px-5">
+          <div className="py-10">
+            <p className={LABEL}>Etapa 1 de 3</p>
+            <h1 className={`${TITLE} mt-3`}>O que você vai fazer?</h1>
+          </div>
+
           {barbershop.services.length === 0 ? (
-            <InfoCard>Esta barbearia ainda não cadastrou serviços.</InfoCard>
+            <Notice>Esta barbearia ainda não cadastrou serviços.</Notice>
           ) : (
-            <div className="space-y-2.5">
+            /* Lista com divisória fina — sem cartão, sem sombra. */
+            <ul className="border-t border-neutral-200">
               {barbershop.services.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => {
-                    setService(s);
-                    setProfessional(null);
-                    setSlot(null);
-                    setStep("agenda");
-                  }}
-                  className="flex w-full items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-left shadow-sm transition hover:border-blue-300"
-                >
-                  <div className="min-w-0">
-                    {s.category && (
-                      <p className="text-[11px] uppercase tracking-wide text-slate-400">
-                        {s.category.name}
-                      </p>
-                    )}
-                    <p className="truncate text-base font-semibold text-slate-900">{s.name}</p>
-                    {s.description && (
-                      <p className="mt-0.5 line-clamp-1 text-sm text-slate-500">{s.description}</p>
-                    )}
-                    <p className="mt-1.5 text-xs text-slate-400">
-                      {formatDuration(s.durationMinutes)}
-                    </p>
-                  </div>
-                  <span className="shrink-0 text-sm font-bold text-blue-600">
-                    {formatPrice(s.price)}
-                  </span>
-                </button>
+                <li key={s.id} className="border-b border-neutral-200">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setService(s);
+                      setProfessional(null);
+                      setSlot(null);
+                      setStep("agenda");
+                    }}
+                    className="group flex w-full items-baseline justify-between gap-6 py-5 text-left"
+                  >
+                    <span className="min-w-0">
+                      {s.category && <span className={`${LABEL} block`}>{s.category.name}</span>}
+                      <span className="mt-1 block text-lg font-medium tracking-tight group-hover:underline group-hover:underline-offset-4">
+                        {s.name}
+                      </span>
+                      {s.description && (
+                        <span className="mt-1 block line-clamp-1 text-sm text-neutral-500">
+                          {s.description}
+                        </span>
+                      )}
+                      <span className="mt-2 block text-xs text-neutral-400">
+                        {formatDuration(s.durationMinutes)}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-base font-medium tabular-nums">
+                      {formatPrice(s.price)}
+                    </span>
+                  </button>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </div>
       </main>
     );
   }
 
-  /* ── 2. profissional + agenda ── */
+  /* ── 2. dia + profissional + horários ── */
 
   if (step === "agenda") {
     const monthLabel = capitalize(
@@ -513,16 +462,22 @@ export default function AgendarPage() {
     );
 
     return (
-      <main className="min-h-screen bg-slate-100 pb-10 text-slate-800">
-        <Header
-          title={monthLabel}
-          onBack={() => setStep("servico")}
-          right={
-            // O input cobre o botão: um toque abre o seletor nativo do sistema.
-            <div className="relative h-10 w-10">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white shadow-sm">
-                <CalendarIcon />
-              </div>
+      <main className="min-h-screen bg-white pb-16 text-neutral-900">
+        <TopBar onBack={() => setStep("servico")} label={service?.name ?? "Serviço"} />
+
+        <div className="mx-auto max-w-lg px-5">
+          <div className="py-10">
+            <p className={LABEL}>Etapa 2 de 3</p>
+            <h1 className={`${TITLE} mt-3`}>Quando e com quem?</h1>
+          </div>
+
+          {/* Dia */}
+          <div className="flex items-baseline justify-between gap-4 pb-4">
+            <h2 className={HEADING}>{monthLabel}</h2>
+            <div className="relative">
+              <span className="text-xs text-neutral-500 underline underline-offset-4">
+                Escolher data
+              </span>
               <input
                 type="date"
                 aria-label="Escolher outra data"
@@ -532,103 +487,119 @@ export default function AgendarPage() {
                 className="absolute inset-0 cursor-pointer opacity-0"
               />
             </div>
-          }
-        />
-
-        <div className="mx-auto max-w-lg px-4">
-          <div className="pt-3">
-            <DateStrip selected={date} onSelect={setDate} />
           </div>
+          <DateStrip selected={date} onSelect={setDate} />
 
-          <div className="mt-4 border-t border-slate-200 pt-5">
-            <h2 className="text-lg font-bold text-slate-900">Selecione o profissional</h2>
+          {/* Profissional — grade de retratos, não fileira de círculos */}
+          <section className="mt-12">
+            <h2 className={LABEL}>Profissional</h2>
 
             {professionals.length === 0 ? (
-              <p className="mt-3 text-sm text-slate-500">
-                Nenhum profissional realiza este serviço no momento.
-              </p>
+              <div className="mt-4">
+                <Notice>Nenhum profissional realiza este serviço no momento.</Notice>
+              </div>
             ) : (
-              <div className="-mx-4 mt-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <div className="flex gap-4">
-                  {professionals.map((p) => {
-                    const isSelected = professional?.id === p.id;
-                    return (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => setProfessional(p)}
-                        className="flex w-20 shrink-0 flex-col items-center gap-2"
+              <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-6">
+                {professionals.map((p) => {
+                  const isSelected = professional?.id === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setProfessional(p)}
+                      className="text-left"
+                    >
+                      <span
+                        className={`block aspect-[3/4] w-full overflow-hidden border transition ${
+                          isSelected ? "border-neutral-900" : "border-neutral-200"
+                        }`}
                       >
-                        <Avatar professional={p} selected={isSelected} />
-                        <span
-                          className={`w-full truncate text-center text-xs ${
-                            isSelected ? "font-semibold text-blue-600" : "text-slate-600"
-                          }`}
-                        >
-                          {p.name}
+                        {p.photoUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={p.photoUrl}
+                            alt={p.name}
+                            className={`h-full w-full object-cover transition ${
+                              isSelected ? "" : "grayscale hover:grayscale-0"
+                            }`}
+                          />
+                        ) : (
+                          <span className="flex h-full w-full items-center justify-center bg-neutral-100 text-3xl font-light text-neutral-400">
+                            {p.name.charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                      </span>
+                      <span
+                        className={`mt-2 block text-sm ${
+                          isSelected ? "font-semibold text-neutral-900" : "text-neutral-600"
+                        }`}
+                      >
+                        {p.name}
+                      </span>
+                      {p.bio && (
+                        <span className="mt-0.5 block line-clamp-1 text-xs text-neutral-400">
+                          {p.bio}
                         </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
-          </div>
+          </section>
 
-          <div className="mt-5 border-t border-slate-200 pt-5">
+          {/* Horários — agrupados por período */}
+          <section className="mt-12">
+            <div className="flex items-baseline justify-between gap-4">
+              <h2 className={LABEL}>Horários</h2>
+              <span className="text-xs text-neutral-400">{longDate(date)}</span>
+            </div>
+
             {!professional ? (
-              <InfoCard>
-                Escolha um profissional para buscar os horários disponíveis para agendamento
-              </InfoCard>
+              <div className="mt-4">
+                <Notice>
+                  Escolha um profissional acima para ver os horários livres deste dia.
+                </Notice>
+              </div>
+            ) : slotsLoading ? (
+              <div className="mt-5 grid grid-cols-4 gap-2">
+                {Array.from({ length: 8 }, (_, i) => (
+                  <div key={i} className="h-11 animate-pulse bg-neutral-100" />
+                ))}
+              </div>
+            ) : slotsError ? (
+              <p className="mt-4 border-l-2 border-red-600 py-1 pl-4 text-sm text-red-600">
+                {slotsError}
+              </p>
+            ) : slots.length === 0 ? (
+              <div className="mt-4">
+                <Notice>{professional.name} não tem horário livre neste dia. Tente outra data.</Notice>
+              </div>
             ) : (
-              <>
-                <div className="flex items-baseline justify-between gap-3">
-                  <h2 className="text-lg font-bold text-slate-900">Horários</h2>
-                  <span className="text-xs text-slate-400">{longDate(date)}</span>
-                </div>
-
-                {slotsLoading && (
-                  <div className="mt-4 grid grid-cols-4 gap-2">
-                    {Array.from({ length: 8 }, (_, i) => (
-                      <div key={i} className="h-11 animate-pulse rounded-2xl bg-slate-200" />
-                    ))}
+              <div className="mt-5 space-y-7">
+                {slotsByPeriod.map(({ period, items }) => (
+                  <div key={period}>
+                    <p className="text-xs font-medium text-neutral-900">{PERIOD_LABEL[period]}</p>
+                    <div className="mt-3 grid grid-cols-4 gap-2">
+                      {items.map((s) => (
+                        <button
+                          key={s.startsAt}
+                          type="button"
+                          onClick={() => {
+                            setSlot(s);
+                            setStep("resumo");
+                          }}
+                          className={`${TILE} ${TILE_OFF} py-3 font-medium tabular-nums`}
+                        >
+                          {slotLabel(s.startsAt)}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                )}
-
-                {!slotsLoading && slotsError && (
-                  <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                    {slotsError}
-                  </p>
-                )}
-
-                {!slotsLoading && !slotsError && slots.length === 0 && (
-                  <div className="mt-4">
-                    <InfoCard>
-                      {professional.name} não tem horário livre neste dia. Tente outra data.
-                    </InfoCard>
-                  </div>
-                )}
-
-                {!slotsLoading && slots.length > 0 && (
-                  <div className="mt-4 grid grid-cols-4 gap-2">
-                    {slots.map((s) => (
-                      <button
-                        key={s.startsAt}
-                        type="button"
-                        onClick={() => {
-                          setSlot(s);
-                          setStep("resumo");
-                        }}
-                        className="rounded-2xl border border-slate-200 bg-white py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-blue-400 hover:text-blue-600"
-                      >
-                        {slotLabel(s.startsAt)}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </>
+                ))}
+              </div>
             )}
-          </div>
+          </section>
         </div>
       </main>
     );
@@ -637,54 +608,51 @@ export default function AgendarPage() {
   /* ── 3. resumo ── */
 
   return (
-    <main className="min-h-screen bg-slate-100 pb-10 text-slate-800">
-      <Header title="Confirmar agendamento" onBack={() => setStep("agenda")} />
+    <main className="min-h-screen bg-white pb-16 text-neutral-900">
+      <TopBar onBack={() => setStep("agenda")} label="Horários" />
 
-      <form onSubmit={handleSubmit} className="mx-auto max-w-lg px-4 pt-5">
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="space-y-2.5 text-sm">
-            <Row label="Barbearia" value={barbershop.name} />
-            <Row label="Serviço" value={service?.name ?? ""} />
-            <Row label="Profissional" value={professional?.name ?? ""} />
-            <Row label="Data" value={longDate(date)} />
-            <Row label="Horário" value={slot ? slotLabel(slot.startsAt) : ""} />
-            <Row label="Duração" value={service ? formatDuration(service.durationMinutes) : ""} />
-          </div>
-
-          <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-4">
-            <span className="text-sm text-slate-500">Valor</span>
-            <span className="text-lg font-bold text-slate-900">
-              {service ? formatPrice(service.price) : ""}
-            </span>
-          </div>
+      <form onSubmit={handleSubmit} className="mx-auto max-w-lg px-5">
+        <div className="py-10">
+          <p className={LABEL}>Etapa 3 de 3</p>
+          <h1 className={`${TITLE} mt-3`}>Confirmar</h1>
         </div>
 
-        <label className="mt-4 block">
-          <span className="text-sm font-medium text-slate-600">Observação (opcional)</span>
+        {/* Data e hora em destaque tipográfico, no lugar do cartão de resumo. */}
+        <p className="text-sm text-neutral-500">{capitalize(longDate(date))}</p>
+        <p className="mt-1 text-5xl font-semibold tracking-tight tabular-nums">
+          {slot ? slotLabel(slot.startsAt) : "--:--"}
+        </p>
+
+        <dl className="mt-10 border-t border-neutral-200">
+          <Row label="Barbearia" value={barbershop.name} />
+          <Row label="Serviço" value={service?.name ?? ""} />
+          <Row label="Profissional" value={professional?.name ?? ""} />
+          <Row label="Duração" value={service ? formatDuration(service.durationMinutes) : ""} />
+          <Row label="Valor" value={service ? formatPrice(service.price) : ""} strong />
+        </dl>
+
+        <label className="mt-10 block">
+          <span className={LABEL}>Observação (opcional)</span>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-            placeholder="Ex.: preferência de corte, alguma alergia…"
-            className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-400"
+            rows={2}
+            placeholder="Preferência de corte, alguma alergia…"
+            className={`${INPUT} mt-2 resize-none`}
           />
         </label>
 
         {submitError && (
-          <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <p className="mt-6 border-l-2 border-red-600 py-1 pl-4 text-sm text-red-600">
             {submitError}
           </p>
         )}
 
-        <p className="mt-4 text-center text-xs text-slate-400">
-          Nada é cobrado online. Você paga na barbearia.
+        <p className="mt-8 text-xs leading-relaxed text-neutral-400">
+          Nada é cobrado online. O pagamento é feito na barbearia.
         </p>
 
-        <button
-          type="submit"
-          disabled={submitting || !slot}
-          className="mt-3 w-full rounded-2xl bg-blue-600 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:opacity-50"
-        >
+        <button type="submit" disabled={submitting || !slot} className={`${BUTTON} mt-4`}>
           {submitting ? "Reservando…" : "Confirmar agendamento"}
         </button>
       </form>
@@ -694,11 +662,13 @@ export default function AgendarPage() {
 
 /* ────────────────────────────────────────────────── util */
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
-    <div className="flex items-start justify-between gap-4">
-      <span className="shrink-0 text-slate-500">{label}</span>
-      <span className="text-right font-medium text-slate-900">{value}</span>
+    <div className="flex items-baseline justify-between gap-6 border-b border-neutral-200 py-3.5">
+      <dt className="shrink-0 text-sm text-neutral-500">{label}</dt>
+      <dd className={`text-right text-sm ${strong ? "font-semibold" : "font-medium"} text-neutral-900`}>
+        {value}
+      </dd>
     </div>
   );
 }

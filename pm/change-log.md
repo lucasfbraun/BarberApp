@@ -60,6 +60,7 @@
 | 2026-07-26 | Correcao: profissional novo nao era vinculado a nenhum servico e sumia do agendamento publico. Vinculo automatico nos dois sentidos + migration de backfill (20260726000005) | Usuario | Implementado |
 | 2026-07-26 | Upload da logo da barbearia em /configuracoes: redimensionamento no navegador e data URL no banco, com validacao no servidor; campo de URL mantido; doc em pm/upload-de-imagens.md | Usuario | Implementado |
 | 2026-07-26 | Limite do arquivo de logo elevado de 5 MB para 8 MB, com teto novo de resolucao (8000px) para nao derrubar o navegador | Usuario | Implementado |
+| 2026-07-26 | Redesign da area do cliente para se afastar da semelhanca com o AppBarber: linguagem editorial (listas com divisoria, sem sombra, cantos retos, paleta neutra) e mudancas estruturais em dias, profissionais, horarios, abas e carrinho. Vocabulario em src/lib/ui.ts; barra inferior mantida. Doc em pm/identidade-area-do-cliente.md | Usuario | Implementado |
 
 
 ## Regra

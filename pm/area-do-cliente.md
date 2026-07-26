@@ -41,7 +41,9 @@ Limitação atual: vários serviços = várias reservas feitas em sequência pel
 
 ## Visual e responsividade
 
-Toda a jornada do cliente (`/cliente`, login, cadastro, meus agendamentos, `/s/[slug]` e fluxo de agendar) usa **tema claro** — mais amigável ao consumidor final — enquanto o painel da barbearia e o admin seguem no tema escuro. O layout é mobile-first: grids que empilham em telas pequenas, abas com rolagem horizontal, botões de ação em largura total no celular e formulário de agendamento em coluna única.
+Toda a jornada do cliente (`/cliente`, login, cadastro, meus agendamentos, `/s/[slug]` e fluxo de agendar) usa **tema claro editorial** — fundo branco, listas com divisória fina, sem sombra, paleta neutra e tipografia como hierarquia — enquanto o painel da barbearia e o admin seguem no tema escuro. O layout é mobile-first: grids que empilham em telas pequenas, abas com rolagem horizontal e formulário em coluna única.
+
+A linguagem foi redesenhada para se afastar da semelhança com o AppBarber; o vocabulário vive em `src/lib/ui.ts` e está documentado em [`pm/identidade-area-do-cliente.md`](./identidade-area-do-cliente.md).
 
 A home segue **layout de aplicativo**: saudação com a data, busca, próximo agendamento em destaque, banners, últimos acessos e barra de navegação inferior fixa (Início / Buscar / Agendamentos / Menu). A jornada é **instalável como app** — ver `pm/pwa.md`.
 
