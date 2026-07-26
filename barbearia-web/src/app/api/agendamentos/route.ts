@@ -6,7 +6,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { AppointmentStatus, UserRole } from "@prisma/client";
-import { resolveTenant } from "@/lib/auth-guard";
+import { resolveOwnProfessionalId, resolveTenant } from "@/lib/auth-guard";
 
 // GET — lista agendamentos do dia (com filtro opcional por profissional)
 export async function GET(request: Request) {
@@ -23,14 +23,11 @@ export async function GET(request: Request) {
 
   // PROFESSIONAL ve somente a propria agenda (escopo M2).
   if (ctx.role === UserRole.PROFESSIONAL) {
-    const own = await prisma.professional.findFirst({
-      where: { barbershopId: ctx.barbershopId, userId: ctx.userId },
-      select: { id: true },
-    });
-    if (!own) {
+    const ownId = await resolveOwnProfessionalId(ctx.barbershopId, ctx.userId);
+    if (!ownId) {
       return NextResponse.json({ error: "Profissional nao vinculado ao usuario." }, { status: 403 });
     }
-    professionalId = own.id;
+    professionalId = ownId;
   }
 
   const startOfDay = new Date(`${dateStr}T00:00:00`);

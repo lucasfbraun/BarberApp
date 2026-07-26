@@ -1,7 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { ScheduleBlockType } from "@prisma/client";
-import { guardRole, MANAGER_ROLES, resolveTenant } from "@/lib/auth-guard";
+import { ScheduleBlockType, UserRole } from "@prisma/client";
+import {
+  guardRole,
+  MANAGER_ROLES,
+  resolveOwnProfessionalId,
+  resolveTenant,
+} from "@/lib/auth-guard";
+
+/** Roles que podem CRIAR bloqueios: gestores e o proprio barbeiro. */
+const BLOCK_CREATE_ROLES: UserRole[] = [
+  UserRole.OWNER,
+  UserRole.MANAGER,
+  UserRole.PROFESSIONAL,
+];
 
 // GET /api/bloqueios?professionalId=&from=&to=
 export async function GET(request: Request) {
@@ -9,9 +21,18 @@ export async function GET(request: Request) {
   if (ctx instanceof NextResponse) return ctx;
 
   const { searchParams } = new URL(request.url);
-  const professionalId = searchParams.get("professionalId") ?? undefined;
+  let professionalId = searchParams.get("professionalId") ?? undefined;
   const from = searchParams.get("from");
   const to = searchParams.get("to");
+
+  // PROFESSIONAL ve somente os proprios bloqueios.
+  if (ctx.role === UserRole.PROFESSIONAL) {
+    const ownId = await resolveOwnProfessionalId(ctx.barbershopId, ctx.userId);
+    if (!ownId) {
+      return NextResponse.json({ error: "Profissional nao vinculado ao usuario." }, { status: 403 });
+    }
+    professionalId = ownId;
+  }
 
   try {
     const blocks = await prisma.scheduleBlock.findMany({
@@ -40,11 +61,14 @@ export async function GET(request: Request) {
 }
 
 // POST /api/bloqueios
+// OWNER/MANAGER: bloqueiam qualquer agenda (ou a barbearia toda, sem professionalId).
+// PROFESSIONAL: bloqueia SOMENTE a propria agenda.
+// Desbloquear e exclusivo de OWNER/MANAGER (ver DELETE em /api/bloqueios/[id]).
 export async function POST(request: Request) {
   const ctx = await resolveTenant(request);
   if (ctx instanceof NextResponse) return ctx;
 
-  const denied = guardRole(ctx.role, MANAGER_ROLES);
+  const denied = guardRole(ctx.role, BLOCK_CREATE_ROLES);
   if (denied) return denied;
 
   try {
@@ -56,6 +80,24 @@ export async function POST(request: Request) {
       type?: string;
     };
 
+    // PROFESSIONAL: forca o bloqueio para a propria agenda.
+    if (ctx.role === UserRole.PROFESSIONAL) {
+      const ownId = await resolveOwnProfessionalId(ctx.barbershopId, ctx.userId);
+      if (!ownId) {
+        return NextResponse.json(
+          { error: "Profissional nao vinculado ao usuario." },
+          { status: 403 },
+        );
+      }
+      if (body.professionalId && body.professionalId !== ownId) {
+        return NextResponse.json(
+          { error: "Voce so pode bloquear a propria agenda." },
+          { status: 403 },
+        );
+      }
+      body.professionalId = ownId;
+    }
+
     if (!body.startsAt || !body.endsAt) {
       return NextResponse.json(
         { error: "startsAt e endsAt sao obrigatorios." },
@@ -65,6 +107,10 @@ export async function POST(request: Request) {
 
     const startsAt = new Date(body.startsAt);
     const endsAt = new Date(body.endsAt);
+
+    if (isNaN(startsAt.getTime()) || isNaN(endsAt.getTime())) {
+      return NextResponse.json({ error: "Datas invalidas." }, { status: 400 });
+    }
 
     if (endsAt <= startsAt) {
       return NextResponse.json(

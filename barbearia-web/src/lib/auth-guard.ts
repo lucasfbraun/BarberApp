@@ -138,6 +138,22 @@ export async function resolveAdmin(
   }
 }
 
+/**
+ * Resolve o registro Professional vinculado ao usuario logado neste tenant.
+ * Usado para restringir PROFESSIONAL a propria agenda/bloqueios.
+ * Retorna null se o usuario nao tem profissional vinculado (Professional.userId).
+ */
+export async function resolveOwnProfessionalId(
+  barbershopId: string,
+  userId: string,
+): Promise<string | null> {
+  const own = await prisma.professional.findFirst({
+    where: { barbershopId, userId, active: true },
+    select: { id: true },
+  });
+  return own?.id ?? null;
+}
+
 /** Roles que podem gerenciar a barbearia (owner e manager) */
 export const MANAGER_ROLES: UserRole[] = [UserRole.OWNER, UserRole.MANAGER];
 

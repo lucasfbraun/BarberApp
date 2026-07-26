@@ -40,6 +40,10 @@
 | 2026-06-22 | Sprint 12 concluida: admin barbearias com lista, filtros, detalhe e acoes (trial, plano, status) | Claude | Implementado |
 | 2026-06-22 | Sprint 13 concluida: admin revendedores com PATCH e landing page com planos dinamicos do banco | Claude | Implementado |
 | 2026-06-22 | Cronograma Excel e escopo-software-barbearia.md atualizados — IDs 28-33 concluidos, checklist MVP marcado, secao 8 atualizada | Claude | Implementado |
+| 2026-07-26 | Bloco 2 (Alto) do cronograma de correcoes: A1 IDOR comanda, A2 dashboard revendedor sem PII/receita, A3 revalidacao de sessao no banco, A4 revendedor PENDING | Claude | Implementado |
+| 2026-07-26 | Bloco 3 (Medio): M1 transacao anti-corrida no agendamento, M2 role guards (relatorio/tema/agenda/comandas), M3 trial bloqueia API, M5 validacoes, M6 rate limit por IP | Claude | Implementado |
+| 2026-07-26 | Isencao de contrato: campo billingExempt + acao set_exempt no admin, badge/filtro "Isenta"; correcao: plano ativo nao e mais bloqueado por trial vencido | Usuario | Implementado |
+| 2026-07-26 | Bloqueios de agenda: PROFESSIONAL cria bloqueio na propria agenda; desbloqueio exclusivo de OWNER/MANAGER; doc em pm/bloqueios-de-agenda.md | Usuario | Implementado |
 
 
 ## Regra
