@@ -16,6 +16,19 @@ export const metadata: Metadata = {
   title: "lbraunapp — Sistema de gestão para barbearias",
   description:
     "Agenda online, gestão de profissionais, controle de serviços e relatórios para barbearias.",
+  // PWA: icone do iOS e nome ao adicionar a tela de inicio.
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "lbraunapp",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport = {
+  themeColor: "#2563eb",
 };
 
 export default function RootLayout({

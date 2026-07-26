@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import ClienteBottomNav from "@/components/ClienteBottomNav";
+import InstallPrompt from "@/components/InstallPrompt";
 
 type Shop = {
   id: string; name: string; slug: string; description: string | null;
@@ -276,6 +277,7 @@ export default function ClienteHomePage() {
         </div>
       )}
 
+      <InstallPrompt />
       <ClienteBottomNav active="inicio" onMenu={() => setMenuOpen(true)} onSearch={focusSearch} />
     </div>
   );
