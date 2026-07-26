@@ -49,6 +49,17 @@
 | 2026-07-26 | Pagina publica da barbearia com abas: servicos, detalhes, profissionais (so ativos), produtos (vitrine do estoque), avaliacoes com media; fidelidade/pacotes/assinaturas como "em breve" (sprints 17-19). Sprint-status atualizado (sprints 14-19) | Usuario | Implementado |
 | 2026-07-26 | Tema claro (fundo branco) e responsividade mobile em toda a jornada do cliente | Usuario | Implementado |
 | 2026-07-26 | Carrinho do cliente (reserva sem pagamento): servico reserva agenda do profissional, produto vira encomenda na comanda; drawer com remover itens e total estimado | Usuario | Implementado |
+| 2026-07-26 | Home do cliente no layout de app: saudacao com data, busca, ultimo agendamento, banners, ultimos acessos e bottom nav fixa | Usuario | Implementado |
+| 2026-07-26 | Login proprio do cliente em /cliente/login na identidade visual da area do cliente; cadastro alinhado e fluxos do cliente redirecionados | Usuario | Implementado |
+| 2026-07-26 | PWA parte 1: manifest, icones e banner de instalacao na home do cliente (prompt nativo Android, passo a passo iOS) | Usuario | Implementado |
+| 2026-07-26 | PWA parte 2: service worker com estrategias de cache, fallback offline, icone maskable e viewportFit cover; InstallPrompt tambem em /s/[slug] e /cliente/agendamentos; doc em pm/pwa.md | Usuario | Implementado |
+| 2026-07-26 | Login social do cliente (Google e Facebook): model Account, passwordHash nullable, vinculacao por e-mail verificado, painel segue so com senha; doc em pm/login-social.md. Provedores ainda NAO ativados (faltam os apps de OAuth) | Usuario | Implementado |
+| 2026-07-26 | Fluxo de agendamento reescrito: 3 etapas com profissional e agenda na mesma tela, faixa de dias e resumo final; doc em pm/agendamento-e-fuso.md | Usuario | Implementado |
+| 2026-07-26 | Correcao: horarios apareciam em branco (pagina lia slot.time, API devolve startsAt/endsAt) | Claude | Implementado |
+| 2026-07-26 | Correcao B4 (parcial): fuso por tenant no motor de disponibilidade — jornada montada a partir de Barbershop.timezone em vez do relogio do servidor. Faltam agendamentos, comandas e relatorio diario | Claude | Implementado |
+| 2026-07-26 | Correcao: profissional novo nao era vinculado a nenhum servico e sumia do agendamento publico. Vinculo automatico nos dois sentidos + migration de backfill (20260726000005) | Usuario | Implementado |
+| 2026-07-26 | Upload da logo da barbearia em /configuracoes: redimensionamento no navegador e data URL no banco, com validacao no servidor; campo de URL mantido; doc em pm/upload-de-imagens.md | Usuario | Implementado |
+| 2026-07-26 | Limite do arquivo de logo elevado de 5 MB para 8 MB, com teto novo de resolucao (8000px) para nao derrubar o navegador | Usuario | Implementado |
 
 
 ## Regra

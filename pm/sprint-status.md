@@ -7,7 +7,7 @@
 | 2 | Identidade e cadastro | Concluida | Personalizacao visual, tema por tenant, API de tema, onboarding refinado. Bugs criticos corrigidos (middleware, URLs, validacoes). |
 | 3 | Operacao principal | Concluida | CRUD profissionais+servicos. Jornada de trabalho (WorkingHours). Vinculo prof<->servico. Bloqueios de agenda. |
 | 4 | Agenda | Concluida | Motor de disponibilidade (lib/availability.ts + /api/disponibilidade). API agendamentos com anti-conflito. Pagina /agenda com visao diaria, filtros e acoes de status. |
-| 5 | Agendamento publico | Concluida | API publica de barbershop e agendamento. Pagina /s/[slug] com dados reais. Fluxo /s/[slug]/agendar com 4 etapas (servico, profissional, slots reais, dados do cliente) e tela de confirmacao. |
+| 5 | Agendamento publico | Concluida | API publica de barbershop e agendamento. Pagina /s/[slug] com dados reais. Fluxo /s/[slug]/agendar com 4 etapas (servico, profissional, slots reais, dados do cliente) e tela de confirmacao. *Reformulado para 3 etapas na sprint 22.* |
 | 6 | Atendimento e receita | Concluida | Comanda simples com add/remove itens. Fechamento com 6 formas de pagamento. Calculo de comissao por profissional. Botao abrir comanda na agenda. |
 | 7 | Relatorios e estabilizacao | Concluida | Relatorio diario: 4 cards de resumo, breakdown por profissional, tabela de comandas fechadas e todos os agendamentos. |
 | 8 | Site de marketing lbraunapp | Concluida | Landing page: nav, hero, stats, 6 features, 3 planos, secao revendedor, CTA e footer. Route group sem sidebar. |
@@ -22,3 +22,9 @@
 | 17 | Fidelidade | Planejada | Programa de fidelidade (Fase 2 do escopo). Aba ja criada na pagina publica como "em breve". |
 | 18 | Pacotes de servicos | Planejada | Pacotes/combos (Fase 2). Aba placeholder criada. |
 | 19 | Assinaturas de clientes | Planejada | Assinaturas da barbearia p/ cliente final (Fase 3). Aba placeholder criada. Depende do epico de pagamento (antigas sprints 18-20 do escopo). |
+| 20 | App instalavel (PWA) | Concluida | Manifest, icones (incl. maskable), service worker com estrategias de cache, tela offline e convite de instalacao (prompt nativo no Android, passo a passo no iOS). Registro so em producao. Doc: pm/pwa.md. |
+| 21 | Login social do cliente | Concluida (codigo) | Google e Facebook via NextAuth, model Account, vinculacao por e-mail verificado; painel e admin seguem so com senha. **Provedores nao ativados**: faltam os apps de OAuth e as variaveis de ambiente. Doc: pm/login-social.md. |
+| 22 | Agendamento reformulado e fuso por tenant | Concluida | Fluxo de 4 para 3 etapas com profissional e agenda na mesma tela. Correcoes: horarios em branco, fuso do servidor na disponibilidade (B4 parcial) e vinculo automatico profissional<->servico com migration de backfill. Doc: pm/agendamento-e-fuso.md. |
+| 23 | Upload de imagem no painel | Concluida | Logo da barbearia com upload (redimensionamento no navegador, data URL no banco) e validacao no servidor; campo de URL mantido. Capa, foto de profissional e imagem de servico seguem por URL. Doc: pm/upload-de-imagens.md. |
+
+> Sprints 20-23 foram executadas antes das 17-19, que continuam planejadas. A numeracao segue a ordem de registro, nao a cronologica.
