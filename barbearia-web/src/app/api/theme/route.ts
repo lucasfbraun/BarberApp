@@ -18,6 +18,44 @@ type ThemePayload = {
   fontFamily?: string;
 };
 
+/**
+ * Imagem aceita em dois formatos:
+ *  - data URL de png/jpeg/webp (upload redimensionado no navegador);
+ *  - URL http(s) ou caminho absoluto (marca hospedada em outro lugar).
+ *
+ * O teto existe porque a imagem vai para uma coluna do Postgres — o
+ * navegador ja limita, mas a API nao pode confiar no cliente. Ver UPLOADS.md.
+ */
+const DATA_URL_PATTERN = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
+const MAX_IMAGE_CHARS = 200_000;
+
+function sanitizeImage(
+  value: string | undefined,
+  label: string,
+): { ok: true; value: string | null } | { ok: false; error: string } {
+  const trimmed = value?.trim();
+  if (!trimmed) return { ok: true, value: null };
+
+  if (trimmed.startsWith("data:")) {
+    if (trimmed.length > MAX_IMAGE_CHARS) {
+      return { ok: false, error: `${label}: imagem muito grande. Envie uma versao menor.` };
+    }
+    if (!DATA_URL_PATTERN.test(trimmed)) {
+      return { ok: false, error: `${label}: formato invalido. Use PNG, JPG ou WebP.` };
+    }
+    return { ok: true, value: trimmed };
+  }
+
+  if (!/^(https?:\/\/|\/)/.test(trimmed)) {
+    return { ok: false, error: `${label}: informe uma URL comecando com https://` };
+  }
+  if (trimmed.length > 2048) {
+    return { ok: false, error: `${label}: URL muito longa.` };
+  }
+
+  return { ok: true, value: trimmed };
+}
+
 async function resolveBarbershop(request: Request) {
   const token = await getToken({ req: request as never, secret: process.env.NEXTAUTH_SECRET });
   const barbershopId = token?.activeBarbershopId as string | undefined;
@@ -63,13 +101,19 @@ export async function POST(request: Request) {
 
     const payload = (await request.json()) as ThemePayload;
 
+    const logo = sanitizeImage(payload.logoUrl, "Logo");
+    if (!logo.ok) return NextResponse.json({ error: logo.error }, { status: 400 });
+
+    const cover = sanitizeImage(payload.coverImageUrl, "Imagem de capa");
+    if (!cover.ok) return NextResponse.json({ error: cover.error }, { status: 400 });
+
     const updated = await prisma.barbershop.update({
       where: { id: barbershop.id },
       data: {
         name: payload.name?.trim() || barbershop.name,
         description: payload.description?.trim() || null,
-        logoUrl: payload.logoUrl?.trim() || null,
-        coverImageUrl: payload.coverImageUrl?.trim() || null,
+        logoUrl: logo.value,
+        coverImageUrl: cover.value,
         primaryColor: payload.primaryColor?.trim() || null,
         secondaryColor: payload.secondaryColor?.trim() || null,
         accentColor: payload.accentColor?.trim() || null,

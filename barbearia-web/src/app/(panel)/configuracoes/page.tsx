@@ -1,7 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+
+import ImageUploadField from "@/components/ImageUploadField";
 
 type ThemeState = {
   name: string;
@@ -130,7 +131,13 @@ export default function ConfiguracoesPage() {
     });
 
     if (!response.ok) {
-      setStatus("Falha ao salvar o tema.");
+      // A API valida a imagem e devolve o motivo — mostrar ajuda mais que
+      // um "falha ao salvar" genérico.
+      const reason = await response
+        .json()
+        .then((data) => (data as { error?: string }).error)
+        .catch(() => undefined);
+      setStatus(reason ?? "Falha ao salvar o tema.");
       setSaving(false);
       return;
     }
@@ -184,15 +191,11 @@ export default function ConfiguracoesPage() {
               />
             </label>
 
-            <label className="space-y-2 md:col-span-2">
-              <span className="text-sm text-slate-300">Logo por URL</span>
-              <input
-                value={theme.logoUrl}
-                onChange={(event) => setTheme((current) => ({ ...current, logoUrl: event.target.value }))}
-                placeholder="https://.../logo.png"
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/40"
-              />
-            </label>
+            <ImageUploadField
+              label="Logo"
+              value={theme.logoUrl}
+              onChange={(logoUrl) => setTheme((current) => ({ ...current, logoUrl }))}
+            />
 
             <label className="space-y-2 md:col-span-2">
               <span className="text-sm text-slate-300">Imagem de capa por URL</span>
@@ -270,12 +273,11 @@ export default function ConfiguracoesPage() {
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-white/10 text-xs font-semibold">
                   {theme.logoUrl ? (
-                    <Image
+                    // img simples: o valor pode ser data URL, que o next/image não trata.
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
                       src={theme.logoUrl}
                       alt="Logo da barbearia"
-                      width={48}
-                      height={48}
-                      unoptimized
                       className="h-full w-full object-cover"
                     />
                   ) : (
