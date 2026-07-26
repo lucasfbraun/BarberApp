@@ -7,6 +7,7 @@ const navigation = [
   { href: "/clientes", label: "Clientes" },
   { href: "/profissionais", label: "Profissionais" },
   { href: "/servicos", label: "Serviços" },
+  { href: "/estoque", label: "Estoque" },
   { href: "/relatorio", label: "Relatório" },
   { href: "/configuracoes", label: "Configurações" },
 ];

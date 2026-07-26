@@ -50,6 +50,10 @@ export default function ComandaPage() {
 
   // Add item form
   const [newItem, setNewItem] = useState({ name: "", quantity: 1, unitPrice: "" });
+  // Produtos do estoque (venda na comanda)
+  const [catalog, setCatalog] = useState<{ id: string; name: string; salePrice: number; stockQuantity: number; unit: string }[]>([]);
+  const [productId, setProductId] = useState("");
+  const [productQty, setProductQty] = useState(1);
   // Close form
   const [paymentMethod, setPaymentMethod] = useState("PIX");
   const [discountType, setDiscountType] = useState("none");
@@ -63,6 +67,44 @@ export default function ComandaPage() {
   }, [id]);
 
   useEffect(() => { fetchOrder(); }, [fetchOrder]);
+
+  useEffect(() => {
+    // Catalogo de produtos vendaveis com saldo.
+    fetch("/api/produtos?active=1")
+      .then((r) => (r.ok ? r.json() : { products: [] }))
+      .then((d) =>
+        setCatalog(
+          (d.products ?? []).filter(
+            (p: { sellable: boolean; stockQuantity: number }) => p.sellable && p.stockQuantity > 0,
+          ),
+        ),
+      )
+      .catch(() => setCatalog([]));
+  }, []);
+
+  async function addProduct(e: React.FormEvent) {
+    e.preventDefault();
+    if (!productId) return;
+    setSaving(true);
+    setError(null);
+    const res = await fetch(`/api/comandas/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "add_item",
+        item: { productId, quantity: productQty },
+      }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setOrder(data.order);
+      setProductId("");
+      setProductQty(1);
+    } else {
+      setError((await res.json()).error ?? "Erro ao adicionar produto.");
+    }
+    setSaving(false);
+  }
 
   async function addItem(e: React.FormEvent) {
     e.preventDefault();
@@ -248,10 +290,48 @@ export default function ComandaPage() {
         </div>
       </div>
 
+      {/* Add produto do estoque */}
+      {!isClosed && catalog.length > 0 && (
+        <form onSubmit={addProduct} className="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <h2 className="mb-4 font-semibold text-white">Adicionar produto do estoque</h2>
+          <div className="grid gap-3 sm:grid-cols-4">
+            <select
+              required
+              value={productId}
+              onChange={(e) => setProductId(e.target.value)}
+              className="col-span-2 rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white focus:border-cyan-400/40 focus:outline-none"
+            >
+              <option value="">Selecione o produto...</option>
+              {catalog.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} — R$ {Number(p.salePrice).toFixed(2)} (saldo: {p.stockQuantity})
+                </option>
+              ))}
+            </select>
+            <input
+              type="number"
+              min={1}
+              className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-cyan-400/40 focus:outline-none"
+              placeholder="Qtd"
+              value={productQty}
+              onChange={(e) => setProductQty(Number(e.target.value))}
+            />
+            <button
+              type="submit"
+              disabled={saving || !productId}
+              className="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50"
+            >
+              {saving ? "..." : "Adicionar"}
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-slate-500">A baixa no estoque acontece no fechamento da comanda.</p>
+        </form>
+      )}
+
       {/* Add item form */}
       {!isClosed && (
         <form onSubmit={addItem} className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <h2 className="mb-4 font-semibold text-white">Adicionar item</h2>
+          <h2 className="mb-4 font-semibold text-white">Adicionar item avulso</h2>
           <div className="grid gap-3 sm:grid-cols-4">
             <input
               className="col-span-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-cyan-400/40 focus:outline-none"

@@ -44,6 +44,7 @@
 | 2026-07-26 | Bloco 3 (Medio): M1 transacao anti-corrida no agendamento, M2 role guards (relatorio/tema/agenda/comandas), M3 trial bloqueia API, M5 validacoes, M6 rate limit por IP | Claude | Implementado |
 | 2026-07-26 | Isencao de contrato: campo billingExempt + acao set_exempt no admin, badge/filtro "Isenta"; correcao: plano ativo nao e mais bloqueado por trial vencido | Usuario | Implementado |
 | 2026-07-26 | Bloqueios de agenda: PROFESSIONAL cria bloqueio na propria agenda; desbloqueio exclusivo de OWNER/MANAGER; doc em pm/bloqueios-de-agenda.md | Usuario | Implementado |
+| 2026-07-26 | Modulo de estoque: Product + StockMovement, APIs produtos/movimentacoes/resumo, pagina /estoque, venda de produto na comanda com baixa automatica e lucro; doc em pm/estoque.md | Usuario | Implementado |
 
 
 ## Regra
