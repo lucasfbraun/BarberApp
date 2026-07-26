@@ -87,43 +87,43 @@ export default function InstallPrompt({
 
   return (
     <div className={`fixed inset-x-0 ${bottomClass} z-40 px-5 pb-2`}>
-      <div className="mx-auto max-w-lg border border-neutral-900 bg-white p-5">
+      <div className="mx-auto max-w-lg border border-blue-600 bg-white p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-neutral-400">
+            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">
               Instalar
             </p>
-            <p className="mt-1.5 text-base font-medium tracking-tight text-neutral-900">
+            <p className="mt-1.5 text-base font-medium tracking-tight text-slate-900">
               Adicione à tela inicial
             </p>
-            <p className="mt-1 text-sm text-neutral-500">
+            <p className="mt-1 text-sm text-slate-500">
               Acesse suas barbearias com um toque, como um app.
             </p>
           </div>
-          <button onClick={dismiss} aria-label="Fechar" className="shrink-0 text-neutral-400 hover:text-neutral-900">
+          <button onClick={dismiss} aria-label="Fechar" className="shrink-0 text-slate-400 hover:text-slate-900">
             ✕
           </button>
         </div>
 
         {mode === "ios" && showIosSteps && (
-          <ol className="mt-4 space-y-1.5 border-l-2 border-neutral-900 pl-4 text-sm text-neutral-500">
-            <li>1. Toque em <span className="text-neutral-900">Compartilhar</span> <span aria-hidden>⎋</span> na barra do Safari</li>
-            <li>2. Role e toque em <span className="text-neutral-900">Adicionar à Tela de Início</span></li>
-            <li>3. Confirme em <span className="text-neutral-900">Adicionar</span></li>
+          <ol className="mt-4 space-y-1.5 border-l-2 border-blue-600 pl-4 text-sm text-slate-500">
+            <li>1. Toque em <span className="text-slate-900">Compartilhar</span> <span aria-hidden>⎋</span> na barra do Safari</li>
+            <li>2. Role e toque em <span className="text-slate-900">Adicionar à Tela de Início</span></li>
+            <li>3. Confirme em <span className="text-slate-900">Adicionar</span></li>
           </ol>
         )}
 
         <div className="mt-5 flex items-center gap-5">
           {mode === "android" ? (
-            <button onClick={install} className="bg-neutral-900 px-5 py-3 text-sm font-medium tracking-wide text-white transition hover:bg-neutral-700">
+            <button onClick={install} className="bg-blue-600 px-5 py-3 text-sm font-medium tracking-wide text-white transition hover:bg-blue-500">
               Adicionar
             </button>
           ) : (
-            <button onClick={() => setShowIosSteps(!showIosSteps)} className="bg-neutral-900 px-5 py-3 text-sm font-medium tracking-wide text-white transition hover:bg-neutral-700">
+            <button onClick={() => setShowIosSteps(!showIosSteps)} className="bg-blue-600 px-5 py-3 text-sm font-medium tracking-wide text-white transition hover:bg-blue-500">
               {showIosSteps ? "Entendi" : "Ver como fazer"}
             </button>
           )}
-          <button onClick={dismiss} className="text-sm text-neutral-500 underline underline-offset-4 hover:text-neutral-900">
+          <button onClick={dismiss} className="text-sm text-slate-500 underline underline-offset-4 hover:text-slate-900">
             Agora não
           </button>
         </div>

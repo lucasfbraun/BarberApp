@@ -120,12 +120,12 @@ function longDate(iso: string) {
 /** Cabeçalho: link de voltar em texto, sem botão redondo. */
 function TopBar({ onBack, label }: { onBack: () => void; label: string }) {
   return (
-    <header className="border-b border-neutral-200">
+    <header className="border-b border-slate-200 bg-slate-50">
       <div className="mx-auto max-w-lg px-5 py-4">
         <button
           type="button"
           onClick={onBack}
-          className="text-[11px] font-medium uppercase tracking-[0.18em] text-neutral-400 transition hover:text-neutral-900"
+          className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 transition hover:text-blue-600"
         >
           ← {label}
         </button>
@@ -137,7 +137,7 @@ function TopBar({ onBack, label }: { onBack: () => void; label: string }) {
 /** Aviso em linha, sem cartão nem sombra. */
 function Notice({ children }: { children: React.ReactNode }) {
   return (
-    <p className="border-l-2 border-neutral-900 py-1 pl-4 text-sm leading-relaxed text-neutral-500">
+    <p className="border-l-2 border-blue-600 py-1 pl-4 text-sm leading-relaxed text-slate-500">
       {children}
     </p>
   );
@@ -177,11 +177,11 @@ function DateStrip({ selected, onSelect }: { selected: string; onSelect: (iso: s
               onClick={() => onSelect(iso)}
               className={`w-14 shrink-0 border-y border-r py-3 text-center transition ${
                 index === 0 ? "border-l" : ""
-              } ${isSelected ? TILE_ON : "border-neutral-200 hover:border-neutral-400"}`}
+              } ${isSelected ? TILE_ON : "border-slate-200 hover:border-slate-400"}`}
             >
               <span
                 className={`block text-[10px] uppercase tracking-[0.14em] ${
-                  isSelected ? "text-neutral-400" : "text-neutral-400"
+                  isSelected ? "text-slate-400" : "text-slate-400"
                 }`}
               >
                 {WEEKDAYS[day.getDay()]}
@@ -348,7 +348,7 @@ export default function AgendarPage() {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-5 bg-white px-5">
         <p className={MUTED}>Barbearia não encontrada.</p>
-        <Link href="/cliente" className="text-sm font-medium text-neutral-900 underline underline-offset-4">
+        <Link href="/cliente" className="text-sm font-medium text-slate-900 underline underline-offset-4">
           Voltar
         </Link>
       </main>
@@ -360,7 +360,7 @@ export default function AgendarPage() {
   if (step === "ok" && confirmed) {
     const dt = new Date(confirmed.startsAt);
     return (
-      <main className="min-h-screen bg-white text-neutral-900">
+      <main className="min-h-screen bg-slate-50 text-slate-900">
         <div className="mx-auto max-w-lg px-5 py-16">
           <p className={LABEL}>Reservado</p>
           <h1 className={`${TITLE} mt-3`}>
@@ -371,13 +371,13 @@ export default function AgendarPage() {
             {dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
           </p>
 
-          <dl className="mt-10 border-t border-neutral-200">
+          <dl className="mt-10 border-t border-slate-200">
             <Row label="Barbearia" value={barbershop.name} />
             <Row label="Serviço" value={confirmed.service.name} />
             <Row label="Profissional" value={confirmed.professional.name} />
           </dl>
 
-          <p className="mt-8 text-sm leading-relaxed text-neutral-500">
+          <p className="mt-8 text-sm leading-relaxed text-slate-500">
             Nada foi cobrado agora. O pagamento é feito na barbearia.
           </p>
 
@@ -387,7 +387,7 @@ export default function AgendarPage() {
             </Link>
             <Link
               href={`/s/${encodeURIComponent(slug)}`}
-              className="block py-3 text-center text-sm text-neutral-500 transition hover:text-neutral-900"
+              className="block py-3 text-center text-sm text-slate-500 transition hover:text-slate-900"
             >
               Voltar para a barbearia
             </Link>
@@ -401,7 +401,7 @@ export default function AgendarPage() {
 
   if (step === "servico") {
     return (
-      <main className="min-h-screen bg-white pb-16 text-neutral-900">
+      <main className="min-h-screen bg-slate-50 pb-16 text-slate-900">
         <TopBar onBack={() => router.push(`/s/${encodeURIComponent(slug)}`)} label={barbershop.name} />
 
         <div className="mx-auto max-w-lg px-5">
@@ -414,9 +414,9 @@ export default function AgendarPage() {
             <Notice>Esta barbearia ainda não cadastrou serviços.</Notice>
           ) : (
             /* Lista com divisória fina — sem cartão, sem sombra. */
-            <ul className="border-t border-neutral-200">
+            <ul className="border-t border-slate-200">
               {barbershop.services.map((s) => (
-                <li key={s.id} className="border-b border-neutral-200">
+                <li key={s.id} className="border-b border-slate-200">
                   <button
                     type="button"
                     onClick={() => {
@@ -433,11 +433,11 @@ export default function AgendarPage() {
                         {s.name}
                       </span>
                       {s.description && (
-                        <span className="mt-1 block line-clamp-1 text-sm text-neutral-500">
+                        <span className="mt-1 block line-clamp-1 text-sm text-slate-500">
                           {s.description}
                         </span>
                       )}
-                      <span className="mt-2 block text-xs text-neutral-400">
+                      <span className="mt-2 block text-xs text-slate-400">
                         {formatDuration(s.durationMinutes)}
                       </span>
                     </span>
@@ -462,7 +462,7 @@ export default function AgendarPage() {
     );
 
     return (
-      <main className="min-h-screen bg-white pb-16 text-neutral-900">
+      <main className="min-h-screen bg-slate-50 pb-16 text-slate-900">
         <TopBar onBack={() => setStep("servico")} label={service?.name ?? "Serviço"} />
 
         <div className="mx-auto max-w-lg px-5">
@@ -475,7 +475,7 @@ export default function AgendarPage() {
           <div className="flex items-baseline justify-between gap-4 pb-4">
             <h2 className={HEADING}>{monthLabel}</h2>
             <div className="relative">
-              <span className="text-xs text-neutral-500 underline underline-offset-4">
+              <span className="text-xs text-slate-500 underline underline-offset-4">
                 Escolher data
               </span>
               <input
@@ -511,7 +511,7 @@ export default function AgendarPage() {
                     >
                       <span
                         className={`block aspect-[3/4] w-full overflow-hidden border transition ${
-                          isSelected ? "border-neutral-900" : "border-neutral-200"
+                          isSelected ? "border-blue-600" : "border-slate-200"
                         }`}
                       >
                         {p.photoUrl ? (
@@ -524,20 +524,20 @@ export default function AgendarPage() {
                             }`}
                           />
                         ) : (
-                          <span className="flex h-full w-full items-center justify-center bg-neutral-100 text-3xl font-light text-neutral-400">
+                          <span className="flex h-full w-full items-center justify-center bg-slate-100 text-3xl font-light text-slate-400">
                             {p.name.charAt(0).toUpperCase()}
                           </span>
                         )}
                       </span>
                       <span
                         className={`mt-2 block text-sm ${
-                          isSelected ? "font-semibold text-neutral-900" : "text-neutral-600"
+                          isSelected ? "font-semibold text-blue-600" : "text-slate-600"
                         }`}
                       >
                         {p.name}
                       </span>
                       {p.bio && (
-                        <span className="mt-0.5 block line-clamp-1 text-xs text-neutral-400">
+                        <span className="mt-0.5 block line-clamp-1 text-xs text-slate-400">
                           {p.bio}
                         </span>
                       )}
@@ -552,7 +552,7 @@ export default function AgendarPage() {
           <section className="mt-12">
             <div className="flex items-baseline justify-between gap-4">
               <h2 className={LABEL}>Horários</h2>
-              <span className="text-xs text-neutral-400">{longDate(date)}</span>
+              <span className="text-xs text-slate-400">{longDate(date)}</span>
             </div>
 
             {!professional ? (
@@ -564,7 +564,7 @@ export default function AgendarPage() {
             ) : slotsLoading ? (
               <div className="mt-5 grid grid-cols-4 gap-2">
                 {Array.from({ length: 8 }, (_, i) => (
-                  <div key={i} className="h-11 animate-pulse bg-neutral-100" />
+                  <div key={i} className="h-11 animate-pulse bg-slate-100" />
                 ))}
               </div>
             ) : slotsError ? (
@@ -579,7 +579,7 @@ export default function AgendarPage() {
               <div className="mt-5 space-y-7">
                 {slotsByPeriod.map(({ period, items }) => (
                   <div key={period}>
-                    <p className="text-xs font-medium text-neutral-900">{PERIOD_LABEL[period]}</p>
+                    <p className="text-xs font-medium text-slate-900">{PERIOD_LABEL[period]}</p>
                     <div className="mt-3 grid grid-cols-4 gap-2">
                       {items.map((s) => (
                         <button
@@ -608,7 +608,7 @@ export default function AgendarPage() {
   /* ── 3. resumo ── */
 
   return (
-    <main className="min-h-screen bg-white pb-16 text-neutral-900">
+    <main className="min-h-screen bg-slate-50 pb-16 text-slate-900">
       <TopBar onBack={() => setStep("agenda")} label="Horários" />
 
       <form onSubmit={handleSubmit} className="mx-auto max-w-lg px-5">
@@ -618,12 +618,12 @@ export default function AgendarPage() {
         </div>
 
         {/* Data e hora em destaque tipográfico, no lugar do cartão de resumo. */}
-        <p className="text-sm text-neutral-500">{capitalize(longDate(date))}</p>
+        <p className="text-sm text-slate-500">{capitalize(longDate(date))}</p>
         <p className="mt-1 text-5xl font-semibold tracking-tight tabular-nums">
           {slot ? slotLabel(slot.startsAt) : "--:--"}
         </p>
 
-        <dl className="mt-10 border-t border-neutral-200">
+        <dl className="mt-10 border-t border-slate-200">
           <Row label="Barbearia" value={barbershop.name} />
           <Row label="Serviço" value={service?.name ?? ""} />
           <Row label="Profissional" value={professional?.name ?? ""} />
@@ -648,7 +648,7 @@ export default function AgendarPage() {
           </p>
         )}
 
-        <p className="mt-8 text-xs leading-relaxed text-neutral-400">
+        <p className="mt-8 text-xs leading-relaxed text-slate-400">
           Nada é cobrado online. O pagamento é feito na barbearia.
         </p>
 
@@ -664,9 +664,9 @@ export default function AgendarPage() {
 
 function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
-    <div className="flex items-baseline justify-between gap-6 border-b border-neutral-200 py-3.5">
-      <dt className="shrink-0 text-sm text-neutral-500">{label}</dt>
-      <dd className={`text-right text-sm ${strong ? "font-semibold" : "font-medium"} text-neutral-900`}>
+    <div className="flex items-baseline justify-between gap-6 border-b border-slate-200 py-3.5">
+      <dt className="shrink-0 text-sm text-slate-500">{label}</dt>
+      <dd className={`text-right text-sm ${strong ? "font-semibold" : "font-medium"} text-slate-900`}>
         {value}
       </dd>
     </div>

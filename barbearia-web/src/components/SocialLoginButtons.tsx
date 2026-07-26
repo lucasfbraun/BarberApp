@@ -60,9 +60,9 @@ export default function SocialLoginButtons({ callbackUrl }: { callbackUrl: strin
   return (
     <div className="mt-8">
       <div className="flex items-center gap-4">
-        <span className="h-px flex-1 bg-neutral-200" />
-        <span className="text-[11px] uppercase tracking-[0.18em] text-neutral-400">ou</span>
-        <span className="h-px flex-1 bg-neutral-200" />
+        <span className="h-px flex-1 bg-slate-200" />
+        <span className="text-[11px] uppercase tracking-[0.18em] text-slate-400">ou</span>
+        <span className="h-px flex-1 bg-slate-200" />
       </div>
 
       <div className="mt-6 space-y-3">
@@ -75,7 +75,7 @@ export default function SocialLoginButtons({ callbackUrl }: { callbackUrl: strin
               setBusy(id);
               signIn(id, { callbackUrl });
             }}
-            className="flex w-full items-center justify-center gap-3 border border-neutral-300 px-5 py-4 text-sm font-medium tracking-wide text-neutral-900 transition hover:border-neutral-900 disabled:opacity-40"
+            className="flex w-full items-center justify-center gap-3 border border-slate-300 px-5 py-4 text-sm font-medium tracking-wide text-slate-900 transition hover:border-slate-900 disabled:opacity-40"
           >
             {id === "google" ? <GoogleIcon /> : <FacebookIcon />}
             {busy === id ? "Redirecionando…" : LABELS[id]}
@@ -83,7 +83,7 @@ export default function SocialLoginButtons({ callbackUrl }: { callbackUrl: strin
         ))}
       </div>
 
-      <p className="mt-4 text-center text-xs text-neutral-400">
+      <p className="mt-4 text-center text-xs text-slate-400">
         Usamos apenas seu nome e e-mail para criar a conta.
       </p>
     </div>

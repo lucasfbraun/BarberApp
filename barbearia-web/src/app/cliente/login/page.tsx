@@ -56,7 +56,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-neutral-900">
+    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-5 py-12">
         <p className={LABEL}>Cliente</p>
         <h1 className={`${TITLE} mt-3`}>Bem-vindo de volta</h1>
@@ -95,13 +95,13 @@ function LoginForm() {
           Ainda não tem conta?{" "}
           <Link
             href={`/cliente/cadastro?callbackUrl=${encodeURIComponent(callbackUrl)}`}
-            className="text-neutral-900 underline underline-offset-4"
+            className="text-slate-900 underline underline-offset-4"
           >
             Criar conta
           </Link>
         </p>
-        <p className="mt-3 text-center text-xs text-neutral-400">
-          <Link href="/cliente" className="hover:text-neutral-900">← Voltar para o início</Link>
+        <p className="mt-3 text-center text-xs text-slate-400">
+          <Link href="/cliente" className="hover:text-slate-900">← Voltar para o início</Link>
         </p>
       </div>
     </div>

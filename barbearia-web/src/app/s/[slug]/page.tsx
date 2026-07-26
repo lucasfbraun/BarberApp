@@ -77,16 +77,16 @@ function money(v: number) {
 }
 function Stars({ rating }: { rating: number }) {
   return (
-    <span className="text-neutral-900">
+    <span className="text-slate-900">
       {"★".repeat(Math.round(rating))}
-      <span className="text-neutral-300">{"★".repeat(5 - Math.round(rating))}</span>
+      <span className="text-slate-300">{"★".repeat(5 - Math.round(rating))}</span>
     </span>
   );
 }
 function ComingSoon({ title }: { title: string }) {
   return (
-    <p className="border-l-2 border-neutral-900 py-1 pl-4 text-sm leading-relaxed text-neutral-500">
-      <span className="block font-medium text-neutral-900">{title} em breve</span>
+    <p className="border-l-2 border-blue-600 py-1 pl-4 text-sm leading-relaxed text-slate-500">
+      <span className="block font-medium text-slate-900">{title} em breve</span>
       Esta barbearia ainda não ativou este recurso.
     </p>
   );
@@ -95,9 +95,9 @@ function ComingSoon({ title }: { title: string }) {
 /** Linha de informação — rótulo à esquerda, valor à direita. */
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-6 border-b border-neutral-200 py-3.5">
-      <dt className="shrink-0 text-neutral-500">{label}</dt>
-      <dd className="text-right font-medium text-neutral-900">{value}</dd>
+    <div className="flex items-baseline justify-between gap-6 border-b border-slate-200 py-3.5">
+      <dt className="shrink-0 text-slate-500">{label}</dt>
+      <dd className="text-right font-medium text-slate-900">{value}</dd>
     </div>
   );
 }
@@ -183,19 +183,19 @@ export default function PublicBarbershopPage() {
   }, [slug]);
 
   if (loading) {
-    return <main className="flex min-h-screen items-center justify-center bg-white text-sm text-neutral-400">Carregando…</main>;
+    return <main className="flex min-h-screen items-center justify-center bg-white text-sm text-slate-400">Carregando…</main>;
   }
   if (!shop) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white text-neutral-500">
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white text-slate-500">
         <p className="text-sm">Barbearia não encontrada.</p>
-        <Link href="/cliente" className="text-sm text-neutral-900 underline underline-offset-4">Ver todas as barbearias</Link>
+        <Link href="/cliente" className="text-sm text-slate-900 underline underline-offset-4">Ver todas as barbearias</Link>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-white text-neutral-900"><div className="mx-auto w-full max-w-3xl px-5 pb-24">
+    <main className="min-h-screen bg-slate-50 text-slate-900"><div className="mx-auto w-full max-w-3xl px-5 pb-24">
       {/* Capa em faixa larga, sem moldura arredondada */}
       {shop.coverImageUrl && (
         // eslint-disable-next-line @next/next/no-img-element
@@ -203,16 +203,16 @@ export default function PublicBarbershopPage() {
       )}
 
       <section className={shop.coverImageUrl ? "pt-8" : "pt-12"}>
-        <Link href="/cliente" className={`${LABEL} transition hover:text-neutral-900`}>
+        <Link href="/cliente" className={`${LABEL} transition hover:text-slate-900`}>
           ← Barbearias
         </Link>
 
         <div className="mt-5 flex items-start gap-5">
           {shop.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={shop.logoUrl} alt={shop.name} className="h-16 w-16 shrink-0 border border-neutral-200 object-cover" />
+            <img src={shop.logoUrl} alt={shop.name} className="h-16 w-16 shrink-0 border border-slate-200 object-cover" />
           ) : (
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center border border-neutral-200 bg-neutral-50 text-2xl font-light text-neutral-400">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center border border-slate-200 bg-slate-50 text-2xl font-light text-slate-400">
               {shop.name.charAt(0).toUpperCase()}
             </div>
           )}
@@ -222,7 +222,7 @@ export default function PublicBarbershopPage() {
               {[shop.city, shop.state].filter(Boolean).join(" · ") || `/${shop.slug}`}
             </p>
             {shop.ratingAverage !== null && (
-              <p className="mt-1 text-sm text-neutral-500">
+              <p className="mt-1 text-sm text-slate-500">
                 <Stars rating={shop.ratingAverage} />{" "}
                 {shop.ratingAverage.toFixed(1)} · {shop.reviewCount} avaliaç{shop.reviewCount === 1 ? "ão" : "ões"}
               </p>
@@ -236,18 +236,18 @@ export default function PublicBarbershopPage() {
       </section>
 
       {/* Abas: texto sublinhado, não pílulas */}
-      <div className="-mx-5 mt-10 overflow-x-auto border-b border-neutral-200 px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="-mx-5 mt-10 overflow-x-auto border-b border-slate-200 px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="flex gap-7">
           {TABS.map((t) => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className={[
                 "shrink-0 whitespace-nowrap border-b-2 pb-3 text-sm transition",
                 tab === t.key
-                  ? "border-neutral-900 font-medium text-neutral-900"
-                  : "border-transparent text-neutral-400 hover:text-neutral-900",
+                  ? "border-blue-600 font-medium text-blue-600"
+                  : "border-transparent text-slate-400 hover:text-slate-900",
               ].join(" ")}>
               {t.label}
-              {t.soon && <span className="ml-1.5 text-[10px] uppercase tracking-wide text-neutral-300">breve</span>}
+              {t.soon && <span className="ml-1.5 text-[10px] uppercase tracking-wide text-slate-300">breve</span>}
             </button>
           ))}
         </div>
@@ -258,9 +258,9 @@ export default function PublicBarbershopPage() {
           shop.services.length === 0 ? (
             <p className={MUTED}>Nenhum serviço disponível no momento.</p>
           ) : (
-            <ul className="border-t border-neutral-200">
+            <ul className="border-t border-slate-200">
               {shop.services.map((service) => (
-                <li key={service.id} className="border-b border-neutral-200">
+                <li key={service.id} className="border-b border-slate-200">
                   <Link href={`/s/${shop.slug}/agendar`} className="group flex items-baseline justify-between gap-6 py-5">
                     <span className="min-w-0">
                       {service.category && <span className={`${LABEL} block`}>{service.category.name}</span>}
@@ -268,9 +268,9 @@ export default function PublicBarbershopPage() {
                         {service.name}
                       </span>
                       {service.description && (
-                        <span className="mt-1 block line-clamp-1 text-sm text-neutral-500">{service.description}</span>
+                        <span className="mt-1 block line-clamp-1 text-sm text-slate-500">{service.description}</span>
                       )}
-                      <span className="mt-2 block text-xs text-neutral-400">{formatDuration(service.durationMinutes)}</span>
+                      <span className="mt-2 block text-xs text-slate-400">{formatDuration(service.durationMinutes)}</span>
                     </span>
                     <span className="shrink-0 text-base font-medium tabular-nums">{money(service.price)}</span>
                   </Link>
@@ -284,13 +284,13 @@ export default function PublicBarbershopPage() {
           <div className="space-y-10">
             <div>
               <h3 className={LABEL}>Sobre</h3>
-              <p className="mt-3 text-base leading-relaxed text-neutral-600">
+              <p className="mt-3 text-base leading-relaxed text-slate-600">
                 {shop.description || "Esta barbearia ainda não escreveu uma descrição."}
               </p>
             </div>
             <div>
               <h3 className={LABEL}>Contato e endereço</h3>
-              <dl className="mt-3 border-t border-neutral-200 text-sm">
+              <dl className="mt-3 border-t border-slate-200 text-sm">
                 {shop.address && (
                   <InfoRow label="Endereço" value={`${shop.address}${shop.city ? ` — ${shop.city}` : ""}${shop.state ? `/${shop.state}` : ""}${shop.zipCode ? ` · CEP ${shop.zipCode}` : ""}`} />
                 )}
@@ -299,17 +299,17 @@ export default function PublicBarbershopPage() {
                 )}
                 {shop.phone && <InfoRow label="Telefone" value={shop.phone} />}
                 {shop.whatsapp && (
-                  <div className="flex items-baseline justify-between gap-6 border-b border-neutral-200 py-3.5">
-                    <dt className="shrink-0 text-neutral-500">WhatsApp</dt>
+                  <div className="flex items-baseline justify-between gap-6 border-b border-slate-200 py-3.5">
+                    <dt className="shrink-0 text-slate-500">WhatsApp</dt>
                     <dd className="text-right">
                       <a href={`https://wa.me/${shop.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer"
-                        className="font-medium text-neutral-900 underline underline-offset-4">{shop.whatsapp}</a>
+                        className="font-medium text-slate-900 underline underline-offset-4">{shop.whatsapp}</a>
                     </dd>
                   </div>
                 )}
                 {shop.email && <InfoRow label="E-mail" value={shop.email} />}
                 {!shop.phone && !shop.whatsapp && !shop.email && !shop.address && (
-                  <p className="py-3.5 text-neutral-400">Sem informações de contato cadastradas.</p>
+                  <p className="py-3.5 text-slate-400">Sem informações de contato cadastradas.</p>
                 )}
               </dl>
             </div>
@@ -325,16 +325,16 @@ export default function PublicBarbershopPage() {
                 <div key={p.id}>
                   {p.photoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.photoUrl} alt={p.name} className="aspect-[3/4] w-full border border-neutral-200 object-cover grayscale transition hover:grayscale-0" />
+                    <img src={p.photoUrl} alt={p.name} className="aspect-[3/4] w-full border border-slate-200 object-cover grayscale transition hover:grayscale-0" />
                   ) : (
-                    <div className="flex aspect-[3/4] w-full items-center justify-center border border-neutral-200 bg-neutral-50 text-3xl font-light text-neutral-400">
+                    <div className="flex aspect-[3/4] w-full items-center justify-center border border-slate-200 bg-slate-50 text-3xl font-light text-slate-400">
                       {p.name.charAt(0).toUpperCase()}
                     </div>
                   )}
                   <p className="mt-3 text-sm font-medium tracking-tight">{p.name}</p>
-                  {p.bio && <p className="mt-1 line-clamp-2 text-xs text-neutral-500">{p.bio}</p>}
+                  {p.bio && <p className="mt-1 line-clamp-2 text-xs text-slate-500">{p.bio}</p>}
                   <Link href={`/s/${shop.slug}/agendar`}
-                    className="mt-2 inline-block text-xs text-neutral-500 underline underline-offset-4 transition hover:text-neutral-900">
+                    className="mt-2 inline-block text-xs text-slate-500 underline underline-offset-4 transition hover:text-slate-900">
                     Agendar
                   </Link>
                 </div>
@@ -347,14 +347,14 @@ export default function PublicBarbershopPage() {
           shop.products.length === 0 ? (
             <p className={MUTED}>Nenhum produto à venda no momento.</p>
           ) : (
-            <ul className="border-t border-neutral-200">
+            <ul className="border-t border-slate-200">
               {shop.products.map((p) => (
-                <li key={p.id} className="flex items-start justify-between gap-6 border-b border-neutral-200 py-5">
+                <li key={p.id} className="flex items-start justify-between gap-6 border-b border-slate-200 py-5">
                   <div className="min-w-0">
                     {p.category && <p className={LABEL}>{p.category}</p>}
                     <p className="mt-1 text-base font-medium tracking-tight">{p.name}</p>
-                    {p.description && <p className="mt-1 line-clamp-1 text-sm text-neutral-500">{p.description}</p>}
-                    <p className={`mt-2 text-xs ${p.stockQuantity > 0 ? "text-neutral-400" : "text-red-600"}`}>
+                    {p.description && <p className="mt-1 line-clamp-1 text-sm text-slate-500">{p.description}</p>}
+                    <p className={`mt-2 text-xs ${p.stockQuantity > 0 ? "text-slate-400" : "text-red-600"}`}>
                       {p.stockQuantity > 0 ? "Disponível · reserve e pague na barbearia" : "Esgotado"}
                     </p>
                   </div>
@@ -363,7 +363,7 @@ export default function PublicBarbershopPage() {
                     <button
                       disabled={p.stockQuantity <= 0 || cartBusy === p.id}
                       onClick={() => addToCart(p.id)}
-                      className="mt-2 border border-neutral-300 px-3 py-1.5 text-xs font-medium transition hover:border-neutral-900 disabled:opacity-30">
+                      className="mt-2 border border-slate-300 px-3 py-1.5 text-xs font-medium transition hover:border-blue-600 hover:text-blue-600 disabled:opacity-30">
                       {cartBusy === p.id ? "Reservando…" : "Reservar"}
                     </button>
                   </div>
@@ -379,7 +379,7 @@ export default function PublicBarbershopPage() {
 
         {tab === "avaliacoes" && (
           shop.reviews.length === 0 ? (
-            <p className="border-l-2 border-neutral-900 py-1 pl-4 text-sm text-neutral-500">
+            <p className="border-l-2 border-blue-600 py-1 pl-4 text-sm text-slate-500">
               Ainda sem avaliações. Seja o primeiro a agendar e avaliar esta barbearia.
             </p>
           ) : (
@@ -389,24 +389,24 @@ export default function PublicBarbershopPage() {
                   <p className="text-5xl font-semibold tracking-tight tabular-nums">
                     {shop.ratingAverage.toFixed(1)}
                   </p>
-                  <p className="mt-2 text-sm text-neutral-500">
+                  <p className="mt-2 text-sm text-slate-500">
                     <Stars rating={shop.ratingAverage} /> · {shop.reviewCount} avaliaç
                     {shop.reviewCount === 1 ? "ão" : "ões"}
                   </p>
                 </div>
               )}
-              <ul className="border-t border-neutral-200">
+              <ul className="border-t border-slate-200">
                 {shop.reviews.map((r) => (
-                  <li key={r.id} className="border-b border-neutral-200 py-5">
+                  <li key={r.id} className="border-b border-slate-200 py-5">
                     <div className="flex items-baseline justify-between gap-4">
                       <p className="text-sm font-medium">{r.customer?.name ?? "Cliente"}</p>
                       <Stars rating={r.rating} />
                     </div>
                     {r.professional && (
-                      <p className="mt-0.5 text-xs text-neutral-400">Atendido por {r.professional.name}</p>
+                      <p className="mt-0.5 text-xs text-slate-400">Atendido por {r.professional.name}</p>
                     )}
-                    {r.comment && <p className="mt-2 text-sm leading-relaxed text-neutral-600">{r.comment}</p>}
-                    <p className="mt-2 text-xs text-neutral-400">
+                    {r.comment && <p className="mt-2 text-sm leading-relaxed text-slate-600">{r.comment}</p>}
+                    <p className="mt-2 text-xs text-slate-400">
                       {new Date(r.createdAt).toLocaleDateString("pt-BR")}
                     </p>
                   </li>
@@ -426,26 +426,26 @@ export default function PublicBarbershopPage() {
       <button
         onClick={() => setCartOpen(true)}
         aria-label="Abrir reservas"
-        className="fixed bottom-5 right-5 z-40 flex items-center gap-2 bg-neutral-900 px-5 py-3.5 text-sm font-medium tracking-wide text-white transition hover:bg-neutral-700"
+        className="fixed bottom-5 right-5 z-40 flex items-center gap-2 bg-blue-600 px-5 py-3.5 text-sm font-medium tracking-wide text-white transition hover:bg-blue-500"
       >
         Reservas
         {(cart?.count ?? 0) > 0 && (
-          <span className="flex h-5 min-w-5 items-center justify-center bg-white px-1 text-xs font-semibold tabular-nums text-neutral-900">
-            {cart!.count}
+          <span className="flex h-5 min-w-5 items-center justify-center bg-white px-1 text-xs font-semibold tabular-nums text-slate-900">
+            <span className="text-blue-600">{cart!.count}</span>
           </span>
         )}
       </button>
 
       {/* Drawer do carrinho */}
       {cartOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-neutral-900/30" onClick={() => setCartOpen(false)}>
+        <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/30" onClick={() => setCartOpen(false)}>
           <div
-            className="flex h-full w-full max-w-md flex-col border-l border-neutral-200 bg-white"
+            className="flex h-full w-full max-w-md flex-col border-l border-slate-200 bg-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-5">
-              <h3 className="text-lg font-semibold tracking-tight text-neutral-900">Suas reservas</h3>
-              <button onClick={() => setCartOpen(false)} aria-label="Fechar" className="text-neutral-400 hover:text-neutral-900">✕</button>
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-5">
+              <h3 className="text-lg font-semibold tracking-tight text-slate-900">Suas reservas</h3>
+              <button onClick={() => setCartOpen(false)} aria-label="Fechar" className="text-slate-400 hover:text-slate-900">✕</button>
             </div>
 
             <div className="flex-1 space-y-8 overflow-y-auto px-5 py-6">
@@ -454,8 +454,8 @@ export default function PublicBarbershopPage() {
               )}
 
               {!cart || cart.count === 0 ? (
-                <p className="border-l-2 border-neutral-900 py-1 pl-4 text-sm leading-relaxed text-neutral-500">
-                  <span className="block font-medium text-neutral-900">Nada reservado ainda</span>
+                <p className="border-l-2 border-blue-600 py-1 pl-4 text-sm leading-relaxed text-slate-500">
+                  <span className="block font-medium text-slate-900">Nada reservado ainda</span>
                   Reserve um horário ou adicione produtos.
                 </p>
               ) : (
@@ -464,13 +464,13 @@ export default function PublicBarbershopPage() {
                   {cart.appointments.length > 0 && (
                     <div>
                       <p className={LABEL}>Serviços reservados</p>
-                      <ul className="mt-3 border-t border-neutral-200">
+                      <ul className="mt-3 border-t border-slate-200">
                         {cart.appointments.map((a) => (
-                          <li key={a.id} className="border-b border-neutral-200 py-4">
+                          <li key={a.id} className="border-b border-slate-200 py-4">
                             <div className="flex items-baseline justify-between gap-4">
                               <div className="min-w-0">
-                                <p className="text-sm font-medium text-neutral-900">{a.service?.name ?? "Serviço"}</p>
-                                <p className="mt-0.5 text-xs text-neutral-500">
+                                <p className="text-sm font-medium text-slate-900">{a.service?.name ?? "Serviço"}</p>
+                                <p className="mt-0.5 text-xs text-slate-500">
                                   {a.professional ? `com ${a.professional.name} · ` : ""}
                                   {new Date(a.startsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}{" "}
                                   às {new Date(a.startsAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
@@ -494,12 +494,12 @@ export default function PublicBarbershopPage() {
                   {cart.order && cart.order.items.length > 0 && (
                     <div>
                       <p className={LABEL}>Produtos</p>
-                      <ul className="mt-3 border-t border-neutral-200">
+                      <ul className="mt-3 border-t border-slate-200">
                         {cart.order.items.map((i) => (
-                          <li key={i.id} className="flex items-baseline justify-between gap-4 border-b border-neutral-200 py-4">
+                          <li key={i.id} className="flex items-baseline justify-between gap-4 border-b border-slate-200 py-4">
                             <div className="min-w-0">
-                              <p className="text-sm font-medium text-neutral-900">{i.name}</p>
-                              <p className="mt-0.5 text-xs text-neutral-500">{i.quantity}× · {money(Number(i.unitPrice))}</p>
+                              <p className="text-sm font-medium text-slate-900">{i.name}</p>
+                              <p className="mt-0.5 text-xs text-slate-500">{i.quantity}× · {money(Number(i.unitPrice))}</p>
                               <button
                                 disabled={cartBusy === i.id}
                                 onClick={() => removeProduct(i.id)}
@@ -517,16 +517,16 @@ export default function PublicBarbershopPage() {
               )}
             </div>
 
-            <div className="border-t border-neutral-200 px-5 py-5">
+            <div className="border-t border-slate-200 px-5 py-5">
               {cart && cart.count > 0 && (
                 <div className="flex items-baseline justify-between pb-4">
-                  <span className="text-sm text-neutral-500">Total estimado</span>
+                  <span className="text-sm text-slate-500">Total estimado</span>
                   <span className="text-2xl font-semibold tracking-tight tabular-nums">
                     {money(cart.totals.estimated)}
                   </span>
                 </div>
               )}
-              <p className="text-xs leading-relaxed text-neutral-400">
+              <p className="text-xs leading-relaxed text-slate-400">
                 Nada é cobrado agora. Tudo fica reservado e você paga na barbearia.
               </p>
               <Link href={`/s/${slug}/agendar`} className={`${BUTTON} mt-4 block text-center`}>

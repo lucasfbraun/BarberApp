@@ -47,7 +47,7 @@ function CadastroForm() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-neutral-900">
+    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-5 py-12">
         <p className={LABEL}>Cliente</p>
         <h1 className={`${TITLE} mt-3`}>Criar sua conta</h1>
@@ -81,12 +81,12 @@ function CadastroForm() {
 
         <p className={`${MUTED} mt-10 text-center`}>
           Já tem conta?{" "}
-          <Link href={`/cliente/login?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="text-neutral-900 underline underline-offset-4">
+          <Link href={`/cliente/login?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="text-slate-900 underline underline-offset-4">
             Entrar
           </Link>
         </p>
-        <p className="mt-3 text-center text-xs text-neutral-400">
-          <Link href="/cliente" className="hover:text-neutral-900">← Voltar para o início</Link>
+        <p className="mt-3 text-center text-xs text-slate-400">
+          <Link href="/cliente" className="hover:text-slate-900">← Voltar para o início</Link>
         </p>
       </div>
     </div>

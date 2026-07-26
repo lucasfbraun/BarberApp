@@ -35,27 +35,27 @@ function ApptRow({ a, onCancel, canceling }: { a: Appt; onCancel?: (id: string) 
   const done = ["COMPLETED", "CANCELLED", "NO_SHOW", "RESCHEDULED"].includes(a.status);
 
   return (
-    <li className="border-b border-neutral-200 py-5">
+    <li className="border-b border-slate-200 py-5">
       <div className="flex gap-5">
         {/* Coluna da data */}
-        <div className={`w-12 shrink-0 text-center ${done ? "text-neutral-400" : "text-neutral-900"}`}>
+        <div className={`w-12 shrink-0 text-center ${done ? "text-slate-400" : "text-slate-900"}`}>
           <p className="text-2xl font-semibold leading-none tabular-nums">{starts.getDate()}</p>
-          <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-neutral-400">
+          <p className="mt-1 text-[11px] uppercase tracking-[0.14em] text-slate-400">
             {starts.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}
           </p>
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className={`text-base font-medium tracking-tight ${done ? "text-neutral-500" : "text-neutral-900"}`}>
+          <p className={`text-base font-medium tracking-tight ${done ? "text-slate-500" : "text-slate-900"}`}>
             {a.barbershop.name}
           </p>
-          <p className="mt-0.5 text-sm text-neutral-500">
+          <p className="mt-0.5 text-sm text-slate-500">
             {a.service?.name ?? "Serviço"}
             {a.professional ? ` · ${a.professional.name}` : ""}
           </p>
-          <p className="mt-1 text-sm tabular-nums text-neutral-900">
+          <p className="mt-1 text-sm tabular-nums text-slate-900">
             {starts.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-            <span className={`ml-3 text-xs ${STATUS_TONE[a.status] ?? "text-neutral-500"}`}>
+            <span className={`ml-3 text-xs ${STATUS_TONE[a.status] ?? "text-slate-500"}`}>
               {STATUS_LABELS[a.status] ?? a.status}
             </span>
           </p>
@@ -63,7 +63,7 @@ function ApptRow({ a, onCancel, canceling }: { a: Appt; onCancel?: (id: string) 
           <div className="mt-3 flex gap-5">
             <Link
               href={`/s/${a.barbershop.slug}/agendar`}
-              className="text-xs text-neutral-500 underline underline-offset-4 transition hover:text-neutral-900"
+              className="text-xs text-slate-500 underline underline-offset-4 transition hover:text-slate-900"
             >
               Agendar de novo
             </Link>
@@ -121,10 +121,10 @@ export default function ClienteAgendamentosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-24 text-neutral-900">
+    <div className="min-h-screen bg-slate-50 pb-24 text-slate-900">
       <div className="mx-auto max-w-lg px-5">
         <header className="pt-10">
-          <Link href="/cliente" className={`${LABEL} transition hover:text-neutral-900`}>
+          <Link href="/cliente" className={`${LABEL} transition hover:text-slate-900`}>
             ← Barbearias
           </Link>
           <h1 className={`${TITLE} mt-3`}>Meus agendamentos</h1>
@@ -141,14 +141,14 @@ export default function ClienteAgendamentosPage() {
             <section className="mt-10">
               <h2 className={LABEL}>Próximos</h2>
               {upcoming.length === 0 ? (
-                <p className="mt-4 border-l-2 border-neutral-900 py-1 pl-4 text-sm text-neutral-500">
+                <p className="mt-4 border-l-2 border-blue-600 py-1 pl-4 text-sm text-slate-500">
                   Nenhum agendamento futuro.{" "}
-                  <Link href="/cliente" className="text-neutral-900 underline underline-offset-4">
+                  <Link href="/cliente" className="text-slate-900 underline underline-offset-4">
                     Agendar agora
                   </Link>
                 </p>
               ) : (
-                <ul className="mt-2 border-t border-neutral-200">
+                <ul className="mt-2 border-t border-slate-200">
                   {upcoming.map((a) => (
                     <ApptRow key={a.id} a={a} onCancel={cancel} canceling={canceling} />
                   ))}
@@ -161,7 +161,7 @@ export default function ClienteAgendamentosPage() {
               {past.length === 0 ? (
                 <p className={`${MUTED} mt-4`}>Sem histórico ainda.</p>
               ) : (
-                <ul className="mt-2 border-t border-neutral-200">
+                <ul className="mt-2 border-t border-slate-200">
                   {past.map((a) => <ApptRow key={a.id} a={a} canceling={canceling} />)}
                 </ul>
               )}

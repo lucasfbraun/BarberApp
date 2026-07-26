@@ -31,9 +31,9 @@ function formatToday() {
 function ShopMark({ shop, size }: { shop: { name: string; logoUrl: string | null }; size: string }) {
   return shop.logoUrl ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={shop.logoUrl} alt={shop.name} className={`${size} border border-neutral-200 object-cover`} />
+    <img src={shop.logoUrl} alt={shop.name} className={`${size} border border-slate-200 object-cover`} />
   ) : (
-    <div className={`${size} flex items-center justify-center border border-neutral-200 bg-neutral-50 text-lg font-light text-neutral-400`}>
+    <div className={`${size} flex items-center justify-center border border-slate-200 bg-slate-50 text-lg font-light text-slate-400`}>
       {shop.name.charAt(0).toUpperCase()}
     </div>
   );
@@ -42,18 +42,18 @@ function ShopMark({ shop, size }: { shop: { name: string; logoUrl: string | null
 /** Linha de barbearia — divisória fina, sem cartão. */
 function ShopRow({ shop }: { shop: Shop }) {
   return (
-    <li className="border-b border-neutral-200">
+    <li className="border-b border-slate-200">
       <Link href={`/s/${shop.slug}`} className="group flex items-center gap-4 py-4">
         <ShopMark shop={shop} size="h-14 w-14 shrink-0" />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-base font-medium tracking-tight text-neutral-900 group-hover:underline group-hover:underline-offset-4">
+          <span className="block truncate text-base font-medium tracking-tight text-slate-900 group-hover:underline group-hover:underline-offset-4">
             {shop.name}
           </span>
-          <span className="mt-0.5 block truncate text-sm text-neutral-500">
+          <span className="mt-0.5 block truncate text-sm text-slate-500">
             {[shop.city, shop.state].filter(Boolean).join(" · ") || shop.description || ""}
           </span>
         </span>
-        <span className="shrink-0 text-neutral-300 transition group-hover:text-neutral-900">→</span>
+        <span className="shrink-0 text-slate-300 transition group-hover:text-slate-900">→</span>
       </Link>
     </li>
   );
@@ -110,7 +110,7 @@ export default function ClienteHomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-24 text-neutral-900">
+    <div className="min-h-screen bg-slate-50 pb-24 text-slate-900">
       <div className="mx-auto max-w-lg px-5">
         {/* Cabeçalho editorial: data pequena em cima, nome grande embaixo. */}
         <header className="pt-10">
@@ -121,8 +121,8 @@ export default function ClienteHomePage() {
         </header>
 
         {/* Busca: campo com linha embaixo, sem caixa. */}
-        <div className="mt-8 flex items-center gap-3 border-b border-neutral-300 pb-2 focus-within:border-neutral-900">
-          <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-neutral-400" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+        <div className="mt-8 flex items-center gap-3 border-b border-slate-300 pb-2 focus-within:border-blue-600">
+          <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
             <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
           </svg>
           <input
@@ -130,10 +130,10 @@ export default function ClienteHomePage() {
             placeholder="Buscar por nome ou cidade"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-transparent py-1.5 text-base text-neutral-900 outline-none placeholder:text-neutral-400"
+            className="w-full bg-transparent py-1.5 text-base text-slate-900 outline-none placeholder:text-slate-400"
           />
           {search && (
-            <button onClick={() => setSearch("")} aria-label="Limpar busca" className="text-sm text-neutral-400 hover:text-neutral-900">
+            <button onClick={() => setSearch("")} aria-label="Limpar busca" className="text-sm text-slate-400 hover:text-slate-900">
               ✕
             </button>
           )}
@@ -145,11 +145,11 @@ export default function ClienteHomePage() {
             {loading ? (
               <p className={`${MUTED} mt-4`}>Buscando…</p>
             ) : shops.length === 0 ? (
-              <p className="mt-4 border-l-2 border-neutral-900 py-1 pl-4 text-sm text-neutral-500">
+              <p className="mt-4 border-l-2 border-blue-600 py-1 pl-4 text-sm text-slate-500">
                 Nada encontrado para “{search}”.
               </p>
             ) : (
-              <ul className="mt-2 border-t border-neutral-200">
+              <ul className="mt-2 border-t border-slate-200">
                 {shops.map((s) => <ShopRow key={s.id} shop={s} />)}
               </ul>
             )}
@@ -164,7 +164,7 @@ export default function ClienteHomePage() {
                   <p className="text-2xl font-semibold tracking-tight group-hover:underline group-hover:underline-offset-4">
                     {lastAppt.barbershop.name}
                   </p>
-                  <p className="mt-1 text-sm text-neutral-500">
+                  <p className="mt-1 text-sm text-slate-500">
                     {lastAppt.service?.name ?? "Serviço"} ·{" "}
                     {new Date(lastAppt.startsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "long" })}
                     {" · "}
@@ -179,7 +179,7 @@ export default function ClienteHomePage() {
               <section className="mt-12">
                 <div className="flex items-baseline justify-between gap-4">
                   <h2 className={LABEL}>Você já esteve aqui</h2>
-                  <Link href="/cliente/agendamentos" className="text-xs text-neutral-500 underline underline-offset-4 hover:text-neutral-900">
+                  <Link href="/cliente/agendamentos" className="text-xs text-slate-500 underline underline-offset-4 hover:text-slate-900">
                     Ver tudo
                   </Link>
                 </div>
@@ -188,7 +188,7 @@ export default function ClienteHomePage() {
                     {recentShops.map((s) => (
                       <Link key={s.id} href={`/s/${s.slug}`} className="w-20 shrink-0">
                         <ShopMark shop={s} size="h-20 w-20" />
-                        <span className="mt-2 block line-clamp-2 text-xs text-neutral-600">{s.name}</span>
+                        <span className="mt-2 block line-clamp-2 text-xs text-slate-600">{s.name}</span>
                       </Link>
                     ))}
                   </div>
@@ -201,11 +201,11 @@ export default function ClienteHomePage() {
               {loading ? (
                 <p className={`${MUTED} mt-4`}>Carregando…</p>
               ) : shops.length === 0 ? (
-                <p className="mt-4 border-l-2 border-neutral-900 py-1 pl-4 text-sm text-neutral-500">
+                <p className="mt-4 border-l-2 border-blue-600 py-1 pl-4 text-sm text-slate-500">
                   Nenhuma barbearia cadastrada ainda.
                 </p>
               ) : (
-                <ul className="mt-4 border-t border-neutral-200">
+                <ul className="mt-4 border-t border-slate-200">
                   {shops.map((s) => <ShopRow key={s.id} shop={s} />)}
                 </ul>
               )}
@@ -216,13 +216,13 @@ export default function ClienteHomePage() {
 
       {/* Menu inferior */}
       {menuOpen && (
-        <div className="fixed inset-0 z-50 flex items-end bg-neutral-900/30" onClick={() => setMenuOpen(false)}>
-          <div className="w-full border-t border-neutral-200 bg-white px-5 pb-10 pt-6" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end bg-slate-900/30" onClick={() => setMenuOpen(false)}>
+          <div className="w-full border-t border-slate-200 bg-white px-5 pb-10 pt-6" onClick={(e) => e.stopPropagation()}>
             {me ? (
               <>
                 <p className={LABEL}>Conectado como {me.user.name}</p>
-                <div className="mt-4 border-t border-neutral-200">
-                  <Link href="/cliente/agendamentos" className="block border-b border-neutral-200 py-4 text-base font-medium">
+                <div className="mt-4 border-t border-slate-200">
+                  <Link href="/cliente/agendamentos" className="block border-b border-slate-200 py-4 text-base font-medium">
                     Meus agendamentos
                   </Link>
                   <Link href="/api/auth/signout?callbackUrl=/cliente" className="block py-4 text-base font-medium text-red-600">
@@ -231,8 +231,8 @@ export default function ClienteHomePage() {
                 </div>
               </>
             ) : loggedOut ? (
-              <div className="border-t border-neutral-200">
-                <Link href="/cliente/login?callbackUrl=/cliente" className="block border-b border-neutral-200 py-4 text-base font-medium">
+              <div className="border-t border-slate-200">
+                <Link href="/cliente/login?callbackUrl=/cliente" className="block border-b border-slate-200 py-4 text-base font-medium">
                   Entrar
                 </Link>
                 <Link href="/cliente/cadastro" className="block py-4 text-base font-medium">
