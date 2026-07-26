@@ -1,10 +1,25 @@
 # Área do Cliente Final — Documentação
 
-Data: 2026-07-26 · Páginas: `/cliente`, `/cliente/cadastro`, `/cliente/agendamentos` · APIs: `/api/cliente/*`, `/api/public/barbearias`
+Data: 2026-07-26 · Páginas: `/cliente`, `/cliente/cadastro`, `/cliente/agendamentos`, `/s/[slug]` · APIs: `/api/cliente/*`, `/api/public/barbearias`, `/api/public/barbershop/[slug]`
 
 ## Conceito
 
-O cliente final agora tem **conta própria** (e-mail + senha, mesma autenticação do sistema) e uma área para descobrir barbearias e gerenciar agendamentos. **Agendar exige login** — o fluxo público antigo (só nome/telefone) foi desativado.
+O cliente final tem **conta própria** (e-mail + senha, mesma autenticação do sistema). A navegação é **totalmente livre**: qualquer pessoa vê o diretório, pesquisa barbearias e explora a página de cada uma sem login. O login só é exigido **no momento de agendar** — o fluxo anônimo antigo (só nome/telefone) foi desativado.
+
+## Página pública da barbearia (`/s/[slug]`) — abas
+
+| Aba | Conteúdo | Status |
+|---|---|---|
+| Serviços | Catálogo ativo com categoria, duração, preço e atalho "Agendar este serviço" | ✅ |
+| Detalhes | Descrição, endereço, telefone, WhatsApp (link direto) e e-mail | ✅ |
+| Profissionais | **Somente barbeiros ativos** da barbearia, com foto, bio e atalho de agendamento | ✅ |
+| Produtos | Vitrine dos produtos à venda do estoque (`active` + `sellable`), com preço e disponibilidade | ✅ |
+| Fidelidade | Placeholder "em breve" — funcionalidade da Fase 2 do escopo | 🔜 |
+| Pacotes | Placeholder "em breve" — Fase 2 | 🔜 |
+| Assinaturas | Placeholder "em breve" — Fase 3 | 🔜 |
+| Avaliações | Notas e comentários (model Review) com média em estrelas; hero mostra a média | ✅ |
+
+O hero exibe capa, logo, cidade, média de avaliações e os botões "Agendar agora" e "Outras barbearias". Barbearias INACTIVE não são exibidas (404).
 
 ## Regras principais
 

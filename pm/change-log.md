@@ -46,6 +46,7 @@
 | 2026-07-26 | Bloqueios de agenda: PROFESSIONAL cria bloqueio na propria agenda; desbloqueio exclusivo de OWNER/MANAGER; doc em pm/bloqueios-de-agenda.md | Usuario | Implementado |
 | 2026-07-26 | Modulo de estoque: Product + StockMovement, APIs produtos/movimentacoes/resumo, pagina /estoque, venda de produto na comanda com baixa automatica e lucro; doc em pm/estoque.md | Usuario | Implementado |
 | 2026-07-26 | Area do cliente final: conta com login obrigatorio p/ agendar, diretorio de barbearias com busca, ultima barbearia em destaque, meus agendamentos com cancelamento; doc em pm/area-do-cliente.md | Usuario | Implementado |
+| 2026-07-26 | Pagina publica da barbearia com abas: servicos, detalhes, profissionais (so ativos), produtos (vitrine do estoque), avaliacoes com media; fidelidade/pacotes/assinaturas como "em breve" (sprints 17-19). Sprint-status atualizado (sprints 14-19) | Usuario | Implementado |
 
 
 ## Regra

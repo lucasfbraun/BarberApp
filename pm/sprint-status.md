@@ -16,3 +16,9 @@
 | 11 | Trial automatico | Concluida | trialEndsAt no Barbershop. Onboarding seta 30 dias. JWT carrega trialEndsAt. Middleware bloqueia painel se expirado. Banner ambar nos ultimos 7 dias. Pagina /trial-expirado. |
 | 12 | Admin Master: barbearias e trials | Concluida | API /api/admin/barbearias com filtros e computedStatus. Pagina /admin/barbearias com cards e tabela. Detalhe /admin/barbearias/[id] com acoes: extender trial, trocar plano, ativar/desativar. |
 | 13 | Admin Master: revendedores e planos | Concluida | API /api/admin/revendedores (GET + PATCH). Pagina /admin/revendedores com lista, receita/comissao e acoes (aprovar, desativar, editar taxa). Landing page com planos dinamicos do banco via Prisma server component. |
+| 14 | Correcoes de seguranca + isencao + bloqueios | Concluida | Blocos 1-3 do cronograma de correcoes (critico/alto/medio). Isencao de contrato (billingExempt) no admin. Barbeiro bloqueia propria agenda; desbloqueio so admin do tenant. |
+| 15 | Modulo de estoque | Concluida | Product + StockMovement, saldo automatico, historico auditavel, alertas (minimo/validade), inventario, lucro por produto, venda na comanda com baixa automatica. Pagina /estoque. |
+| 16 | Area do cliente final | Concluida | Conta de cliente (login obrigatorio so p/ agendar), diretorio /cliente com busca, ultima barbearia em destaque, meus agendamentos com cancelamento. Pagina /s/[slug] com abas: servicos, detalhes, profissionais (ativos), produtos, avaliacoes + placeholders fidelidade/pacotes/assinaturas. |
+| 17 | Fidelidade | Planejada | Programa de fidelidade (Fase 2 do escopo). Aba ja criada na pagina publica como "em breve". |
+| 18 | Pacotes de servicos | Planejada | Pacotes/combos (Fase 2). Aba placeholder criada. |
+| 19 | Assinaturas de clientes | Planejada | Assinaturas da barbearia p/ cliente final (Fase 3). Aba placeholder criada. Depende do epico de pagamento (antigas sprints 18-20 do escopo). |
