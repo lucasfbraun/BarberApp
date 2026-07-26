@@ -47,6 +47,8 @@
 | 2026-07-26 | Modulo de estoque: Product + StockMovement, APIs produtos/movimentacoes/resumo, pagina /estoque, venda de produto na comanda com baixa automatica e lucro; doc em pm/estoque.md | Usuario | Implementado |
 | 2026-07-26 | Area do cliente final: conta com login obrigatorio p/ agendar, diretorio de barbearias com busca, ultima barbearia em destaque, meus agendamentos com cancelamento; doc em pm/area-do-cliente.md | Usuario | Implementado |
 | 2026-07-26 | Pagina publica da barbearia com abas: servicos, detalhes, profissionais (so ativos), produtos (vitrine do estoque), avaliacoes com media; fidelidade/pacotes/assinaturas como "em breve" (sprints 17-19). Sprint-status atualizado (sprints 14-19) | Usuario | Implementado |
+| 2026-07-26 | Tema claro (fundo branco) e responsividade mobile em toda a jornada do cliente | Usuario | Implementado |
+| 2026-07-26 | Carrinho do cliente (reserva sem pagamento): servico reserva agenda do profissional, produto vira encomenda na comanda; drawer com remover itens e total estimado | Usuario | Implementado |
 
 
 ## Regra

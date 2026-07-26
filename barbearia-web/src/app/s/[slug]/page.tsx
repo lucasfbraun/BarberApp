@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
 /* Página pública da barbearia — navegação LIVRE (sem login).
@@ -32,6 +32,21 @@ type Shop = {
   services: Service[]; professionals: Professional[];
   products: Product[]; reviews: Review[];
   ratingAverage: number | null; reviewCount: number;
+};
+
+type CartAppointment = {
+  id: string; startsAt: string;
+  professional: { name: string } | null;
+  service: { name: string; price: number } | null;
+};
+type CartItem = {
+  id: string; name: string; quantity: number; unitPrice: number; total: number;
+};
+type Cart = {
+  appointments: CartAppointment[];
+  order: { id: string; items: CartItem[] } | null;
+  totals: { services: number; products: number; estimated: number };
+  count: number;
 };
 
 type TabKey =
@@ -80,10 +95,73 @@ function ComingSoon({ title }: { title: string }) {
 export default function PublicBarbershopPage() {
   const params = useParams<{ slug: string }>();
   const slug = decodeURIComponent(params?.slug ?? "");
+  const router = useRouter();
 
   const [shop, setShop] = useState<Shop | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<TabKey>("servicos");
+
+  // Carrinho (reservas): serviços agendados + produtos encomendados.
+  const [cart, setCart] = useState<Cart | null>(null);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartBusy, setCartBusy] = useState("");
+  const [cartMsg, setCartMsg] = useState("");
+
+  const loadCart = useCallback(async () => {
+    if (!slug) return;
+    const res = await fetch(`/api/cliente/carrinho?slug=${encodeURIComponent(slug)}`);
+    if (res.ok) setCart(await res.json());
+    else setCart(null); // deslogado: carrinho aparece vazio
+  }, [slug]);
+
+  useEffect(() => { loadCart(); }, [loadCart]);
+
+  function goLogin() {
+    router.push(`/login?callbackUrl=${encodeURIComponent(`/s/${slug}`)}`);
+  }
+
+  async function addToCart(productId: string) {
+    setCartBusy(productId);
+    setCartMsg("");
+    const res = await fetch("/api/cliente/carrinho/produtos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, productId, quantity: 1 }),
+    });
+    if (res.status === 401) { goLogin(); return; }
+    if (res.ok) {
+      await loadCart();
+      setCartOpen(true);
+    } else {
+      setCartMsg((await res.json()).error ?? "Erro ao adicionar.");
+      setCartOpen(true);
+    }
+    setCartBusy("");
+  }
+
+  async function removeProduct(itemId: string) {
+    setCartBusy(itemId);
+    setCartMsg("");
+    const res = await fetch(`/api/cliente/carrinho/produtos?itemId=${encodeURIComponent(itemId)}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) setCartMsg((await res.json()).error ?? "Erro ao remover.");
+    await loadCart();
+    setCartBusy("");
+  }
+
+  async function removeAppointment(id: string) {
+    setCartBusy(id);
+    setCartMsg("");
+    const res = await fetch(`/api/cliente/agendamentos/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "cancel" }),
+    });
+    if (!res.ok) setCartMsg((await res.json()).error ?? "Erro ao remover reserva.");
+    await loadCart();
+    setCartBusy("");
+  }
 
   useEffect(() => {
     if (!slug) return;
@@ -189,7 +267,7 @@ export default function PublicBarbershopPage() {
                   </div>
                   <Link href={`/s/${shop.slug}/agendar`}
                     className="mt-4 rounded-xl border border-cyan-300 bg-cyan-50 px-4 py-2 text-center text-xs font-semibold text-cyan-700 transition hover:bg-cyan-100">
-                    Agendar este serviço
+                    🛒 Reservar horário
                   </Link>
                 </article>
               ))}
@@ -278,7 +356,13 @@ export default function PublicBarbershopPage() {
                     </span>
                     <span className="text-sm font-semibold text-cyan-700">{money(p.salePrice)}</span>
                   </div>
-                  <p className="mt-3 text-xs text-slate-400">Compre na barbearia — adicionado à sua comanda.</p>
+                  <button
+                    disabled={p.stockQuantity <= 0 || cartBusy === p.id}
+                    onClick={() => addToCart(p.id)}
+                    className="mt-4 rounded-xl bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40">
+                    {cartBusy === p.id ? "Adicionando..." : "🛒 Adicionar ao carrinho"}
+                  </button>
+                  <p className="mt-2 text-center text-xs text-slate-400">Reserva sem pagamento — pague na barbearia.</p>
                 </article>
               ))}
             </div>
@@ -322,6 +406,122 @@ export default function PublicBarbershopPage() {
         )}
       </div>
       </div>
+
+      {/* Botão flutuante do carrinho */}
+      <button
+        onClick={() => setCartOpen(true)}
+        aria-label="Abrir carrinho"
+        className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-cyan-400 text-2xl shadow-lg transition hover:bg-cyan-300"
+      >
+        🛒
+        {(cart?.count ?? 0) > 0 && (
+          <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+            {cart!.count}
+          </span>
+        )}
+      </button>
+
+      {/* Drawer do carrinho */}
+      {cartOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40" onClick={() => setCartOpen(false)}>
+          <div
+            className="flex h-full w-full max-w-md flex-col bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-200 p-5">
+              <h3 className="text-lg font-bold text-slate-900">🛒 Meu carrinho</h3>
+              <button onClick={() => setCartOpen(false)} className="rounded-xl px-3 py-1 text-slate-500 hover:text-slate-900">✕</button>
+            </div>
+
+            <div className="flex-1 space-y-5 overflow-y-auto p-5">
+              {cartMsg && (
+                <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">{cartMsg}</p>
+              )}
+
+              {!cart || cart.count === 0 ? (
+                <div className="py-10 text-center text-sm text-slate-500">
+                  <p className="text-3xl">🛒</p>
+                  <p className="mt-3">Seu carrinho está vazio.</p>
+                  <p className="mt-1 text-xs text-slate-400">Reserve um horário ou adicione produtos.</p>
+                </div>
+              ) : (
+                <>
+                  {/* Serviços reservados */}
+                  {cart.appointments.length > 0 && (
+                    <div>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-700">Serviços reservados</p>
+                      <div className="space-y-2">
+                        {cart.appointments.map((a) => (
+                          <div key={a.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <p className="text-sm font-semibold text-slate-900">{a.service?.name ?? "Serviço"}</p>
+                                <p className="text-xs text-slate-500">
+                                  {a.professional ? `com ${a.professional.name} · ` : ""}
+                                  {new Date(a.startsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}{" "}
+                                  às {new Date(a.startsAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                                </p>
+                              </div>
+                              <span className="text-sm font-semibold text-cyan-700">{money(Number(a.service?.price ?? 0))}</span>
+                            </div>
+                            <button
+                              disabled={cartBusy === a.id}
+                              onClick={() => removeAppointment(a.id)}
+                              className="mt-2 text-xs text-red-600 hover:underline disabled:opacity-50">
+                              {cartBusy === a.id ? "Removendo..." : "Remover reserva"}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Produtos */}
+                  {cart.order && cart.order.items.length > 0 && (
+                    <div>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-cyan-700">Produtos</p>
+                      <div className="space-y-2">
+                        {cart.order.items.map((i) => (
+                          <div key={i.id} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <div>
+                              <p className="text-sm font-semibold text-slate-900">{i.name}</p>
+                              <p className="text-xs text-slate-500">{i.quantity}x · {money(Number(i.unitPrice))}</p>
+                              <button
+                                disabled={cartBusy === i.id}
+                                onClick={() => removeProduct(i.id)}
+                                className="mt-1 text-xs text-red-600 hover:underline disabled:opacity-50">
+                                {cartBusy === i.id ? "Removendo..." : "Remover"}
+                              </button>
+                            </div>
+                            <span className="text-sm font-semibold text-cyan-700">{money(Number(i.total))}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="space-y-3 border-t border-slate-200 p-5">
+              {cart && cart.count > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500">Total estimado</span>
+                  <span className="text-lg font-bold text-slate-900">{money(cart.totals.estimated)}</span>
+                </div>
+              )}
+              <p className="text-xs text-slate-400">
+                Nada é cobrado agora — tudo fica <span className="font-semibold text-slate-600">reservado</span> e você paga na barbearia.
+              </p>
+              <Link
+                href={`/s/${slug}/agendar`}
+                className="block rounded-2xl bg-cyan-400 px-4 py-3 text-center text-sm font-semibold text-slate-950 transition hover:bg-cyan-300">
+                {cart && cart.appointments.length > 0 ? "Reservar outro serviço" : "Reservar um serviço"}
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

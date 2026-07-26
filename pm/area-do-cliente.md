@@ -21,6 +21,20 @@ O cliente final tem **conta própria** (e-mail + senha, mesma autenticação do 
 
 O hero exibe capa, logo, cidade, média de avaliações e os botões "Agendar agora" e "Outras barbearias". Barbearias INACTIVE não são exibidas (404).
 
+## Carrinho (reservas sem pagamento)
+
+A página da barbearia tem um **carrinho** (botão flutuante 🛒 com contador). Conceito: **carrinho = reserva, sem cobrança online** — o cliente paga na barbearia.
+
+- **Serviço no carrinho** = agendamento real: reserva a agenda do profissional escolhido no horário escolhido (fluxo de 4 etapas). Remover do carrinho cancela o agendamento e libera o horário.
+- **Produto no carrinho** = item numa comanda aberta (encomenda) da barbearia, vinculada ao cliente. A barbearia vê a encomenda no painel de comandas e a fecha quando o cliente pagar (momento da baixa de estoque). Remover do carrinho tira o item; carrinho vazio remove a encomenda do painel.
+- Adicionar produto valida saldo em estoque na hora; mesmo produto duas vezes soma quantidade.
+- O drawer mostra serviços reservados (com data/hora), produtos, total estimado e o aviso "nada é cobrado agora".
+- Adicionar ao carrinho sem login redireciona para o login com retorno à página.
+
+APIs: `GET /api/cliente/carrinho?slug=`, `POST/DELETE /api/cliente/carrinho/produtos`. Serviços reutilizam `POST /api/public/agendamentos` (criar) e `PATCH /api/cliente/agendamentos/[id]` (remover).
+
+Limitação atual: vários serviços = várias reservas feitas em sequência pelo cliente (um horário por vez no fluxo). Encadeamento automático de horários consecutivos fica como melhoria futura.
+
 ## Visual e responsividade
 
 Toda a jornada do cliente (`/cliente`, cadastro, meus agendamentos, `/s/[slug]` e fluxo de agendar) usa **tema claro (fundo branco)** — mais amigável ao consumidor final — enquanto o painel da barbearia e o admin seguem no tema escuro. O layout é mobile-first: grids que empilham em telas pequenas, abas com rolagem horizontal, botões de ação em largura total no celular e formulário de agendamento em coluna única.
