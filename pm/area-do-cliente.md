@@ -21,6 +21,10 @@ O cliente final tem **conta própria** (e-mail + senha, mesma autenticação do 
 
 O hero exibe capa, logo, cidade, média de avaliações e os botões "Agendar agora" e "Outras barbearias". Barbearias INACTIVE não são exibidas (404).
 
+## Visual e responsividade
+
+Toda a jornada do cliente (`/cliente`, cadastro, meus agendamentos, `/s/[slug]` e fluxo de agendar) usa **tema claro (fundo branco)** — mais amigável ao consumidor final — enquanto o painel da barbearia e o admin seguem no tema escuro. O layout é mobile-first: grids que empilham em telas pequenas, abas com rolagem horizontal, botões de ação em largura total no celular e formulário de agendamento em coluna única.
+
 ## Regras principais
 
 1. **Login obrigatório para agendar** — a página `/s/[slug]/agendar` redireciona para `/login` (com retorno automático) se não houver sessão; nome e telefone são pré-preenchidos da conta.

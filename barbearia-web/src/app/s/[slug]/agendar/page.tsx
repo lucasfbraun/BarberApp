@@ -82,14 +82,14 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
               n < current
                 ? "bg-cyan-400 text-slate-950"
                 : n === current
-                  ? "border-2 border-cyan-400 bg-transparent text-cyan-300"
-                  : "border border-white/20 bg-transparent text-slate-500"
+                  ? "border-2 border-cyan-400 bg-transparent text-cyan-700"
+                  : "border border-slate-300 bg-transparent text-slate-400"
             }`}
           >
             {n < current ? "✓" : n}
           </div>
           {n < total && (
-            <div className={`h-px w-6 ${n < current ? "bg-cyan-400" : "bg-white/10"}`} />
+            <div className={`h-px w-6 ${n < current ? "bg-cyan-400" : "bg-slate-100"}`} />
           )}
         </div>
       ))}
@@ -243,16 +243,16 @@ export default function AgendarPage() {
   /* ── loading ── */
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-slate-400">Carregando…</p>
+      <main className="flex min-h-screen items-center justify-center bg-white">
+        <p className="text-sm text-slate-500">Carregando…</p>
       </main>
     );
   }
 
   if (!barbershop) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <p className="text-sm text-slate-400">Barbearia não encontrada.</p>
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white">
+        <p className="text-sm text-slate-500">Barbearia não encontrada.</p>
         <Link href="/" className="text-sm text-cyan-400 underline-offset-4 hover:underline">
           Voltar
         </Link>
@@ -271,17 +271,17 @@ export default function AgendarPage() {
     });
 
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-center justify-center px-4 py-12">
-        <div className="w-full rounded-[32px] border border-white/10 bg-white/5 p-8 text-center shadow-2xl backdrop-blur">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-cyan-400/20 text-3xl">
+      <main className="flex min-h-screen items-center justify-center bg-white px-4 py-12"><div className="mx-auto w-full max-w-xl">
+        <div className="w-full rounded-[32px] border border-slate-200 bg-slate-50 p-8 text-center shadow-sm">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-cyan-100 text-3xl">
             ✓
           </div>
-          <h1 className="mt-5 text-2xl font-semibold text-white">Agendamento confirmado!</h1>
-          <p className="mt-2 text-sm text-slate-400">
-            Seu horário está reservado em <span className="text-white">{barbershop.name}</span>.
+          <h1 className="mt-5 text-2xl font-semibold text-slate-900">Agendamento confirmado!</h1>
+          <p className="mt-2 text-sm text-slate-500">
+            Seu horário está reservado em <span className="text-slate-900">{barbershop.name}</span>.
           </p>
 
-          <div className="mt-7 space-y-3 rounded-2xl border border-white/10 bg-slate-950/50 p-5 text-left">
+          <div className="mt-7 space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-left">
             <Row label="Cliente" value={confirmedAppointment.customer.name} />
             <Row label="Serviço" value={confirmedAppointment.service.name} />
             <Row label="Profissional" value={confirmedAppointment.professional.name} />
@@ -291,10 +291,11 @@ export default function AgendarPage() {
 
           <Link
             href={`/s/${slug}`}
-            className="mt-7 inline-flex rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-slate-100 transition hover:border-cyan-400/30 hover:bg-cyan-400/10"
+            className="mt-7 inline-flex rounded-2xl border border-slate-200 bg-slate-50 px-6 py-3 text-sm font-semibold text-slate-800 transition hover:border-cyan-300 hover:bg-cyan-50"
           >
             Voltar à barbearia
           </Link>
+        </div>
         </div>
       </main>
     );
@@ -303,19 +304,19 @@ export default function AgendarPage() {
   const stepLabels = ["Serviço", "Profissional", "Horário", "Dados"];
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-2xl px-4 py-8 sm:px-6">
-      <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur sm:p-8">
+    <main className="min-h-screen bg-white"><div className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6 sm:py-8">
+      <div className="rounded-[32px] border border-slate-200 bg-slate-50 p-6 shadow-sm sm:p-8">
         {/* Header */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-700">
               {barbershop.name}
             </p>
-            <h1 className="mt-1 text-2xl font-semibold text-white">Agendar horário</h1>
+            <h1 className="mt-1 text-2xl font-semibold text-slate-900">Agendar horário</h1>
           </div>
           <Link
             href={`/s/${slug}`}
-            className="text-sm text-slate-400 underline-offset-4 hover:text-slate-200 hover:underline"
+            className="text-sm text-slate-500 underline-offset-4 hover:text-slate-700 hover:underline"
           >
             Voltar
           </Link>
@@ -323,7 +324,7 @@ export default function AgendarPage() {
 
         <div className="mt-5">
           <StepIndicator current={step} total={4} />
-          <p className="mt-2 text-xs text-slate-400">
+          <p className="mt-2 text-xs text-slate-500">
             Etapa {step} de 4 — {stepLabels[(step as number) - 1]}
           </p>
         </div>
@@ -332,9 +333,9 @@ export default function AgendarPage() {
           {/* ── step 1: service ── */}
           {step === 1 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-white">Qual serviço você quer?</h2>
+              <h2 className="text-lg font-semibold text-slate-900">Qual serviço você quer?</h2>
               {barbershop.services.length === 0 ? (
-                <p className="text-sm text-slate-400">Nenhum serviço disponível no momento.</p>
+                <p className="text-sm text-slate-500">Nenhum serviço disponível no momento.</p>
               ) : (
                 <div className="grid gap-3">
                   {barbershop.services.map((s) => (
@@ -347,21 +348,21 @@ export default function AgendarPage() {
                         setSelectedSlot(null);
                         setStep(2);
                       }}
-                      className="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-950/40 px-5 py-4 text-left transition hover:border-cyan-400/30 hover:bg-cyan-400/5"
+                      className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4 text-left transition hover:border-cyan-300 hover:bg-cyan-50"
                     >
                       <div>
                         {s.category && (
-                          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                          <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
                             {s.category.name}
                           </p>
                         )}
-                        <p className="mt-0.5 text-base font-semibold text-white">{s.name}</p>
+                        <p className="mt-0.5 text-base font-semibold text-slate-900">{s.name}</p>
                         {s.description && (
-                          <p className="mt-1 line-clamp-1 text-sm text-slate-400">{s.description}</p>
+                          <p className="mt-1 line-clamp-1 text-sm text-slate-500">{s.description}</p>
                         )}
-                        <p className="mt-2 text-sm text-slate-400">{formatDuration(s.durationMinutes)}</p>
+                        <p className="mt-2 text-sm text-slate-500">{formatDuration(s.durationMinutes)}</p>
                       </div>
-                      <span className="ml-4 shrink-0 text-sm font-semibold text-cyan-200">
+                      <span className="ml-4 shrink-0 text-sm font-semibold text-cyan-700">
                         {formatPrice(s.price)}
                       </span>
                     </button>
@@ -375,24 +376,24 @@ export default function AgendarPage() {
           {step === 2 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-white">Com quem você quer ser atendido?</h2>
+                <h2 className="text-lg font-semibold text-slate-900">Com quem você quer ser atendido?</h2>
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="text-xs text-slate-400 underline-offset-4 hover:text-slate-200 hover:underline"
+                  className="text-xs text-slate-500 underline-offset-4 hover:text-slate-700 hover:underline"
                 >
                   ← Serviço
                 </button>
               </div>
 
               {selectedService && (
-                <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/5 px-4 py-3 text-sm text-cyan-100">
+                <div className="rounded-2xl border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-900">
                   Serviço: <span className="font-semibold">{selectedService.name}</span>
                 </div>
               )}
 
               {availableProfessionals.length === 0 ? (
-                <p className="text-sm text-slate-400">Nenhum profissional disponível para este serviço.</p>
+                <p className="text-sm text-slate-500">Nenhum profissional disponível para este serviço.</p>
               ) : (
                 <div className="grid gap-3">
                   {availableProfessionals.map((p) => (
@@ -404,15 +405,15 @@ export default function AgendarPage() {
                         setSelectedSlot(null);
                         setStep(3);
                       }}
-                      className="flex items-center gap-4 rounded-2xl border border-white/10 bg-slate-950/40 px-5 py-4 text-left transition hover:border-cyan-400/30 hover:bg-cyan-400/5"
+                      className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-left transition hover:border-cyan-300 hover:bg-cyan-50"
                     >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-700 text-sm font-semibold text-white">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-900">
                         {p.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-semibold text-white">{p.name}</p>
+                        <p className="font-semibold text-slate-900">{p.name}</p>
                         {p.bio && (
-                          <p className="mt-0.5 line-clamp-1 text-sm text-slate-400">{p.bio}</p>
+                          <p className="mt-0.5 line-clamp-1 text-sm text-slate-500">{p.bio}</p>
                         )}
                       </div>
                     </button>
@@ -426,18 +427,18 @@ export default function AgendarPage() {
           {step === 3 && (
             <div className="space-y-5">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-white">Quando você quer vir?</h2>
+                <h2 className="text-lg font-semibold text-slate-900">Quando você quer vir?</h2>
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="text-xs text-slate-400 underline-offset-4 hover:text-slate-200 hover:underline"
+                  className="text-xs text-slate-500 underline-offset-4 hover:text-slate-700 hover:underline"
                 >
                   ← Profissional
                 </button>
               </div>
 
               {selectedProfessional && (
-                <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/5 px-4 py-3 text-sm text-cyan-100">
+                <div className="rounded-2xl border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-900">
                   {selectedService?.name} com{" "}
                   <span className="font-semibold">{selectedProfessional.name}</span>
                 </div>
@@ -445,7 +446,7 @@ export default function AgendarPage() {
 
               {/* Date picker */}
               <div>
-                <label className="text-sm text-slate-300">Data</label>
+                <label className="text-sm text-slate-600">Data</label>
                 <input
                   type="date"
                   value={selectedDate}
@@ -454,24 +455,24 @@ export default function AgendarPage() {
                     setSelectedDate(e.target.value);
                     setSelectedSlot(null);
                   }}
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none [color-scheme:dark] focus:border-cyan-400/40"
+                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none focus:border-cyan-400"
                 />
                 {selectedDate && (
-                  <p className="mt-1 text-xs capitalize text-slate-400">{formatDate(selectedDate)}</p>
+                  <p className="mt-1 text-xs capitalize text-slate-500">{formatDate(selectedDate)}</p>
                 )}
               </div>
 
               {/* Slots */}
               <div>
-                <p className="text-sm text-slate-300">Horários disponíveis</p>
+                <p className="text-sm text-slate-600">Horários disponíveis</p>
                 {slotsLoading && (
-                  <p className="mt-3 text-sm text-slate-400">Buscando horários…</p>
+                  <p className="mt-3 text-sm text-slate-500">Buscando horários…</p>
                 )}
                 {!slotsLoading && slotsError && (
-                  <p className="mt-3 text-sm text-red-400">{slotsError}</p>
+                  <p className="mt-3 text-sm text-red-600">{slotsError}</p>
                 )}
                 {!slotsLoading && !slotsError && slots.length === 0 && (
-                  <p className="mt-3 text-sm text-slate-400">
+                  <p className="mt-3 text-sm text-slate-500">
                     Nenhum horário disponível nesta data. Tente outro dia.
                   </p>
                 )}
@@ -484,8 +485,8 @@ export default function AgendarPage() {
                         onClick={() => setSelectedSlot(slot)}
                         className={`rounded-2xl border px-2 py-3 text-sm font-semibold transition ${
                           selectedSlot?.startsAt === slot.startsAt
-                            ? "border-cyan-400 bg-cyan-400/20 text-cyan-200"
-                            : "border-white/10 bg-white/5 text-slate-100 hover:border-cyan-400/30 hover:bg-cyan-400/10"
+                            ? "border-cyan-400 bg-cyan-100 text-cyan-700"
+                            : "border-slate-200 bg-slate-50 text-slate-800 hover:border-cyan-300 hover:bg-cyan-50"
                         }`}
                       >
                         {slot.time}
@@ -511,18 +512,18 @@ export default function AgendarPage() {
           {step === 4 && (
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-white">Seus dados</h2>
+                <h2 className="text-lg font-semibold text-slate-900">Seus dados</h2>
                 <button
                   type="button"
                   onClick={() => setStep(3)}
-                  className="text-xs text-slate-400 underline-offset-4 hover:text-slate-200 hover:underline"
+                  className="text-xs text-slate-500 underline-offset-4 hover:text-slate-700 hover:underline"
                 >
                   ← Horário
                 </button>
               </div>
 
               {/* Resumo */}
-              <div className="space-y-2 rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-4 text-sm text-cyan-100">
+              <div className="space-y-2 rounded-2xl border border-cyan-200 bg-cyan-50 p-4 text-sm text-cyan-900">
                 <Row label="Serviço" value={selectedService?.name ?? ""} />
                 <Row label="Profissional" value={selectedProfessional?.name ?? ""} />
                 <Row
@@ -541,43 +542,43 @@ export default function AgendarPage() {
 
               <div className="space-y-4">
                 <label className="block space-y-2">
-                  <span className="text-sm text-slate-300">
-                    Seu nome <span className="text-red-400">*</span>
+                  <span className="text-sm text-slate-600">
+                    Seu nome <span className="text-red-600">*</span>
                   </span>
                   <input
                     required
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
                     placeholder="Nome completo"
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/40"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-400"
                   />
                 </label>
 
                 <label className="block space-y-2">
-                  <span className="text-sm text-slate-300">WhatsApp</span>
+                  <span className="text-sm text-slate-600">WhatsApp</span>
                   <input
                     type="tel"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
                     placeholder="(11) 99999-9999"
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/40"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-400"
                   />
                 </label>
 
                 <label className="block space-y-2">
-                  <span className="text-sm text-slate-300">Observação</span>
+                  <span className="text-sm text-slate-600">Observação</span>
                   <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     rows={3}
                     placeholder="Ex: cabelo longo, preferência de produto…"
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/40"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-400"
                   />
                 </label>
               </div>
 
               {submitError && (
-                <p className="rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
+                <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                   {submitError}
                 </p>
               )}
@@ -593,6 +594,7 @@ export default function AgendarPage() {
           )}
         </div>
       </div>
+      </div>
     </main>
   );
 }
@@ -602,8 +604,8 @@ export default function AgendarPage() {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-4">
-      <span className="shrink-0 text-slate-400">{label}</span>
-      <span className="text-right font-medium text-white">{value}</span>
+      <span className="shrink-0 text-slate-500">{label}</span>
+      <span className="text-right font-medium text-slate-900">{value}</span>
     </div>
   );
 }
