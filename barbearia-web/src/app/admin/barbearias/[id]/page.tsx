@@ -24,7 +24,8 @@ type Barbershop = {
 };
 
 export default function AdminBarbershopDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id: string }>();
+  const id = params?.id ?? "";
   const router = useRouter();
   const [shop, setShop] = useState<Barbershop | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
