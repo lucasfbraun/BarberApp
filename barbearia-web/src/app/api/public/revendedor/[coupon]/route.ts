@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getClientIp, isRateLimited, rateLimitResponse } from "@/lib/rate-limit";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
 
-export async function GET(_req: Request, { params }: { params: Promise<{ coupon: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ coupon: string }> }) {
+  // M6: throttle por IP — dificulta enumeracao de cupons.
+  if (isRateLimited(`revendedor-coupon:${getClientIp(req)}`, { limit: 20, windowMs: 60_000 })) {
+    return rateLimitResponse();
+  }
+
   const { coupon } = await params;
 
   const reseller = await db.reseller.findUnique({

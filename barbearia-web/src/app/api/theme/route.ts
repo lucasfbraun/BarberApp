@@ -2,6 +2,7 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { resolveTenant, guardRole, MANAGER_ROLES } from "@/lib/auth-guard";
 
 type ThemePayload = {
   name?: string;
@@ -48,7 +49,13 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const barbershop = await resolveBarbershop(request);
+    // Alterar marca/identidade e restrito a OWNER/MANAGER (escopo M2).
+    const ctx = await resolveTenant(request);
+    if (ctx instanceof NextResponse) return ctx;
+    const guard = guardRole(ctx.role, MANAGER_ROLES);
+    if (guard) return guard;
+
+    const barbershop = await prisma.barbershop.findUnique({ where: { id: ctx.barbershopId } });
 
     if (!barbershop) {
       return NextResponse.json({ error: "Tenant nao encontrado." }, { status: 404 });

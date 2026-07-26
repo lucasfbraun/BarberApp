@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { resolveTenant, guardRole, MANAGER_ROLES } from "@/lib/auth-guard";
+import { resolveTenant, guardRole, OPERATION_ROLES } from "@/lib/auth-guard";
 
 // GET /api/comandas?date=YYYY-MM-DD&status=OPEN&professionalId=xxx
 export async function GET(request: Request) {
   const tenantOrError = await resolveTenant(request);
   if (tenantOrError instanceof NextResponse) return tenantOrError;
   const tenant = tenantOrError;
-  const guard = guardRole(tenant.role, MANAGER_ROLES);
+  const guard = guardRole(tenant.role, OPERATION_ROLES);
   if (guard) return guard;
 
   const { searchParams } = new URL(request.url);
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
   const tenantOrError = await resolveTenant(request);
   if (tenantOrError instanceof NextResponse) return tenantOrError;
   const tenant = tenantOrError;
-  const guard = guardRole(tenant.role, MANAGER_ROLES);
+  const guard = guardRole(tenant.role, OPERATION_ROLES);
   if (guard) return guard;
 
   const body = await request.json() as {
@@ -66,6 +66,17 @@ export async function POST(request: Request) {
   }
 
   const items = body.items ?? [];
+
+  // M5: valida itens iniciais (nome, quantidade > 0, preco >= 0).
+  for (const i of items) {
+    if (!i.name?.trim() || i.quantity == null || i.quantity <= 0 || i.unitPrice == null || i.unitPrice < 0) {
+      return NextResponse.json(
+        { error: "Item invalido: informe nome, quantidade > 0 e preco >= 0." },
+        { status: 400 },
+      );
+    }
+  }
+
   const subtotal = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
 
   const order = await prisma.order.create({

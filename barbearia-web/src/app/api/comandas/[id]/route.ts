@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { resolveTenant, guardRole, MANAGER_ROLES } from "@/lib/auth-guard";
+import { resolveTenant, guardRole, OPERATION_ROLES } from "@/lib/auth-guard";
 
 function orderInclude() {
   return {
@@ -34,7 +34,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const tenantOrError = await resolveTenant(request);
   if (tenantOrError instanceof NextResponse) return tenantOrError;
   const tenant = tenantOrError;
-  const guard = guardRole(tenant.role, MANAGER_ROLES);
+  const guard = guardRole(tenant.role, OPERATION_ROLES);
   if (guard) return guard;
 
   const order = await prisma.order.findFirst({
@@ -115,6 +115,17 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   if (body.action === "close") {
     if (!body.paymentMethod) return NextResponse.json({ error: "Informe o metodo de pagamento." }, { status: 400 });
+
+    // M5: desconto nao pode ser negativo (evita "desconto" que aumenta o total).
+    if (body.discountValue != null && body.discountValue < 0) {
+      return NextResponse.json({ error: "Desconto invalido." }, { status: 400 });
+    }
+    if (body.discountType && !["fixed", "percent"].includes(body.discountType)) {
+      return NextResponse.json({ error: "Tipo de desconto invalido." }, { status: 400 });
+    }
+    if (body.paymentAmount != null && body.paymentAmount < 0) {
+      return NextResponse.json({ error: "Valor de pagamento invalido." }, { status: 400 });
+    }
 
     const allItems = await prisma.orderItem.findMany({ where: { orderId: id } });
     const subtotal = allItems.reduce((s, i) => s + Number(i.total), 0);

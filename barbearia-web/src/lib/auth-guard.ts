@@ -36,7 +36,7 @@ export async function resolveTenant(
     const membership = await prisma.barbershopUser.findUnique({
       where: { barbershopId_userId: { barbershopId, userId } },
       include: {
-        barbershop: { select: { status: true } },
+        barbershop: { select: { status: true, trialEndsAt: true } },
         user: { select: { active: true } },
       },
     });
@@ -48,6 +48,15 @@ export async function resolveTenant(
       membership.barbershop.status !== "ACTIVE"
     ) {
       return NextResponse.json({ error: "Acesso revogado." }, { status: 403 });
+    }
+
+    // Trial expirado bloqueia tambem a API (o proxy.ts so cobre paginas).
+    const trialEndsAt = membership.barbershop.trialEndsAt;
+    if (trialEndsAt && trialEndsAt < new Date()) {
+      return NextResponse.json(
+        { error: "Periodo de teste expirado. Contrate um plano para continuar." },
+        { status: 403 },
+      );
     }
 
     return { barbershopId, userId, role: membership.role };
@@ -110,6 +119,13 @@ export async function resolveAdmin(
 
 /** Roles que podem gerenciar a barbearia (owner e manager) */
 export const MANAGER_ROLES: UserRole[] = [UserRole.OWNER, UserRole.MANAGER];
+
+/** Roles que operam comandas/atendimento (inclui recepcao, conforme escopo) */
+export const OPERATION_ROLES: UserRole[] = [
+  UserRole.OWNER,
+  UserRole.MANAGER,
+  UserRole.RECEPTION,
+];
 
 /** Todos os roles internos (exclui cliente final) */
 export const STAFF_ROLES: UserRole[] = [

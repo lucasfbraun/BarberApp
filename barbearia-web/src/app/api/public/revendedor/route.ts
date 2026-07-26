@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getClientIp, isRateLimited, rateLimitResponse } from "@/lib/rate-limit";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
 
@@ -15,6 +16,11 @@ function generateCoupon(name: string): string {
 }
 
 export async function POST(request: Request) {
+  // M6: throttle por IP — 5 cadastros por hora.
+  if (isRateLimited(`public-revendedor:${getClientIp(request)}`, { limit: 5, windowMs: 60 * 60_000 })) {
+    return rateLimitResponse();
+  }
+
   try {
     const body = await request.json() as { name?: string; email?: string; phone?: string };
 

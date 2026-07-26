@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { UserRole } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
+import { getClientIp, isRateLimited, rateLimitResponse } from "@/lib/rate-limit";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any;
 
@@ -19,6 +20,11 @@ type OnboardingPayload = {
 };
 
 export async function POST(request: Request) {
+  // M6: throttle por IP — 5 onboardings por hora (evita criacao em massa).
+  if (isRateLimited(`onboarding:${getClientIp(request)}`, { limit: 5, windowMs: 60 * 60_000 })) {
+    return rateLimitResponse();
+  }
+
   try {
     const payload = (await request.json()) as OnboardingPayload;
 

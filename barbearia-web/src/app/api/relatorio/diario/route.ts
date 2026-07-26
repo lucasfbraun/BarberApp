@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { resolveTenant } from "@/lib/auth-guard";
+import { resolveTenant, guardRole, MANAGER_ROLES } from "@/lib/auth-guard";
 
 export async function GET(request: Request) {
   const tenantOrError = await resolveTenant(request);
   if (tenantOrError instanceof NextResponse) return tenantOrError;
   const tenant = tenantOrError;
+
+  // Faturamento e comissoes de todos: somente OWNER/MANAGER (escopo M2).
+  const guard = guardRole(tenant.role, MANAGER_ROLES);
+  if (guard) return guard;
 
   const { searchParams } = new URL(request.url);
   const dateStr = searchParams.get("date") ?? new Date().toISOString().slice(0, 10);

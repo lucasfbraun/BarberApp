@@ -7,8 +7,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { AppointmentStatus } from "@prisma/client";
+import { getClientIp, isRateLimited, rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  // M6: throttle por IP — 10 agendamentos por minuto.
+  if (isRateLimited(`public-agendamentos:${getClientIp(request)}`, { limit: 10, windowMs: 60_000 })) {
+    return rateLimitResponse();
+  }
+
   try {
     const body = (await request.json()) as {
       professionalId: string;
@@ -34,6 +40,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "startsAt inválido." }, { status: 400 });
     }
 
+    // M5: não permitir agendamento no passado.
+    if (startsAt < new Date()) {
+      return NextResponse.json({ error: "Não é possível agendar no passado." }, { status: 400 });
+    }
+
     // Resolve barbershopId a partir do profissional
     const professional = await prisma.professional.findUnique({
       where: { id: professionalId },
@@ -55,29 +66,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Serviço não encontrado." }, { status: 404 });
     }
 
-    // Duração: customDurationMinutes do vínculo ou durationMinutes do serviço
+    // M5: exigir vínculo ativo profissional<->serviço (sem fallback de duração).
     const ps = await prisma.professionalService.findFirst({
       where: { professionalId, serviceId, active: true },
     });
-    const durationMinutes = ps?.customDurationMinutes ?? service.durationMinutes;
-    const endsAt = new Date(startsAt.getTime() + durationMinutes * 60_000);
-
-    // Anti-conflito
-    const conflict = await prisma.appointment.findFirst({
-      where: {
-        barbershopId,
-        professionalId,
-        status: { notIn: ["CANCELLED", "NO_SHOW", "RESCHEDULED"] },
-        AND: [{ startsAt: { lt: endsAt } }, { endsAt: { gt: startsAt } }],
-      },
-    });
-
-    if (conflict) {
+    if (!ps) {
       return NextResponse.json(
-        { error: "Conflito de horário: este slot não está mais disponível." },
-        { status: 409 },
+        { error: "Este profissional não realiza o serviço selecionado." },
+        { status: 400 },
       );
     }
+    const durationMinutes = ps.customDurationMinutes ?? service.durationMinutes;
+    const endsAt = new Date(startsAt.getTime() + durationMinutes * 60_000);
 
     // Cria ou recupera cliente
     let customerId: string | null = null;
@@ -106,24 +106,54 @@ export async function POST(request: Request) {
       customerId = newCustomer.id;
     }
 
-    const appointment = await prisma.appointment.create({
-      data: {
-        barbershopId,
-        professionalId,
-        serviceId,
-        customerId,
-        startsAt,
-        endsAt,
-        status: AppointmentStatus.SCHEDULED,
-        source: "public_page",
-        notes: notes?.trim() ?? null,
-      },
-      include: {
-        professional: { select: { id: true, name: true } },
-        service: { select: { id: true, name: true, durationMinutes: true } },
-        customer: { select: { id: true, name: true, phone: true } },
-      },
-    });
+    // M1: anti-conflito e criação na MESMA transação serializável (evita TOCTOU).
+    let appointment;
+    try {
+      appointment = await prisma.$transaction(
+        async (tx) => {
+          const conflict = await tx.appointment.findFirst({
+            where: {
+              barbershopId,
+              professionalId,
+              status: { notIn: ["CANCELLED", "NO_SHOW", "RESCHEDULED"] },
+              AND: [{ startsAt: { lt: endsAt } }, { endsAt: { gt: startsAt } }],
+            },
+          });
+          if (conflict) throw new Error("CONFLICT");
+
+          return tx.appointment.create({
+            data: {
+              barbershopId,
+              professionalId,
+              serviceId,
+              customerId,
+              startsAt,
+              endsAt,
+              status: AppointmentStatus.SCHEDULED,
+              source: "public_page",
+              notes: notes?.trim() ?? null,
+            },
+            include: {
+              professional: { select: { id: true, name: true } },
+              service: { select: { id: true, name: true, durationMinutes: true } },
+              customer: { select: { id: true, name: true, phone: true } },
+            },
+          });
+        },
+        { isolationLevel: "Serializable" },
+      );
+    } catch (err) {
+      if (err instanceof Error && err.message === "CONFLICT") {
+        return NextResponse.json(
+          { error: "Conflito de horário: este slot não está mais disponível." },
+          { status: 409 },
+        );
+      }
+      return NextResponse.json(
+        { error: "Este horário acabou de ser reservado. Escolha outro slot." },
+        { status: 409 },
+      );
+    }
 
     return NextResponse.json({ appointment }, { status: 201 });
   } catch (err) {
