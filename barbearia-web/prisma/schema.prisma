@@ -67,7 +67,8 @@ model User {
   name          String
   email         String           @unique
   phone         String?
-  passwordHash  String
+  /// Nulo quando a conta so tem login social (Google/Facebook).
+  passwordHash  String?
   avatarUrl     String?
   active        Boolean          @default(true)
   lastBarbershopId String?       // ultima barbearia em que o cliente agendou
@@ -75,6 +76,22 @@ model User {
   updatedAt     DateTime         @updatedAt
   memberships   BarbershopUser[]
   professionals Professional[]
+  accounts      Account[]
+}
+
+/// Vinculo entre um usuario e um provedor de login social (Google/Facebook).
+/// Guardamos so o identificador do provedor — nenhum token de acesso e
+/// persistido, porque o app nao consome APIs do Google/Meta em nome do usuario.
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  provider          String   // "google" | "facebook"
+  providerAccountId String   // id do usuario dentro do provedor (o `sub`)
+  createdAt         DateTime @default(now())
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Plan {

@@ -2,6 +2,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Documentação do projeto
 
+- [`AUTH.md`](./AUTH.md) — login por senha e social (Google/Facebook), vinculação de contas
 - [`PWA.md`](./PWA.md) — app instalável da área do cliente (service worker, cache, como testar)
 - [`SECURITY.md`](./SECURITY.md) — segredos, variáveis de ambiente e rotação de credenciais
 

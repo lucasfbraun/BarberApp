@@ -1,8 +1,45 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import FacebookProvider from "next-auth/providers/facebook";
 import bcrypt from "bcryptjs";
 
 import { prisma } from "@/lib/prisma";
+import { resolveSocialUser } from "@/lib/social-login";
+
+type ProviderList = NextAuthOptions["providers"];
+
+/**
+ * Provedores sociais so entram na lista se as credenciais existirem no
+ * ambiente. Assim o app continua subindo (com e-mail e senha) antes de os
+ * apps do Google/Facebook estarem criados — e o front descobre o que esta
+ * ativo via /api/auth/providers. Ver AUTH.md.
+ */
+function socialProviders(): ProviderList {
+  const list: ProviderList = [];
+
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    list.push(
+      GoogleProvider({
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        // Deixa a pessoa escolher a conta em vez de reusar a ultima sessao.
+        authorization: { params: { prompt: "select_account" } },
+      }),
+    );
+  }
+
+  if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
+    list.push(
+      FacebookProvider({
+        clientId: process.env.FACEBOOK_CLIENT_ID,
+        clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+      }),
+    );
+  }
+
+  return list;
+}
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -11,8 +48,12 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
+    // Login social so existe na area do cliente, e o login por senha nunca
+    // redireciona (usa redirect: false). Entao todo erro que cai aqui e social.
+    error: "/cliente/login",
   },
   providers: [
+    ...socialProviders(),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -39,6 +80,11 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user || !user.active) {
+          return null;
+        }
+
+        // Conta criada por login social nao tem senha — nao ha o que comparar.
+        if (!user.passwordHash) {
           return null;
         }
 
@@ -80,6 +126,47 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    /**
+     * Só roda para login social. O provedor devolve um id proprio; aqui
+     * trocamos pelo id do NOSSO banco (criando ou vinculando a conta) para que
+     * o resto da aplicacao continue enxergando um User normal.
+     * Devolver uma string redireciona o usuario para aquela URL.
+     */
+    async signIn({ user, account, profile }) {
+      if (!account || account.provider === "credentials") return true;
+
+      // Google informa explicitamente se o e-mail foi verificado.
+      // O Facebook so devolve e-mail ja confirmado pela Meta.
+      const googleProfile = profile as { email_verified?: boolean } | undefined;
+      const emailVerified =
+        account.provider === "google"
+          ? googleProfile?.email_verified === true
+          : account.provider === "facebook";
+
+      const result = await resolveSocialUser({
+        provider: account.provider,
+        providerAccountId: account.providerAccountId,
+        email: user.email ?? null,
+        emailVerified,
+        name: user.name ?? null,
+        image: user.image ?? null,
+      });
+
+      if (!result.ok) {
+        return `/cliente/login?error=${result.error}`;
+      }
+
+      // O callback jwt le estes campos logo em seguida.
+      user.id = result.userId;
+      // Login social e exclusivo do cliente final: sem painel, sem tenant.
+      user.role = null;
+      user.activeBarbershopId = null;
+      user.activeBarbershopSlug = null;
+      user.trialEndsAt = null;
+
+      return true;
+    },
+
     async jwt({ token, user }) {
       if (user) {
         token.userId = user.id;

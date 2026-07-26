@@ -12,7 +12,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { resolveTenant } from "@/lib/auth-guard";
-import { computeAvailableSlots } from "@/lib/availability";
+import {
+  computeAvailableSlots,
+  dayRangeInTimeZone,
+  DEFAULT_TIMEZONE,
+} from "@/lib/availability";
 
 export async function GET(request: Request) {
   // Rota pública e interna — tenta resolver tenant mas não bloqueia acesso à pág. pública
@@ -46,17 +50,19 @@ export async function GET(request: Request) {
     barbershopId = ctxResult.barbershopId;
   }
 
-  // Valida data
-  const date = new Date(`${dateStr}T00:00:00`);
-  if (isNaN(date.getTime())) {
+  // Valida data (formato civil YYYY-MM-DD; o fuso vem da barbearia)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr) || isNaN(new Date(`${dateStr}T00:00:00Z`).getTime())) {
     return NextResponse.json({ error: "Data invalida." }, { status: 400 });
   }
 
   try {
-    // Busca o profissional (com jornada)
+    // Busca o profissional (com jornada) e o fuso da barbearia
     const professional = await prisma.professional.findFirst({
       where: { id: professionalId, barbershopId, active: true },
-      include: { workingHours: true },
+      include: {
+        workingHours: true,
+        barbershop: { select: { timezone: true } },
+      },
     });
 
     if (!professional) {
@@ -79,16 +85,17 @@ export async function GET(request: Request) {
     const durationMinutes =
       profService?.customDurationMinutes ?? service.durationMinutes;
 
-    // Agendamentos existentes do dia
-    const startOfDay = new Date(`${dateStr}T00:00:00`);
-    const endOfDay = new Date(`${dateStr}T23:59:59`);
+    // Limites do dia civil DA BARBEARIA, convertidos para instante absoluto.
+    const timeZone = professional.barbershop?.timezone || DEFAULT_TIMEZONE;
+    const { start: startOfDay, end: endOfDay } = dayRangeInTimeZone(dateStr, timeZone);
 
+    // Agendamentos existentes do dia
     const appointments = await prisma.appointment.findMany({
       where: {
         barbershopId,
         professionalId,
         status: { notIn: ["CANCELLED", "NO_SHOW", "RESCHEDULED"] },
-        startsAt: { gte: startOfDay, lte: endOfDay },
+        startsAt: { gte: startOfDay, lt: endOfDay },
       },
       select: { startsAt: true, endsAt: true },
     });
@@ -110,13 +117,14 @@ export async function GET(request: Request) {
     ];
 
     const slots = computeAvailableSlots({
-      date,
+      dateStr,
+      timeZone,
       durationMinutes,
       workingHours: professional.workingHours,
       busyIntervals,
     });
 
-    return NextResponse.json({ slots, durationMinutes });
+    return NextResponse.json({ slots, durationMinutes, timeZone });
   } catch {
     return NextResponse.json({ error: "Erro ao calcular disponibilidade." }, { status: 503 });
   }

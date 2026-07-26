@@ -3,6 +3,7 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import SocialLoginButtons from "@/components/SocialLoginButtons";
 
 function CadastroForm() {
   const router = useRouter();
@@ -78,6 +79,9 @@ function CadastroForm() {
               {submitting ? "Criando conta..." : "Criar conta"}
             </button>
           </form>
+
+          {/* No social, criar conta e entrar são a mesma ação. */}
+          <SocialLoginButtons callbackUrl={callbackUrl} />
         </div>
 
         <p className="mt-5 text-center text-sm text-slate-500">
