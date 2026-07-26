@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
-type Plan = { id: string; name: string; price: number };
+type Plan = { id: string; name: string; price: number; isActive?: boolean };
 type Barbershop = {
   id: string;
   name: string;
@@ -16,6 +16,7 @@ type Barbershop = {
   trialEndsAt: string | null;
   createdAt: string;
   planId: string | null;
+  billingExempt?: boolean;
   plan: Plan | null;
   resellerLink: { reseller: { name: string; couponCode: string; commissionRate: number } } | null;
   _count: { professionals: number; services: number; appointments: number; orders: number; customers: number };
@@ -75,12 +76,19 @@ export default function AdminBarbershopDetailPage() {
           <h2 className="mt-1 text-2xl font-bold text-white">{shop.name}</h2>
           <p className="text-sm text-slate-400">{shop.slug} · {shop.city ?? ""} {shop.state ?? ""}</p>
         </div>
-        <span className={[
-          "rounded-full border px-3 py-1 text-xs font-medium",
-          shop.status === "ACTIVE" ? "border-green-400/20 bg-green-400/10 text-green-300" : "border-slate-600 bg-slate-700 text-slate-400",
-        ].join(" ")}>
-          {shop.status === "ACTIVE" ? "Ativo" : "Inativo"}
-        </span>
+        <div className="flex gap-2">
+          {shop.billingExempt && (
+            <span className="rounded-full border border-purple-400/20 bg-purple-400/10 px-3 py-1 text-xs font-medium text-purple-300">
+              Isenta
+            </span>
+          )}
+          <span className={[
+            "rounded-full border px-3 py-1 text-xs font-medium",
+            shop.status === "ACTIVE" ? "border-green-400/20 bg-green-400/10 text-green-300" : "border-slate-600 bg-slate-700 text-slate-400",
+          ].join(" ")}>
+            {shop.status === "ACTIVE" ? "Ativo" : "Inativo"}
+          </span>
+        </div>
       </div>
 
       {/* Stats */}
@@ -137,7 +145,7 @@ export default function AdminBarbershopDetailPage() {
             {shop.plan && <span className="ml-2 text-slate-500">R$ {Number(shop.plan.price).toFixed(2)}/mês</span>}
           </p>
           <div className="flex flex-wrap gap-2">
-            {plans.filter((p) => p.isActive !== false).map((p: Plan & { isActive?: boolean }) => (
+            {plans.filter((p) => p.isActive !== false).map((p) => (
               <button
                 key={p.id}
                 disabled={saving === "set_plan"}
@@ -187,7 +195,7 @@ export default function AdminBarbershopDetailPage() {
           </p>
           <div className="border-t border-white/10 pt-4">
             <p className="mb-2 text-xs text-slate-500">Ações</p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 disabled={!!saving}
                 onClick={() => action({ action: "set_status", status: shop.status === "ACTIVE" ? "INACTIVE" : "ACTIVE" })}
@@ -200,7 +208,24 @@ export default function AdminBarbershopDetailPage() {
               >
                 {shop.status === "ACTIVE" ? "Desativar barbearia" : "Reativar barbearia"}
               </button>
+              <button
+                disabled={!!saving}
+                onClick={() => action({ action: "set_exempt", exempt: !shop.billingExempt })}
+                className={[
+                  "rounded-xl border px-3 py-2 text-xs transition disabled:opacity-50",
+                  shop.billingExempt
+                    ? "border-purple-400/40 bg-purple-400/10 text-purple-300 hover:bg-purple-400/20"
+                    : "border-white/10 bg-white/5 text-slate-300 hover:text-white",
+                ].join(" ")}
+              >
+                {shop.billingExempt ? "Remover isenção" : "Isentar contrato"}
+              </button>
             </div>
+            {shop.billingExempt && (
+              <p className="mt-2 text-xs text-purple-300/70">
+                Barbearia isenta: nunca é bloqueada por trial ou cobrança.
+              </p>
+            )}
           </div>
         </div>
       </div>

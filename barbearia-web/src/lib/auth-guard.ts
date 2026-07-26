@@ -33,13 +33,28 @@ export async function resolveTenant(
   const userId = token.userId as string;
 
   try {
-    const membership = await prisma.barbershopUser.findUnique({
+    // Cast temporario enquanto o Prisma Client nao e regenerado com billingExempt (B2).
+    const membership = (await (prisma as unknown as {
+      barbershopUser: {
+        findUnique: (args: unknown) => Promise<unknown>;
+      };
+    }).barbershopUser.findUnique({
       where: { barbershopId_userId: { barbershopId, userId } },
       include: {
-        barbershop: { select: { status: true, trialEndsAt: true } },
+        barbershop: { select: { status: true, trialEndsAt: true, planId: true, billingExempt: true } },
         user: { select: { active: true } },
       },
-    });
+    })) as {
+      active: boolean;
+      role: UserRole;
+      user: { active: boolean };
+      barbershop: {
+        status: string;
+        trialEndsAt: Date | null;
+        planId: string | null;
+        billingExempt?: boolean;
+      };
+    } | null;
 
     if (
       !membership ||
@@ -51,8 +66,14 @@ export async function resolveTenant(
     }
 
     // Trial expirado bloqueia tambem a API (o proxy.ts so cobre paginas).
-    const trialEndsAt = membership.barbershop.trialEndsAt;
-    if (trialEndsAt && trialEndsAt < new Date()) {
+    // Barbearias com plano ativo ou isencao (billingExempt) nunca sao bloqueadas.
+    const shop = membership.barbershop as unknown as {
+      trialEndsAt: Date | null;
+      planId: string | null;
+      billingExempt?: boolean;
+    };
+    const hasContract = Boolean(shop.planId) || shop.billingExempt === true;
+    if (!hasContract && shop.trialEndsAt && shop.trialEndsAt < new Date()) {
       return NextResponse.json(
         { error: "Periodo de teste expirado. Contrate um plano para continuar." },
         { status: 403 },

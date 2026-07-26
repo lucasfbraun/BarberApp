@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 
-type Summary = { total: number; trial: number; active: number; expired: number; inactive: number };
+type Summary = { total: number; trial: number; active: number; expired: number; inactive: number; exempt: number };
 type Barbershop = {
   id: string;
   name: string;
@@ -21,6 +21,7 @@ const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
   active:   { label: "Ativo",    cls: "bg-green-400/10 text-green-300 border-green-400/20" },
   expired:  { label: "Expirado", cls: "bg-red-400/10 text-red-300 border-red-400/20" },
   inactive: { label: "Inativo",  cls: "bg-slate-700 text-slate-400 border-slate-600" },
+  exempt:   { label: "Isenta",   cls: "bg-purple-400/10 text-purple-300 border-purple-400/20" },
 };
 
 const FILTERS = [
@@ -29,10 +30,11 @@ const FILTERS = [
   { key: "active",   label: "Ativas" },
   { key: "expired",  label: "Expiradas" },
   { key: "inactive", label: "Inativas" },
+  { key: "exempt",   label: "Isentas" },
 ];
 
 export default function AdminBarbeariasPage() {
-  const [summary, setSummary] = useState<Summary>({ total: 0, trial: 0, active: 0, expired: 0, inactive: 0 });
+  const [summary, setSummary] = useState<Summary>({ total: 0, trial: 0, active: 0, expired: 0, inactive: 0, exempt: 0 });
   const [barbershops, setBarbershops] = useState<Barbershop[]>([]);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -67,13 +69,14 @@ export default function AdminBarbeariasPage() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {[
           { label: "Total", value: summary.total, cls: "text-white" },
           { label: "Trial", value: summary.trial, cls: "text-cyan-400" },
           { label: "Ativas", value: summary.active, cls: "text-green-400" },
           { label: "Expiradas", value: summary.expired, cls: "text-red-400" },
           { label: "Inativas", value: summary.inactive, cls: "text-slate-400" },
+          { label: "Isentas", value: summary.exempt ?? 0, cls: "text-purple-400" },
         ].map((card) => (
           <div key={card.label} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
             <p className={`text-2xl font-bold ${card.cls}`}>{card.value}</p>

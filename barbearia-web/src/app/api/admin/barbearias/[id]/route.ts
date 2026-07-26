@@ -61,6 +61,7 @@ export async function PATCH(
     days?: number;
     planId?: string | null;
     status?: string;
+    exempt?: boolean;
   };
 
   const { action } = body;
@@ -85,6 +86,15 @@ export async function PATCH(
       data: { planId: body.planId ?? null },
     });
     return NextResponse.json({ planId: updated.planId });
+  }
+
+  if (action === "set_exempt") {
+    // Isencao de contrato: barbearia isenta nunca e bloqueada por trial/cobranca.
+    const updated = await db.barbershop.update({
+      where: { id },
+      data: { billingExempt: body.exempt === true },
+    });
+    return NextResponse.json({ billingExempt: updated.billingExempt });
   }
 
   if (action === "set_status") {

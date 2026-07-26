@@ -98,6 +98,7 @@ model Barbershop {
   couponCode         String?
   planId             String?
   trialEndsAt        DateTime?
+  billingExempt      Boolean             @default(false)
   description        String?
   phone              String?
   whatsapp           String?

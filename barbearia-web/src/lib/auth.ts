@@ -56,14 +56,25 @@ export const authOptions: NextAuthOptions = {
         );
         const activeBarbershop = membership?.barbershop ?? null;
 
+        // Com plano ativo ou isencao (billingExempt), o trial nao se aplica:
+        // nao carregamos trialEndsAt no JWT, entao o proxy nunca bloqueia.
+        const shop = activeBarbershop as unknown as {
+          id: string;
+          slug: string;
+          trialEndsAt: Date | null;
+          planId: string | null;
+          billingExempt?: boolean;
+        } | null;
+        const hasContract = Boolean(shop?.planId) || shop?.billingExempt === true;
+
         return {
           id: user.id,
           name: user.name,
           email: user.email,
           role: membership?.role ?? null,
-          activeBarbershopId: activeBarbershop?.id ?? null,
-          activeBarbershopSlug: activeBarbershop?.slug ?? null,
-          trialEndsAt: activeBarbershop?.trialEndsAt?.toISOString() ?? null,
+          activeBarbershopId: shop?.id ?? null,
+          activeBarbershopSlug: shop?.slug ?? null,
+          trialEndsAt: hasContract ? null : shop?.trialEndsAt?.toISOString() ?? null,
         };
       },
     }),

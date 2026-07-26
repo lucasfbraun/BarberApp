@@ -43,12 +43,17 @@ export async function GET(request: Request) {
   // Compute derived status for each barbershop
   type BarbershopRow = typeof barbershops[number] & { computedStatus: string };
   const rows: BarbershopRow[] = barbershops.map((b: typeof barbershops[number]) => {
+    // Plano ativo ou isencao (billingExempt) prevalecem sobre o trial vencido.
     let computedStatus: string;
     if (b.status === "INACTIVE") {
       computedStatus = "inactive";
+    } else if (b.billingExempt) {
+      computedStatus = "exempt";
+    } else if (b.planId) {
+      computedStatus = "active";
     } else if (b.trialEndsAt && new Date(b.trialEndsAt) < now) {
       computedStatus = "expired";
-    } else if (b.trialEndsAt && !b.planId) {
+    } else if (b.trialEndsAt) {
       computedStatus = "trial";
     } else {
       computedStatus = "active";
@@ -68,6 +73,7 @@ export async function GET(request: Request) {
     active: rows.filter((b) => b.computedStatus === "active").length,
     expired: rows.filter((b) => b.computedStatus === "expired").length,
     inactive: rows.filter((b) => b.computedStatus === "inactive").length,
+    exempt: rows.filter((b) => b.computedStatus === "exempt").length,
   };
 
   return NextResponse.json({ summary, barbershops: filtered });
