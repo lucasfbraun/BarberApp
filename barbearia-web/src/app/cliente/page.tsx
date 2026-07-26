@@ -267,7 +267,7 @@ export default function ClienteHomePage() {
                 </>
               ) : loggedOut ? (
                 <>
-                  <Link href="/login?callbackUrl=/cliente" className="block rounded-xl px-3 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50">Entrar</Link>
+                  <Link href="/cliente/login?callbackUrl=/cliente" className="block rounded-xl px-3 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50">Entrar</Link>
                   <Link href="/cliente/cadastro" className="block rounded-xl px-3 py-3 text-sm font-medium text-slate-800 hover:bg-slate-100">Criar conta</Link>
                 </>
               ) : null}

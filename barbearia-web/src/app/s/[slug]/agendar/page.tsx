@@ -141,7 +141,7 @@ export default function AgendarPage() {
     fetch("/api/cliente/me").then(async (r) => {
       if (r.status === 401) {
         const target = `/s/${encodeURIComponent(slug)}/agendar`;
-        router.push(`/login?callbackUrl=${encodeURIComponent(target)}`);
+        router.push(`/cliente/login?callbackUrl=${encodeURIComponent(target)}`);
         return;
       }
       if (r.ok) {

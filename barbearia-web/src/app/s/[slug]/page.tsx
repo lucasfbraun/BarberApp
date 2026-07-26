@@ -117,7 +117,7 @@ export default function PublicBarbershopPage() {
   useEffect(() => { loadCart(); }, [loadCart]);
 
   function goLogin() {
-    router.push(`/login?callbackUrl=${encodeURIComponent(`/s/${slug}`)}`);
+    router.push(`/cliente/login?callbackUrl=${encodeURIComponent(`/s/${slug}`)}`);
   }
 
   async function addToCart(productId: string) {

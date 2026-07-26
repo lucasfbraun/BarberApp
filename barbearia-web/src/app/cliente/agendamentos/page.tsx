@@ -72,7 +72,7 @@ export default function ClienteAgendamentosPage() {
   const load = useCallback(async () => {
     const res = await fetch("/api/cliente/agendamentos");
     if (res.status === 401) {
-      router.push("/login?callbackUrl=/cliente/agendamentos");
+      router.push("/cliente/login?callbackUrl=/cliente/agendamentos");
       return;
     }
     if (res.ok) {
