@@ -46,14 +46,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Nome e obrigatorio." }, { status: 400 });
     }
 
-    if (!body.durationMinutes || body.durationMinutes < 5) {
+    // Em consts locais: o estreitamento de tipo de `body.x` nao sobrevive
+    // dentro do callback da transacao, o de uma const sim.
+    const durationMinutes = body.durationMinutes;
+    if (!durationMinutes || durationMinutes < 5) {
       return NextResponse.json(
         { error: "Duracao minima e 5 minutos." },
         { status: 400 },
       );
     }
 
-    if (body.price == null || body.price < 0) {
+    const price = body.price;
+    if (price == null || price < 0) {
       return NextResponse.json({ error: "Preco invalido." }, { status: 400 });
     }
 
@@ -67,17 +71,41 @@ export async function POST(request: Request) {
       }
     }
 
-    const service = await prisma.service.create({
-      data: {
-        barbershopId: ctx.barbershopId,
-        name,
-        description: body.description?.trim() || null,
-        durationMinutes: body.durationMinutes,
-        price: body.price,
-        categoryId: body.categoryId || null,
-        imageUrl: body.imageUrl?.trim() || null,
-      },
-      include: { category: { select: { id: true, name: true } } },
+    // Servico novo ja nasce vinculado a todos os profissionais ativos —
+    // caso contrario ele fica sem ninguem para atender no agendamento
+    // publico. Quem nao faz o servico e desvinculado depois, na tela do
+    // profissional.
+    const service = await prisma.$transaction(async (tx) => {
+      const created = await tx.service.create({
+        data: {
+          barbershopId: ctx.barbershopId,
+          name,
+          description: body.description?.trim() || null,
+          durationMinutes,
+          price,
+          categoryId: body.categoryId || null,
+          imageUrl: body.imageUrl?.trim() || null,
+        },
+        include: { category: { select: { id: true, name: true } } },
+      });
+
+      const professionals = await tx.professional.findMany({
+        where: { barbershopId: ctx.barbershopId, active: true },
+        select: { id: true },
+      });
+
+      if (professionals.length > 0) {
+        await tx.professionalService.createMany({
+          data: professionals.map((professional) => ({
+            professionalId: professional.id,
+            serviceId: created.id,
+            active: true,
+          })),
+          skipDuplicates: true,
+        });
+      }
+
+      return created;
     });
 
     return NextResponse.json({ service }, { status: 201 });

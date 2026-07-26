@@ -34,9 +34,19 @@ servico continuam sendo campo de URL.
 | Limite | Valor | Onde |
 |---|---|---|
 | Formatos | PNG, JPG, WebP | cliente e servidor |
-| Arquivo de origem | 5 MB | `MAX_SOURCE_BYTES` |
+| Arquivo de origem | 8 MB | `MAX_SOURCE_BYTES` |
+| Resolucao de origem | 8000 px de lado | `MAX_SOURCE_DIMENSION` |
 | Lado maior apos reducao | 256 px | `LOGO_MAX_DIMENSION` |
 | Data URL gravada | ~150 KB (cliente) / 200 KB (servidor) | `MAX_STORED_CHARS` / `MAX_IMAGE_CHARS` |
+
+O limite de origem e so a porta de entrada — **nao muda o que vai para o
+banco**, porque a imagem e reduzida para 256px antes de virar data URL. Para
+gravar uma logo mais nitida, o que muda e `LOGO_MAX_DIMENSION` (e, junto,
+possivelmente `MAX_STORED_CHARS`).
+
+O teto de resolucao existe porque o canvas consome ~4 bytes por pixel ao
+decodificar: uma foto de 12000×8000 pediria centenas de MB e derrubaria a aba
+num celular fraco. Recusar com mensagem e melhor do que travar.
 
 O cliente tenta qualidade 0.85, depois 0.70 e 0.55 antes de desistir. Se o
 navegador nao suportar WebP, cai para PNG — mantendo a transparencia, que e o

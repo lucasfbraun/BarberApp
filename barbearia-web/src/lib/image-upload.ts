@@ -12,8 +12,19 @@
 /** Lado maior da imagem final, em pixels. */
 export const LOGO_MAX_DIMENSION = 256;
 
-/** Teto do arquivo escolhido pelo usuario, antes de redimensionar. */
-export const MAX_SOURCE_BYTES = 5 * 1024 * 1024;
+/**
+ * Teto do arquivo escolhido pelo usuario, ANTES de redimensionar.
+ * Nao afeta o que vai para o banco: a imagem e reduzida para
+ * LOGO_MAX_DIMENSION de qualquer forma.
+ */
+export const MAX_SOURCE_BYTES = 8 * 1024 * 1024;
+
+/**
+ * Teto de resolucao do arquivo de origem. Decodificar no canvas custa
+ * ~4 bytes por pixel, entao uma imagem gigante derruba a aba em celular
+ * fraco. Melhor recusar com mensagem do que travar.
+ */
+export const MAX_SOURCE_DIMENSION = 8000;
 
 /** Teto da data URL gravada no banco (~150 KB de texto). */
 export const MAX_STORED_CHARS = 150_000;
@@ -95,6 +106,11 @@ export async function resizeImageToDataUrl(
   try {
     if (!width || !height) {
       throw new ImageUploadError("Não foi possível ler as dimensões desta imagem.");
+    }
+    if (Math.max(width, height) > MAX_SOURCE_DIMENSION) {
+      throw new ImageUploadError(
+        `Imagem com resolução muito alta (${width}×${height}). O limite é ${MAX_SOURCE_DIMENSION}px de lado.`,
+      );
     }
 
     const scale = Math.min(1, maxDimension / Math.max(width, height));

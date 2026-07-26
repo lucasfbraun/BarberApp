@@ -58,18 +58,42 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Nome e obrigatorio." }, { status: 400 });
     }
 
-    const professional = await prisma.professional.create({
-      data: {
-        barbershopId: ctx.barbershopId,
-        name,
-        photoUrl: body.photoUrl?.trim() || null,
-        bio: body.bio?.trim() || null,
-        phone: body.phone?.trim() || null,
-        email: body.email?.trim().toLowerCase() || null,
-        commissionType: body.commissionType?.trim() || null,
-        commissionValue: body.commissionValue ?? null,
-        displayOrder: body.displayOrder ?? 0,
-      },
+    // Profissional nasce fazendo TODOS os servicos ativos da barbearia.
+    // Sem isso ele nao aparece no agendamento publico, que so lista quem tem
+    // vinculo com o servico escolhido. Quem nao faz algum servico e
+    // desvinculado depois, na tela do profissional.
+    const professional = await prisma.$transaction(async (tx) => {
+      const created = await tx.professional.create({
+        data: {
+          barbershopId: ctx.barbershopId,
+          name,
+          photoUrl: body.photoUrl?.trim() || null,
+          bio: body.bio?.trim() || null,
+          phone: body.phone?.trim() || null,
+          email: body.email?.trim().toLowerCase() || null,
+          commissionType: body.commissionType?.trim() || null,
+          commissionValue: body.commissionValue ?? null,
+          displayOrder: body.displayOrder ?? 0,
+        },
+      });
+
+      const services = await tx.service.findMany({
+        where: { barbershopId: ctx.barbershopId, active: true },
+        select: { id: true },
+      });
+
+      if (services.length > 0) {
+        await tx.professionalService.createMany({
+          data: services.map((service) => ({
+            professionalId: created.id,
+            serviceId: service.id,
+            active: true,
+          })),
+          skipDuplicates: true,
+        });
+      }
+
+      return created;
     });
 
     return NextResponse.json({ professional }, { status: 201 });
