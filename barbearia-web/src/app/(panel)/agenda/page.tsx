@@ -34,6 +34,8 @@ type NewAppointmentForm = {
 const STATUS_LABELS: Record<string, string> = {
   SCHEDULED: "Agendado",
   CONFIRMED: "Confirmado",
+  // Presença marcada pelo barbeiro no Portal do Profissional.
+  ARRIVED: "Cliente chegou",
   IN_PROGRESS: "Em atendimento",
   COMPLETED: "Concluído",
   CANCELLED: "Cancelado",
@@ -44,6 +46,7 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_COLORS: Record<string, string> = {
   SCHEDULED: "border-sky-400/30 bg-sky-400/10 text-sky-200",
   CONFIRMED: "border-emerald-400/30 bg-emerald-400/10 text-emerald-200",
+  ARRIVED: "border-amber-400/40 bg-amber-400/15 text-amber-100",
   IN_PROGRESS: "border-amber-400/30 bg-amber-400/10 text-amber-200",
   COMPLETED: "border-slate-600 bg-slate-700/40 text-slate-300",
   CANCELLED: "border-red-400/20 bg-red-400/10 text-red-300",
@@ -360,6 +363,14 @@ export default function AgendaPage() {
                     </button>
                   )}
                   {(a.status === "SCHEDULED" || a.status === "CONFIRMED") && (
+                    <button onClick={() => updateStatus(a.id, "ARRIVED")}
+                      className="rounded-xl border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-300 transition hover:bg-amber-400/20">
+                      Cliente chegou
+                    </button>
+                  )}
+                  {/* ARRIVED entra aqui: a recepção pode iniciar direto, sem
+                      passar pela marcação de chegada. */}
+                  {(a.status === "SCHEDULED" || a.status === "CONFIRMED" || a.status === "ARRIVED") && (
                     <button onClick={() => updateStatus(a.id, "IN_PROGRESS")}
                       className="rounded-xl border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-300 transition hover:bg-amber-400/20">
                       Iniciar

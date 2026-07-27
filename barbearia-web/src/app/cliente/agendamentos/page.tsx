@@ -22,6 +22,8 @@ type Appt = {
 const STATUS_LABELS: Record<string, string> = {
   SCHEDULED: "Agendado",
   CONFIRMED: "Confirmado",
+  // Marcado pelo barbeiro quando o cliente chega ao salão.
+  ARRIVED: "Você chegou",
   IN_PROGRESS: "Em atendimento",
   COMPLETED: "Concluído",
   CANCELLED: "Cancelado",

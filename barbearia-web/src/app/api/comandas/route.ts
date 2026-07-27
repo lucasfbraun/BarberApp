@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
+import { OrderStatus } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import { resolveTenant, guardRole, OPERATION_ROLES } from "@/lib/auth-guard";
+import { dayRangeInTimeZone, DEFAULT_TIMEZONE } from "@/lib/availability";
 
 // GET /api/comandas?date=YYYY-MM-DD&status=OPEN&professionalId=xxx
 export async function GET(request: Request) {
@@ -11,34 +14,68 @@ export async function GET(request: Request) {
   if (guard) return guard;
 
   const { searchParams } = new URL(request.url);
-  const status = searchParams.get("status") ?? undefined;
+  const statusParam = searchParams.get("status") ?? undefined;
   const professionalId = searchParams.get("professionalId") ?? undefined;
   const date = searchParams.get("date");
 
-  const where: Record<string, unknown> = { barbershopId: tenant.barbershopId };
-  if (status) where.status = status;
-  if (professionalId) where.professionalId = professionalId;
-  if (date) {
-    const start = new Date(date);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(date);
-    end.setHours(23, 59, 59, 999);
-    where.createdAt = { gte: start, lte: end };
+  // O status ia direto para o Prisma: um valor fora do enum lancava e, sem
+  // try/catch, o handler devolvia 500 com stack do framework.
+  // Aceita tambem lista separada por virgula ("OPEN,AWAITING_PAYMENT"), que e
+  // como a tela do caixa pede as comandas em aberto.
+  let statusFilter: OrderStatus[] | undefined;
+  if (statusParam) {
+    const requested = statusParam.split(",").map((s) => s.trim().toUpperCase());
+    const invalid = requested.filter((s) => !(s in OrderStatus));
+    if (invalid.length > 0) {
+      return NextResponse.json(
+        { error: `Status invalido: ${invalid.join(", ")}.` },
+        { status: 400 },
+      );
+    }
+    statusFilter = requested as OrderStatus[];
   }
 
-  const orders = await prisma.order.findMany({
-    where,
-    include: {
-      customer: { select: { id: true, name: true, phone: true } },
-      professional: { select: { id: true, name: true, commissionType: true, commissionValue: true } },
-      appointment: { select: { id: true, startsAt: true, endsAt: true } },
-      items: { include: { service: { select: { id: true, name: true } } } },
-      payments: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    // Dia civil no fuso da barbearia. Antes usava `setHours`, que roda no
+    // relogio do servidor — em UTC na Vercel, a janela saia tres horas
+    // deslocada e comandas da noite caiam no dia seguinte.
+    const barbershop = await prisma.barbershop.findUnique({
+      where: { id: tenant.barbershopId },
+      select: { timezone: true },
+    });
+    const timeZone = barbershop?.timezone || DEFAULT_TIMEZONE;
 
-  return NextResponse.json(orders);
+    let createdAt: { gte: Date; lt: Date } | undefined;
+    if (date) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return NextResponse.json({ error: "Data invalida." }, { status: 400 });
+      }
+      const { start, end } = dayRangeInTimeZone(date, timeZone);
+      createdAt = { gte: start, lt: end };
+    }
+
+    const orders = await prisma.order.findMany({
+      where: {
+        barbershopId: tenant.barbershopId,
+        ...(statusFilter ? { status: { in: statusFilter } } : {}),
+        ...(professionalId ? { professionalId } : {}),
+        ...(createdAt ? { createdAt } : {}),
+      },
+      include: {
+        customer: { select: { id: true, name: true, phone: true } },
+        professional: { select: { id: true, name: true, commissionType: true, commissionValue: true } },
+        appointment: { select: { id: true, startsAt: true, endsAt: true } },
+        items: { include: { service: { select: { id: true, name: true } } } },
+        payments: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json(orders);
+  } catch (error) {
+    console.error("[comandas GET]", error);
+    return NextResponse.json({ error: "Erro ao buscar comandas." }, { status: 503 });
+  }
 }
 
 // POST /api/comandas — abrir comanda

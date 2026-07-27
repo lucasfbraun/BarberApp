@@ -23,6 +23,9 @@ enum TenantStatus {
 enum AppointmentStatus {
   SCHEDULED
   CONFIRMED
+  /// "Cliente chegou" — recepcao/barbeiro marcou a presenca, o atendimento
+  /// ainda nao comecou. Etapa do fluxo do portal do profissional (secao 4).
+  ARRIVED
   IN_PROGRESS
   COMPLETED
   CANCELLED
@@ -32,6 +35,11 @@ enum AppointmentStatus {
 
 enum OrderStatus {
   OPEN
+  /// "Enviada para o caixa": o barbeiro terminou o servico e a comanda
+  /// aguarda recebimento. Separa a conclusao do ATENDIMENTO da conclusao do
+  /// PAGAMENTO (secao 6 do portal do profissional) — atendimento concluido
+  /// nao significa comanda paga.
+  AWAITING_PAYMENT
   CLOSED
   CANCELLED
   REFUNDED
@@ -152,7 +160,70 @@ model Barbershop {
   products           Product[]
   stockMovements     StockMovement[]
   resellerLink       BarbershopReseller?
+  permissions        BarbershopPermissions?
+  auditLogs          AuditLog[]
   plan               Plan?               @relation(fields: [planId], references: [id])
+}
+
+/// Permissoes do papel PROFESSIONAL, por barbearia (secao 18 do portal do
+/// profissional). Uma linha por tenant; a ausencia da linha significa "usar
+/// os padroes recomendados" — ver `lib/permissions.ts`, que e a fonte unica
+/// dos defaults e nunca deixa uma permissao indefinida.
+///
+/// So entram aqui as permissoes marcadas como "Configuravel" ou "Limitado".
+/// O que a secao 18 define como "Sempre permitido" (ver a propria agenda,
+/// ver a propria comissao) ou "Nao permitido" (caixa geral, comissao de
+/// colegas, alterar percentual, ajustar estoque) e regra fixa de codigo:
+/// virar configuracao abriria brecha para o gestor conceder algo que a
+/// secao 23 proibe explicitamente.
+model BarbershopPermissions {
+  barbershopId          String     @id
+  /// Ver a agenda dos colegas (somente leitura).
+  canViewOthersAgenda   Boolean    @default(false)
+  canCreateAppointment  Boolean    @default(true)
+  canReschedule         Boolean    @default(true)
+  canCancelAppointment  Boolean    @default(false)
+  /// Encaixe: agendar fora da grade de horarios livres.
+  canCreateWalkIn       Boolean    @default(false)
+  canBlockSchedule      Boolean    @default(true)
+  /// Telefone do cliente visivel na agenda e na ficha (LGPD, secao 7).
+  canViewCustomerPhone  Boolean    @default(true)
+  /// Editar dados cadastrais do cliente. Observacoes e preferencias sao
+  /// sempre permitidas — fazem parte do atendimento (secao 7).
+  canEditCustomer       Boolean    @default(false)
+  /// Teto de desconto na comanda, em % (0 = nao pode dar desconto).
+  maxDiscountPercent    Int        @default(0)
+  /// Fechar a comanda recebendo o pagamento. Falso = envia para o caixa.
+  canReceivePayment     Boolean    @default(false)
+  canViewTeamRanking    Boolean    @default(false)
+  updatedAt             DateTime   @updatedAt
+  updatedById           String?
+  barbershop            Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+}
+
+/// Trilha de auditoria (secao 20). Append-only: nao ha rota de update nem de
+/// delete, e a secao 19, regra 22 exige que o historico nao seja editavel.
+/// `before`/`after` guardam apenas os campos que mudaram, nao o registro
+/// inteiro — evita duplicar PII do cliente a cada alteracao.
+model AuditLog {
+  id           String     @id @default(cuid())
+  barbershopId String
+  userId       String?
+  userName     String?    // desnormalizado: o log sobrevive a exclusao do usuario
+  action       String     // ex.: "appointment.cancel", "order.discount"
+  entity       String     // ex.: "Appointment"
+  entityId     String?
+  before       Json?
+  after        Json?
+  reason       String?
+  ip           String?
+  userAgent    String?
+  createdAt    DateTime   @default(now())
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+
+  @@index([barbershopId, createdAt])
+  @@index([barbershopId, entity, entityId])
+  @@index([userId])
 }
 
 model BarbershopUser {
@@ -257,6 +328,11 @@ model Customer {
   email        String?
   birthdate    DateTime?
   notes        String?
+  /// Preferencias de atendimento registradas pelo barbeiro (secao 7 do Portal
+  /// do Profissional): maquina, altura do degrade, acabamento, alergias etc.
+  /// Json em vez de colunas porque o conjunto varia por barbearia e cresce
+  /// sem migration — ver `lib/customer-preferences.ts` para o formato aceito.
+  preferences  Json?
   tags         String?
   firstVisitAt DateTime?
   lastVisitAt  DateTime?
@@ -288,7 +364,14 @@ model Appointment {
   cancellationReason  String?
   cancelledAt         DateTime?
   confirmedAt         DateTime?
+  /// Momento em que o cliente foi marcado como presente na barbearia.
+  arrivedAt           DateTime?
+  /// Inicio efetivo do atendimento (secao 6, regra 10).
+  startedAt           DateTime?
   completedAt         DateTime?
+  /// Horario original, preenchido no primeiro reagendamento — a secao 4,
+  /// regra 5 exige preservar o horario anterior.
+  rescheduledFrom     DateTime?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
   barbershop          Barbershop         @relation(fields: [barbershopId], references: [id], onDelete: Cascade)

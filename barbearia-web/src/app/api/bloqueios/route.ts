@@ -7,6 +7,8 @@ import {
   resolveOwnProfessionalId,
   resolveTenant,
 } from "@/lib/auth-guard";
+import { getPermissions } from "@/lib/permissions";
+import { logAudit } from "@/lib/audit";
 
 /** Roles que podem CRIAR bloqueios: gestores e o proprio barbeiro. */
 const BLOCK_CREATE_ROLES: UserRole[] = [
@@ -82,6 +84,19 @@ export async function POST(request: Request) {
 
     // PROFESSIONAL: forca o bloqueio para a propria agenda.
     if (ctx.role === UserRole.PROFESSIONAL) {
+      // Bloquear a propria agenda e configuravel por barbearia (secao 18 do
+      // Portal do Profissional). O default e permitido.
+      const permissions = await getPermissions(ctx.barbershopId);
+      if (!permissions.canBlockSchedule) {
+        return NextResponse.json(
+          {
+            error: "Voce nao tem permissao para bloquear horarios. Fale com o administrador.",
+            code: "PERMISSION_DENIED",
+          },
+          { status: 403 },
+        );
+      }
+
       const ownId = await resolveOwnProfessionalId(ctx.barbershopId, ctx.userId);
       if (!ownId) {
         return NextResponse.json(
@@ -143,6 +158,17 @@ export async function POST(request: Request) {
         type,
       },
       include: { professional: { select: { id: true, name: true } } },
+    });
+
+    await logAudit({
+      barbershopId: ctx.barbershopId,
+      userId: ctx.userId,
+      action: "schedule.block",
+      entity: "ScheduleBlock",
+      entityId: block.id,
+      after: { startsAt, endsAt, type, professionalId: block.professionalId },
+      reason: body.reason?.trim() ?? null,
+      request,
     });
 
     return NextResponse.json({ block }, { status: 201 });

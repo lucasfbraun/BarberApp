@@ -103,6 +103,51 @@ export function weekdayOf(dateStr: string): number {
 }
 
 /**
+ * Data civil de HOJE na zona da barbearia, "YYYY-MM-DD".
+ *
+ * Existe para nao usar `new Date().toISOString().slice(0, 10)`, que devolve a
+ * data em UTC: depois das 21h no Brasil isso ja aponta para o dia seguinte, e
+ * o profissional abriria o portal na agenda errada.
+ */
+export function todayInTimeZone(timeZone: string = DEFAULT_TIMEZONE): string {
+  // "en-CA" formata como YYYY-MM-DD, que e exatamente o formato civil usado
+  // em toda a API.
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+/** Soma dias a uma data civil, sem passar pelo relogio local. */
+export function addDays(dateStr: string, days: number): string {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const shifted = new Date(Date.UTC(year, month - 1, day + days));
+  return shifted.toISOString().slice(0, 10);
+}
+
+/**
+ * Semana civil que contem `dateStr`, comecando no domingo (mesma convencao de
+ * `WorkingHours.weekday`, onde 0 = domingo). Devolve as datas civis e os
+ * instantes absolutos de inicio e fim, prontos para filtrar no banco.
+ */
+export function weekRangeInTimeZone(
+  dateStr: string,
+  timeZone: string = DEFAULT_TIMEZONE,
+): { days: string[]; start: Date; end: Date } {
+  const weekday = weekdayOf(dateStr);
+  const firstDay = addDays(dateStr, -weekday);
+  const days = Array.from({ length: 7 }, (_, i) => addDays(firstDay, i));
+
+  return {
+    days,
+    start: dayRangeInTimeZone(days[0], timeZone).start,
+    end: dayRangeInTimeZone(days[6], timeZone).end,
+  };
+}
+
+/**
  * Gera os slots livres do dia, excluindo os que se sobrepoem a qualquer
  * intervalo ocupado (agendamentos, bloqueios e a pausa da jornada).
  */

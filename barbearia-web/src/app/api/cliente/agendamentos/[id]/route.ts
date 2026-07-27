@@ -34,7 +34,13 @@ export async function PATCH(
       return NextResponse.json({ error: "Agendamento nao encontrado." }, { status: 404 });
     }
 
-    if (["CANCELLED", "COMPLETED", "IN_PROGRESS", "NO_SHOW", "RESCHEDULED"].includes(appointment.status)) {
+    // ARRIVED entra na lista: se o cliente ja foi marcado como presente na
+    // barbearia, cancelar pelo app nao faz sentido — ele esta no salao.
+    if (
+      ["CANCELLED", "COMPLETED", "ARRIVED", "IN_PROGRESS", "NO_SHOW", "RESCHEDULED"].includes(
+        appointment.status,
+      )
+    ) {
       return NextResponse.json({ error: "Este agendamento nao pode mais ser cancelado." }, { status: 400 });
     }
     if (new Date(appointment.startsAt) <= new Date()) {

@@ -6,6 +6,25 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 - [`PWA.md`](./PWA.md) — app instalável da área do cliente (service worker, cache, como testar)
 - [`UPLOADS.md`](./UPLOADS.md) — upload de imagem, limites e quando migrar para storage
 - [`SECURITY.md`](./SECURITY.md) — segredos, variáveis de ambiente e rotação de credenciais
+- [`../pm/portal-do-profissional.md`](../pm/portal-do-profissional.md) — Portal do Profissional: decisões, mapa de entrega e pendências
+
+## As três áreas do sistema
+
+| Área | Rota | Quem usa | Tema |
+|---|---|---|---|
+| Painel | `/agenda`, `/caixa`, `/estoque`… | Dono, gerente, recepção | Escuro |
+| Portal do Profissional | `/profissional` | Barbeiro (e dono que atende) | Claro, mobile-first |
+| Área do cliente | `/cliente`, `/s/[slug]` | Cliente final | Claro, PWA instalável |
+| Admin master | `/admin` | SUPERADMIN (dono do SaaS) | Escuro/âmbar |
+
+O papel do usuário define para onde ele vai depois do login (`src/proxy.ts`).
+
+### Criando o acesso de um barbeiro
+
+O Portal do Profissional exige que o usuário esteja vinculado a um registro
+`Professional`. Como fazer: **Painel → Profissionais → Detalhes → aba "Acesso
+ao portal"** → informe e-mail e senha inicial. O que ele pode fazer lá dentro
+se ajusta em **Painel → Permissões**.
 
 ## Getting Started
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { guardRole, MANAGER_ROLES, resolveTenant } from "@/lib/auth-guard";
+import { logAudit } from "@/lib/audit";
 
 // DELETE /api/bloqueios/[id]
 // REGRA DE NEGOCIO: desbloquear agenda e EXCLUSIVO do admin do tenant
@@ -33,6 +34,21 @@ export async function DELETE(
     }
 
     await prisma.scheduleBlock.delete({ where: { id } });
+
+    await logAudit({
+      barbershopId: ctx.barbershopId,
+      userId: ctx.userId,
+      action: "schedule.unblock",
+      entity: "ScheduleBlock",
+      entityId: id,
+      before: {
+        startsAt: block.startsAt,
+        endsAt: block.endsAt,
+        type: block.type,
+        professionalId: block.professionalId,
+      },
+      request,
+    });
 
     return NextResponse.json({ ok: true });
   } catch {

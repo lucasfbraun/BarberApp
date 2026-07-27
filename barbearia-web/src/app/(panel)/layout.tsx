@@ -1,15 +1,48 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
+import { UserRole } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 
-const navigation = [
+/**
+ * Navegação do painel, filtrada por papel.
+ *
+ * Antes o menu era igual para todo mundo: um RECEPTION via "Relatório" e
+ * "Configurações" e só descobria que não podia ao tomar 403 da API. Menu que
+ * mostra o que a API vai negar é menu que mente.
+ *
+ * `roles: undefined` significa "todos os papéis do painel".
+ */
+const navigation: { href: string; label: string; roles?: UserRole[] }[] = [
   { href: "/agenda", label: "Agenda" },
+  // Recebe as comandas que os barbeiros enviam do portal.
+  { href: "/caixa", label: "Caixa" },
   { href: "/clientes", label: "Clientes" },
-  { href: "/profissionais", label: "Profissionais" },
-  { href: "/servicos", label: "Serviços" },
+  {
+    href: "/profissionais",
+    label: "Profissionais",
+    roles: [UserRole.OWNER, UserRole.MANAGER],
+  },
+  {
+    href: "/servicos",
+    label: "Serviços",
+    roles: [UserRole.OWNER, UserRole.MANAGER],
+  },
   { href: "/estoque", label: "Estoque" },
-  { href: "/relatorio", label: "Relatório" },
-  { href: "/configuracoes", label: "Configurações" },
+  {
+    href: "/relatorio",
+    label: "Relatório",
+    roles: [UserRole.OWNER, UserRole.MANAGER],
+  },
+  {
+    href: "/permissoes",
+    label: "Permissões",
+    roles: [UserRole.OWNER, UserRole.MANAGER],
+  },
+  {
+    href: "/configuracoes",
+    label: "Configurações",
+    roles: [UserRole.OWNER, UserRole.MANAGER],
+  },
 ];
 
 function getDaysRemaining(trialEndsAt: string | null): number | null {
@@ -29,6 +62,15 @@ export default async function PanelLayout({
   const trialEndsAt = session?.user?.trialEndsAt ?? null;
   const daysRemaining = getDaysRemaining(trialEndsAt);
   const showBanner = daysRemaining !== null && daysRemaining >= 0 && daysRemaining <= 7;
+
+  const role = session?.user?.role ?? null;
+  const visibleNavigation = navigation.filter(
+    (item) => !item.roles || (role !== null && item.roles.includes(role)),
+  );
+
+  // O dono/gerente que também atende usa os dois lados; o atalho evita que ele
+  // procure a URL do portal na mão.
+  const showPortalLink = role === UserRole.OWNER || role === UserRole.MANAGER;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -57,7 +99,7 @@ export default async function PanelLayout({
           </div>
 
           <nav className="mt-4 space-y-2">
-            {navigation.map((item) => (
+            {visibleNavigation.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -67,6 +109,20 @@ export default async function PanelLayout({
               </Link>
             ))}
           </nav>
+
+          {showPortalLink && (
+            <div className="mt-4 border-t border-white/10 pt-4">
+              <Link
+                href="/profissional"
+                className="flex items-center rounded-2xl border border-cyan-400/20 bg-cyan-400/5 px-4 py-3 text-sm text-cyan-200 transition hover:bg-cyan-400/10"
+              >
+                Portal do profissional
+              </Link>
+              <p className="mt-2 px-1 text-xs text-slate-500">
+                Se você também atende, use o portal no celular.
+              </p>
+            </div>
+          )}
 
           <div className="mt-6">
             <Link

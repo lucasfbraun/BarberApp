@@ -23,11 +23,22 @@ export async function GET(request: Request) {
         displayOrder: true,
         active: true,
         createdAt: true,
+        // Vinculo com a conta de acesso ao Portal do Profissional.
+        userId: true,
+        user: { select: { email: true, active: true } },
         _count: { select: { appointments: true } },
       },
     });
 
-    return NextResponse.json({ professionals });
+    // `hasPortalAccess` evita que a tela precise deduzir isso do userId, e
+    // mantem o e-mail de login separado do e-mail de contato do profissional.
+    const withAccess = professionals.map(({ user, ...p }) => ({
+      ...p,
+      hasPortalAccess: Boolean(p.userId && user?.active),
+      portalEmail: user?.email ?? null,
+    }));
+
+    return NextResponse.json({ professionals: withAccess });
   } catch {
     return NextResponse.json({ error: "Erro ao buscar profissionais." }, { status: 503 });
   }

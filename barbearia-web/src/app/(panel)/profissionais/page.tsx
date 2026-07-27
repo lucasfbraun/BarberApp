@@ -15,6 +15,9 @@ type Professional = {
   commissionValue: number | null;
   displayOrder: number;
   active: boolean;
+  /** Tem login no Portal do Profissional. */
+  hasPortalAccess: boolean;
+  portalEmail: string | null;
   _count: { appointments: number };
 };
 
@@ -85,7 +88,7 @@ export default function ProfissionaisPage() {
 
   // painel de detalhes
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [tab, setTab] = useState<"jornada" | "servicos">("jornada");
+  const [tab, setTab] = useState<"jornada" | "servicos" | "acesso">("jornada");
 
   // jornada
   const [schedule, setSchedule] = useState<WorkingDay[]>(defaultSchedule());
@@ -430,17 +433,26 @@ export default function ProfissionaisPage() {
                 <div className="rounded-b-3xl border border-t-0 border-white/10 bg-slate-950/60 p-5 backdrop-blur">
                   {/* Tabs */}
                   <div className="flex gap-2 border-b border-white/10 pb-3">
-                    {(["jornada", "servicos"] as const).map((t) => (
+                    {(["jornada", "servicos", "acesso"] as const).map((t) => (
                       <button key={t} onClick={() => setTab(t)}
                         className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${
                           tab === t
                             ? "bg-cyan-400/15 text-cyan-200"
                             : "text-slate-400 hover:text-white"
                         }`}>
-                        {t === "jornada" ? "Jornada de trabalho" : "Serviços vinculados"}
+                        {t === "jornada"
+                          ? "Jornada de trabalho"
+                          : t === "servicos"
+                            ? "Serviços vinculados"
+                            : "Acesso ao portal"}
                       </button>
                     ))}
                   </div>
+
+                  {/* Tab: Acesso ao Portal do Profissional */}
+                  {tab === "acesso" && (
+                    <AccessTab professional={p} onChanged={loadProfessionals} />
+                  )}
 
                   {/* Tab: Jornada */}
                   {tab === "jornada" && (
@@ -537,5 +549,186 @@ export default function ProfissionaisPage() {
         </div>
       )}
     </section>
+  );
+}
+
+/* ── Acesso ao Portal do Profissional ────────────────────────────────────────
+   Cria o login do barbeiro: User + vinculo PROFESSIONAL + ligacao com o
+   registro Professional. Sem isto o portal fica inacessivel — e o passo que
+   destrava tudo.
+
+   O gestor define uma senha inicial em vez de disparar convite: o projeto nao
+   tem provedor de e-mail configurado, e convite que nao chega e pior que
+   nenhum. Convite por token com expiracao esta previsto para a fase 2. */
+
+function AccessTab({
+  professional,
+  onChanged,
+}: {
+  professional: Professional;
+  onChanged: () => Promise<void> | void;
+}) {
+  const [email, setEmail] = useState(professional.portalEmail ?? professional.email ?? "");
+  const [password, setPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmRevoke, setConfirmRevoke] = useState(false);
+
+  async function grant() {
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await fetch(`/api/profissionais/${professional.id}/acesso`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(body.error ?? "Não foi possível criar o acesso.");
+        return;
+      }
+      setPassword("");
+      setMessage(
+        body.message ??
+          `Acesso ${professional.hasPortalAccess ? "atualizado" : "criado"}. Informe a senha ao profissional — ele entra em /login.`,
+      );
+      await onChanged();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function revoke() {
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await fetch(`/api/profissionais/${professional.id}/acesso`, {
+        method: "DELETE",
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(body.error ?? "Não foi possível revogar o acesso.");
+        return;
+      }
+      setConfirmRevoke(false);
+      setMessage("Acesso revogado. O histórico de atendimentos foi mantido.");
+      await onChanged();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="mt-4 space-y-4">
+      <div className="flex items-center gap-3">
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-medium ${
+            professional.hasPortalAccess
+              ? "bg-emerald-400/15 text-emerald-200"
+              : "bg-slate-700/60 text-slate-300"
+          }`}
+        >
+          {professional.hasPortalAccess ? "Acesso ativo" : "Sem acesso"}
+        </span>
+        {professional.portalEmail && (
+          <span className="text-xs text-slate-400">{professional.portalEmail}</span>
+        )}
+      </div>
+
+      <p className="text-xs text-slate-400">
+        Com acesso, {professional.name.split(" ")[0]} entra no Portal do
+        Profissional pelo celular para ver a própria agenda, atender e
+        acompanhar a comissão. O que ele pode fazer é definido em{" "}
+        <a href="/permissoes" className="text-cyan-300 underline">
+          Permissões
+        </a>
+        .
+      </p>
+
+      {error && (
+        <p className="rounded-2xl border border-red-400/30 bg-red-400/10 p-3 text-sm text-red-200">
+          {error}
+        </p>
+      )}
+      {message && (
+        <p className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-200">
+          {message}
+        </p>
+      )}
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="block">
+          <span className="text-xs text-slate-400">E-mail de login</span>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="barbeiro@exemplo.com"
+            className="mt-1 w-full rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400/40"
+          />
+        </label>
+        <label className="block">
+          <span className="text-xs text-slate-400">
+            {professional.hasPortalAccess ? "Nova senha" : "Senha inicial"}
+          </span>
+          <input
+            type="text"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Mínimo 8 caracteres"
+            className="mt-1 w-full rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400/40"
+          />
+        </label>
+      </div>
+
+      <p className="text-xs text-slate-500">
+        A senha aparece em texto de propósito: você precisa lê-la para passar ao
+        profissional. Oriente-o a trocá-la depois do primeiro acesso.
+      </p>
+
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={grant}
+          disabled={saving || !email.trim() || password.length < 8}
+          className="rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-40"
+        >
+          {saving
+            ? "Salvando..."
+            : professional.hasPortalAccess
+              ? "Atualizar acesso"
+              : "Criar acesso"}
+        </button>
+
+        {professional.hasPortalAccess &&
+          (confirmRevoke ? (
+            <>
+              <button
+                onClick={revoke}
+                disabled={saving}
+                className="rounded-2xl border border-red-400/30 bg-red-400/10 px-5 py-3 text-sm text-red-300 transition hover:bg-red-400/20 disabled:opacity-40"
+              >
+                Confirmar revogação
+              </button>
+              <button
+                onClick={() => setConfirmRevoke(false)}
+                className="rounded-2xl border border-white/10 px-5 py-3 text-sm text-slate-300 transition hover:bg-white/5"
+              >
+                Cancelar
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setConfirmRevoke(true)}
+              className="rounded-2xl border border-red-400/20 px-5 py-3 text-sm text-red-300 transition hover:bg-red-400/10"
+            >
+              Revogar acesso
+            </button>
+          ))}
+      </div>
+    </div>
   );
 }

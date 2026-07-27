@@ -194,11 +194,22 @@ export default function ComandaPage() {
           <h1 className="text-2xl font-bold text-white">Comanda</h1>
           <p className="text-sm text-slate-400">#{order.id.slice(-8).toUpperCase()}</p>
         </div>
+        {/* AWAITING_PAYMENT distingue "o barbeiro mandou para o caixa" de
+            "ainda sendo montada" — quem está no balcão precisa ver a
+            diferença. */}
         <span className={[
           "rounded-full px-3 py-1 text-xs font-semibold",
-          isClosed ? "bg-emerald-400/10 text-emerald-300" : "bg-amber-400/10 text-amber-300",
+          isClosed
+            ? "bg-emerald-400/10 text-emerald-300"
+            : order.status === "AWAITING_PAYMENT"
+              ? "bg-amber-400/20 text-amber-200"
+              : "bg-amber-400/10 text-amber-300",
         ].join(" ")}>
-          {isClosed ? "Fechada" : "Aberta"}
+          {isClosed
+            ? "Fechada"
+            : order.status === "AWAITING_PAYMENT"
+              ? "Aguardando pagamento"
+              : "Aberta"}
         </span>
       </div>
 

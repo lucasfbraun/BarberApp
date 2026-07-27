@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
+import { PaymentMethod } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import { resolveTenant, guardRole, OPERATION_ROLES } from "@/lib/auth-guard";
+import { closeOrder } from "@/lib/close-order";
+import { logAudit } from "@/lib/audit";
 
 function orderInclude() {
   return {
@@ -37,9 +41,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const guard = guardRole(tenant.role, OPERATION_ROLES);
   if (guard) return guard;
 
+  // Só os campos usados daqui para baixo: `closeOrder` recarrega itens e
+  // profissional por conta própria, então o join de antes virou peso morto.
   const order = await prisma.order.findFirst({
     where: { id, barbershopId: tenant.barbershopId },
-    include: { items: true, professional: true },
+    select: { id: true, status: true, discountType: true, discountValue: true },
   });
   if (!order) return NextResponse.json({ error: "Comanda nao encontrada." }, { status: 404 });
   if (order.status === "CLOSED") return NextResponse.json({ error: "Comanda ja fechada." }, { status: 400 });
@@ -147,131 +153,51 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   if (body.action === "close") {
-    if (!body.paymentMethod) return NextResponse.json({ error: "Informe o metodo de pagamento." }, { status: 400 });
-
-    // M5: desconto nao pode ser negativo (evita "desconto" que aumenta o total).
-    if (body.discountValue != null && body.discountValue < 0) {
-      return NextResponse.json({ error: "Desconto invalido." }, { status: 400 });
-    }
-    if (body.discountType && !["fixed", "percent"].includes(body.discountType)) {
-      return NextResponse.json({ error: "Tipo de desconto invalido." }, { status: 400 });
-    }
-    if (body.paymentAmount != null && body.paymentAmount < 0) {
-      return NextResponse.json({ error: "Valor de pagamento invalido." }, { status: 400 });
+    // O metodo agora e validado contra o enum. Antes entrava como
+    // `body.paymentMethod as never` e um valor invalido so estourava dentro da
+    // transacao, virando 503 "Erro ao fechar a comanda" — mensagem errada para
+    // um erro de entrada.
+    if (!body.paymentMethod || !(body.paymentMethod in PaymentMethod)) {
+      return NextResponse.json(
+        { error: "Informe uma forma de pagamento valida." },
+        { status: 400 },
+      );
     }
 
-    const allItems = await prisma.orderItem.findMany({ where: { orderId: id } });
-    const subtotal = allItems.reduce((s, i) => s + Number(i.total), 0);
-    let discountAmount = 0;
-    if (body.discountType === "fixed") discountAmount = body.discountValue ?? 0;
-    if (body.discountType === "percent") discountAmount = subtotal * ((body.discountValue ?? 0) / 100);
-    const total = Math.max(0, subtotal - discountAmount);
-    const paymentAmount = body.paymentAmount ?? total;
+    // Baixa de estoque, pagamento e comissao vivem em `lib/close-order.ts`,
+    // compartilhado com o Portal do Profissional — dois caminhos de caixa com
+    // logica duplicada divergiriam na primeira mudanca de regra.
+    const result = await closeOrder({
+      orderId: id,
+      barbershopId: tenant.barbershopId,
+      userId: tenant.userId,
+      paymentMethod: body.paymentMethod as PaymentMethod,
+      paymentAmount: body.paymentAmount,
+      discountType: body.discountType ?? null,
+      discountValue: body.discountValue ?? null,
+    });
 
-    let commissionAmount = 0;
-    let commissionRate = 0;
-    let commissionType = "percent";
-    if (order.professional?.commissionValue && order.professional?.commissionType) {
-      commissionType = order.professional.commissionType;
-      if (commissionType === "percent") {
-        commissionRate = order.professional.commissionValue;
-        commissionAmount = total * (commissionRate / 100);
-      } else {
-        commissionRate = order.professional.commissionValue;
-        commissionAmount = commissionRate;
-      }
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: result.status });
     }
 
-    try {
-      await prisma.$transaction(async (tx) => {
-        // Baixa automatica de estoque dos itens de produto (com registro de
-        // custo e preco no movimento, para o calculo de lucro por produto).
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const txAny = tx as any;
-        const productItems = allItems.filter((i) => (i as { productId?: string | null }).productId);
-        for (const pi of productItems) {
-          const productId = (pi as { productId?: string | null }).productId as string;
-          const product = await txAny.product.findFirst({
-            where: { id: productId, barbershopId: tenant.barbershopId },
-          });
-          if (!product) continue; // produto excluido apos adicionado: nao bloqueia o caixa
-          const newBalance = product.stockQuantity - pi.quantity;
-          if (newBalance < 0) {
-            throw new Error(`STOCK:${product.name}:${product.stockQuantity}`);
-          }
-          await txAny.product.update({
-            where: { id: product.id },
-            data: { stockQuantity: newBalance },
-          });
-          await txAny.stockMovement.create({
-            data: {
-              barbershopId: tenant.barbershopId,
-              productId: product.id,
-              type: "SALE",
-              quantity: -pi.quantity,
-              balanceAfter: newBalance,
-              unitCost: product.costPrice,
-              unitPrice: pi.unitPrice,
-              orderId: id,
-              orderItemId: pi.id,
-              createdById: tenant.userId,
-              reason: "Venda na comanda",
-            },
-          });
-        }
+    await logAudit({
+      barbershopId: tenant.barbershopId,
+      userId: tenant.userId,
+      action: "order.close",
+      entity: "Order",
+      entityId: id,
+      before: { status: order.status },
+      after: {
+        status: "CLOSED",
+        method: body.paymentMethod,
+        total: result.total,
+        commission: result.commissionAmount,
+      },
+      request,
+    });
 
-        await tx.order.update({
-        where: { id },
-        data: {
-          status: "CLOSED",
-          subtotal,
-          discountType: body.discountType ?? null,
-          discountValue: body.discountValue ?? null,
-          total,
-          paymentStatus: "paid",
-          closedAt: new Date(),
-        },
-      });
-
-      await tx.payment.create({
-        data: {
-          barbershopId: tenant.barbershopId,
-          orderId: id,
-          amount: paymentAmount,
-          method: body.paymentMethod as never,
-          status: "paid",
-          paidAt: new Date(),
-        },
-      });
-
-      if (order.professionalId && commissionAmount > 0) {
-        await tx.commission.create({
-          data: {
-            barbershopId: tenant.barbershopId,
-            professionalId: order.professionalId,
-            orderId: id,
-            grossAmount: total,
-            commissionType,
-            commissionRate,
-            commissionAmount,
-            status: "PENDING",
-          },
-        });
-      }
-      });
-    } catch (err) {
-      if (err instanceof Error && err.message.startsWith("STOCK:")) {
-        const [, name, qty] = err.message.split(":");
-        return NextResponse.json(
-          { error: `Estoque insuficiente para fechar: restam ${qty} un. de ${name}. Ajuste o item ou reponha o estoque.` },
-          { status: 409 },
-        );
-      }
-      return NextResponse.json({ error: "Erro ao fechar a comanda." }, { status: 503 });
-    }
-
-    const result = await prisma.order.findFirst({ where: { id }, include: orderInclude() });
-    return NextResponse.json(result);
+    return NextResponse.json(result.order);
   }
 
   return NextResponse.json({ error: "Acao invalida." }, { status: 400 });

@@ -41,7 +41,9 @@ export async function GET(request: Request) {
           barbershopId: barbershop.id,
           customer: { userId: ctx.userId },
           startsAt: { gte: new Date() },
-          status: { in: ["SCHEDULED", "CONFIRMED"] },
+          // ARRIVED tambem reserva a agenda: o cliente ja esta na barbearia,
+          // com o horario ocupado e o servico ainda por pagar.
+          status: { in: ["SCHEDULED", "CONFIRMED", "ARRIVED"] },
         },
         include: {
           professional: { select: { id: true, name: true } },
@@ -49,11 +51,13 @@ export async function GET(request: Request) {
         },
         orderBy: { startsAt: "asc" },
       }),
-      // Encomenda de produtos: comanda OPEN do cliente sem vinculo com agendamento.
+      // Encomenda de produtos: comanda do cliente sem vinculo com agendamento,
+      // ainda nao paga. AWAITING_PAYMENT continua no carrinho — foi enviada ao
+      // caixa mas o cliente ainda deve o valor.
       db.order.findFirst({
         where: {
           barbershopId: barbershop.id,
-          status: "OPEN",
+          status: { in: ["OPEN", "AWAITING_PAYMENT"] },
           appointmentId: null,
           customer: { userId: ctx.userId },
         },
