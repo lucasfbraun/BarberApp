@@ -1656,7 +1656,30 @@ subscriptions
 
 # 8A. Módulo de pagamento recorrente (SaaS billing)
 
-## Gateway recomendado: Stripe
+> ## ⚠️ SUPERSEDIDO EM 28/07/2026 — o gateway passou a ser o Mercado Pago
+>
+> Esta seção foi escrita quando o gateway previsto era o **Stripe**. A decisão
+> mudou: o público são barbearias brasileiras, e o meio de pagamento que elas
+> usam é o **PIX** — que o Stripe não processa com a mesma naturalidade nem com
+> a mesma familiaridade do comerciante local.
+>
+> **A especificação vigente está em [`pm/pagamento-mercado-pago.md`](./pm/pagamento-mercado-pago.md).**
+>
+> O que muda em relação ao texto abaixo:
+>
+> | Assunto | Antes (Stripe) | Agora (Mercado Pago) |
+> |---|---|---|
+> | Gateway | Stripe Billing | Mercado Pago |
+> | Cartão recorrente | Subscriptions | API `/preapproval` |
+> | PIX | Não previsto | Cobrança avulsa mensal com lembrete |
+> | Integração | SDK do Stripe | HTTP via `fetch`, sem dependência nova |
+> | Portal do cliente | Stripe Customer Portal | Área `/assinatura` própria |
+>
+> O restante desta seção — modelo de dados, estados de assinatura, tratamento
+> de inadimplência e a lógica de negócio em geral — **continua válido**. Só o
+> provedor e os nomes dos eventos mudam. Mantida na íntegra como referência.
+
+## Gateway originalmente recomendado: Stripe *(substituído)*
 
 Para cobranças recorrentes em cartão de crédito, o **Stripe** é a opção recomendada pelo equilíbrio entre simplicidade de integração, robustez e suporte ao mercado brasileiro (BRL, CNPJ/CPF).
 
@@ -2596,17 +2619,49 @@ A arquitetura recomendada é Next.js na Vercel, PostgreSQL, storage externo para
 - [ ] Resposta do profissional às avaliações (falta o campo no modelo `Review`).
 - [ ] Tela de consulta da auditoria no painel (a API `/api/auditoria` já existe).
 
-## Pagamento e faturamento (Sprints 18-20)
+## Pagamento e faturamento — Mercado Pago (Sprints 28-29)
 
-- [ ] Conta Stripe configurada com produtos e preços recorrentes.
-- [ ] Schema Subscription e Invoice no banco.
-- [ ] API POST /api/billing/checkout — Stripe Checkout Session.
-- [ ] Webhook POST /api/webhooks/stripe — processar eventos de cobrança.
-- [ ] Página /trial-expirado com seleção de plano e botão assinar.
-- [ ] Middleware verifica subscriptionStatus além de trialEndsAt.
-- [ ] Área de faturamento /configuracoes/assinatura com histórico e recibos PDF.
-- [ ] Stripe Customer Portal para autoatendimento (troca de cartão, cancelamento).
-- [ ] Admin: status de subscription em /admin/barbearias.
+> Substitui a lista anterior, baseada em Stripe. Ver `pm/assinatura-e-pos-trial.md`
+> e `pm/pagamento-mercado-pago.md`.
+
+**Já pronto (sprints 11-13):**
+
+- [x] Trial de 30 dias a partir da criação do tenant.
+- [x] Bloqueio do painel e do portal quando o trial vence.
+- [x] Aviso nos últimos 7 dias.
+- [x] Painel do admin master com todas as barbearias, filtros e status derivado.
+- [x] Ações do admin: estender trial, trocar plano, ativar/desativar, isentar.
+- [x] Cadastro de planos com preço e limite de profissionais.
+
+**Sprint 28 — área de assinatura e bloqueio seletivo:**
+
+- [ ] Área `/assinatura`, acessível mesmo com o trial vencido.
+- [ ] Trial vencido: dono e equipe só alcançam `/assinatura`.
+- [ ] Página pública `/s/[slug]` continua no ar, **sem o botão de agendar**.
+- [ ] `POST /api/public/agendamentos` e `/api/disponibilidade` recusam tenant vencido.
+- [ ] Barbeiro vê aviso claro no portal, não uma tela de erro.
+- [ ] Acesso liberado sem precisar deslogar (o `trialEndsAt` do JWT não pode mandar).
+
+**Sprint 29 — Mercado Pago:**
+
+- [ ] Models `Subscription` e `Invoice`.
+- [ ] `lib/mercado-pago.ts` — HTTP via `fetch`, sem SDK.
+- [ ] Cartão de crédito com recorrência automática (API `/preapproval`).
+- [ ] PIX como cobrança avulsa mensal, com lembrete por e-mail.
+- [ ] `POST /api/webhooks/mercadopago` — assinatura validada e idempotente.
+- [ ] Renovação, inadimplência (`PAST_DUE`) e carência antes do bloqueio.
+- [ ] Histórico de faturas para o dono.
+- [ ] Admin: status de assinatura e faturas em `/admin/barbearias`.
+- [ ] `billingExempt` continua prevalecendo sobre trial e assinatura.
+
+## Blog e aquisição (Sprint 30)
+
+- [ ] Model `Post` com rascunho, agendamento e tags.
+- [ ] `/blog`, `/blog/[slug]` e `/blog/tag/[tag]`.
+- [ ] `POST /api/blog` autenticado por token — porta de entrada do n8n.
+- [ ] Markdown sanitizado na renderização.
+- [ ] `/admin/blog` para revisar, editar e publicar.
+- [ ] SEO: sitemap, robots, JSON-LD, Open Graph por post e RSS.
 
 ## Fase 2
 

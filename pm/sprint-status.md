@@ -34,4 +34,10 @@
 
 | 27 | Marca BarvioApp | Concluida | Logo aplicado em todo o sistema; nome provisorio lbraunapp substituido. Componente Logo com variante escura (lockup) e clara (azulejo + nome em texto). Icones do PWA, favicon e Open Graph regenerados; service worker em v2. Doc: pm/marca-barvioapp.md. |
 
+| 28 | Area de assinatura e bloqueio pos-trial | Planejada | O portal de tenants (/admin) ja existe desde as sprints 12-13, assim como o trial de 30 dias e o bloqueio. Falta o outro lado: /trial-expirado e um beco sem saida (manda para a landing e para o WhatsApp). Esta sprint cria a area /assinatura, acessivel mesmo com trial vencido, e implementa o bloqueio seletivo — dono e equipe barrados, pagina publica no ar mas sem agendar. Doc: pm/assinatura-e-pos-trial.md. |
+| 29 | Pagamento via Mercado Pago | Planejada | **Substitui o Stripe** previsto na secao 8A do escopo. Cartao de credito com recorrencia automatica (API /preapproval) e PIX como cobranca avulsa mensal com lembrete. Sem SDK novo: HTTP via fetch, como o mailer. Webhook validado, idempotente e responsavel por liberar o acesso. Models Subscription e Invoice. Doc: pm/pagamento-mercado-pago.md. |
+| 30 | Blog na landing page | Planejada | Posts no banco com API autenticada por token, para o n8n publicar por HTTP sem depender de deploy. Rotas /blog, /blog/[slug], /blog/tag/[tag] e /admin/blog para revisao. Rascunho como padrao — texto de automacao nao vai ao ar sem revisao. Sitemap, RSS e Open Graph por post. Doc: pm/blog.md. |
+
 > Sprints 20-27 foram executadas antes das 17-19, que continuam planejadas. A numeracao segue a ordem de registro, nao a cronologica.
+>
+> **Dependencia entre as sprints 28 e 29:** a 28 entrega a tela de escolha de plano, mas so a 29 faz o dinheiro entrar. Ate a 29 existir, a 28 sozinha nao resolve o problema de negocio — ela apenas troca um beco sem saida por uma vitrine sem caixa. Vale trata-las como uma entrega so, ou aceitar que a 28 fica incompleta por um periodo.

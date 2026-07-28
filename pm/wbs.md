@@ -67,6 +67,26 @@
 - 6.8 Pagamento online
 - 6.9 Multiunidades
 
+## 5A. Monetizacao (sprints 28-29)
+- 5A.1 Area /assinatura, acessivel com trial vencido
+- 5A.2 Bloqueio seletivo: painel e portal barrados, vitrine publica no ar sem agendar
+- 5A.3 Bloqueio de agendamento tambem na API publica (nao so no front)
+- 5A.4 Models Subscription e Invoice
+- 5A.5 lib/mercado-pago.ts — HTTP direto, sem SDK
+- 5A.6 Checkout: cartao com recorrencia (preapproval) e PIX avulso
+- 5A.7 Webhook validado, idempotente e responsavel por liberar o acesso
+- 5A.8 Renovacao, inadimplencia (PAST_DUE) e carencia
+- 5A.9 Lembrete de vencimento do PIX por e-mail
+- 5A.10 Status de assinatura e faturas no admin master
+
+## 5B. Blog e aquisicao (sprint 30)
+- 5B.1 Model Post com rascunho, agendamento e tags
+- 5B.2 Rotas publicas /blog, /blog/[slug], /blog/tag/[tag]
+- 5B.3 POST /api/blog autenticado por token, para o n8n
+- 5B.4 Sanitizacao do markdown recebido
+- 5B.5 /admin/blog para revisar e publicar
+- 5B.6 SEO: sitemap, robots, JSON-LD, Open Graph por post e RSS
+
 ## 6A. Portal do Profissional — fase 2 (secao 25 do escopo)
 - 6A.1 Fila de espera (novo modelo WaitingQueue)
 - 6A.2 Indicadores de desempenho e metas
