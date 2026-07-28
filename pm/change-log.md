@@ -84,5 +84,7 @@
 
 | 2026-07-28 | **Marca BarvioApp**: logo aplicado em todo o sistema, substituindo o nome provisorio lbraunapp (19 ocorrencias). Componente src/components/Logo.tsx com duas variantes — lockup para fundo escuro e azulejo + nome em texto para fundo claro, porque o logo tem sombreado 3D que nao sobrevive a recoloracao por codigo. Icones do PWA e favicon regenerados; CACHE_VERSION do service worker subiu para v2 (senao quem tem o app instalado ficaria com o icone antigo); background_color do manifest alinhado a marca. Painel lateral do /login, que ainda dizia "Sprint 1 — Autenticacao em construcao", trocado pela marca. Doc: pm/marca-barvioapp.md | Usuario | Implementado |
 
+| 2026-07-28 | Correcao de 4 erros de tipo que mantinham o build da Vercel quebrado (o site em producao ainda servia a versao antiga, com o nome lbraunapp): usePathname() pode ser null no Next 16 em ProBottomNav; e `type` como string onde o Prisma espera o enum StockMovementType, em 3 pontos de estoque/movimentacoes — consequencia de remover os `any` do B2, que escondiam o problema. Encontrados rodando tsc de verdade num ambiente Linux montado do zero. Doc: pm/type-check.md | Claude | Implementado |
+
 ## Regra
 Toda mudanca de escopo apos o baselining deve ser registrada aqui antes de virar desenvolvimento.

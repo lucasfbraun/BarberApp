@@ -9,6 +9,8 @@
  */
 
 import { NextResponse } from "next/server";
+import { Prisma, StockMovementType } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import {
   guardRole,
@@ -36,10 +38,19 @@ export async function GET(request: Request) {
   const skip = Number(searchParams.get("skip") ?? 0);
 
   try {
-    const where = {
+    // O `includes` acima confirma que o valor pertence ao enum, mas o
+    // TypeScript não estreita `string` a partir de um `readonly string[]` —
+    // por isso o cast explícito. Antes o `where` era `any` e isso passava sem
+    // ninguém perceber.
+    const typeFilter =
+      type && (ALL_TYPES as readonly string[]).includes(type)
+        ? (type as StockMovementType)
+        : undefined;
+
+    const where: Prisma.StockMovementWhereInput = {
       barbershopId: ctx.barbershopId,
       ...(productId ? { productId } : {}),
-      ...(type && (ALL_TYPES as readonly string[]).includes(type) ? { type } : {}),
+      ...(typeFilter ? { type: typeFilter } : {}),
       ...(from || to
         ? {
             createdAt: {
@@ -149,7 +160,9 @@ export async function POST(request: Request) {
             data: {
               barbershopId: ctx.barbershopId,
               productId: product.id,
-              type: body.type,
+              // As validações acima (`isIn`/`isOut`) já garantiram que o valor
+              // está no enum; o cast só informa isso ao compilador.
+              type: body.type as StockMovementType,
               quantity: signedQty,
               balanceAfter: newBalance,
               unitCost: body.unitCost ?? (isOut ? Number(product.costPrice) : null),

@@ -31,9 +31,10 @@ export default function ProBottomNav() {
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)]">
       <ul className="mx-auto flex max-w-lg">
         {ITEMS.map((item) => {
+          // `usePathname()` pode devolver null no Next 16 — daí o `?.`.
           const active = item.exact
             ? pathname === item.href
-            : pathname.startsWith(item.href);
+            : (pathname?.startsWith(item.href) ?? false);
           const Icon = item.icon;
 
           return (
