@@ -11,10 +11,6 @@ import { AppointmentStatus } from "@prisma/client";
 import { resolveCustomer } from "@/lib/auth-guard";
 import { getClientIp, isRateLimited, rateLimitResponse } from "@/lib/rate-limit";
 
-// Cast temporario ate o Prisma Client ser regenerado (Customer.userId, User.lastBarbershopId).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
-
 export async function POST(request: Request) {
   // M6: throttle por IP — 10 agendamentos por minuto.
   if (isRateLimited(`public-agendamentos:${getClientIp(request)}`, { limit: 10, windowMs: 60_000 })) {
@@ -96,17 +92,17 @@ export async function POST(request: Request) {
     const phone = customerPhone?.trim() || null;
 
     const existingCustomer =
-      (await db.customer.findFirst({ where: { barbershopId, userId: customer.userId } })) ??
+      (await prisma.customer.findFirst({ where: { barbershopId, userId: customer.userId } })) ??
       (phone ? await prisma.customer.findFirst({ where: { barbershopId, phone } }) : null);
 
     if (existingCustomer) {
       customerId = existingCustomer.id;
-      await db.customer.update({
+      await prisma.customer.update({
         where: { id: existingCustomer.id },
         data: { lastVisitAt: startsAt, userId: customer.userId, ...(phone ? { phone } : {}) },
       });
     } else {
-      const newCustomer = await db.customer.create({
+      const newCustomer = await prisma.customer.create({
         data: {
           barbershopId,
           userId: customer.userId,
@@ -170,7 +166,7 @@ export async function POST(request: Request) {
     }
 
     // "Última barbearia": próximo acesso do cliente abre esta barbearia.
-    await db.user
+    await prisma.user
       .update({ where: { id: customer.userId }, data: { lastBarbershopId: barbershopId } })
       .catch(() => null);
 

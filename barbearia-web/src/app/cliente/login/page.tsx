@@ -89,6 +89,12 @@ function LoginForm() {
           </button>
         </form>
 
+        <p className="mt-5 text-center text-sm">
+          <Link href="/esqueci-senha" className="text-slate-500 underline underline-offset-4 hover:text-blue-600">
+            Esqueci minha senha
+          </Link>
+        </p>
+
         <SocialLoginButtons callbackUrl={callbackUrl} />
 
         <p className={`${MUTED} mt-10 text-center`}>

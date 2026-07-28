@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getClientIp, isRateLimited, rateLimitResponse } from "@/lib/rate-limit";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
 
 function generateCoupon(name: string): string {
   const base = name
@@ -32,7 +30,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Nome e e-mail são obrigatórios." }, { status: 400 });
     }
 
-    const existing = await db.reseller.findUnique({ where: { email } });
+    const existing = await prisma.reseller.findUnique({ where: { email } });
     if (existing) {
       return NextResponse.json({ error: "E-mail já cadastrado como revendedor." }, { status: 409 });
     }
@@ -40,14 +38,14 @@ export async function POST(request: Request) {
     // Generate unique coupon
     let couponCode = generateCoupon(name);
     let attempts = 0;
-    while (await db.reseller.findUnique({ where: { couponCode } })) {
+    while (await prisma.reseller.findUnique({ where: { couponCode } })) {
       couponCode = generateCoupon(name);
       if (++attempts > 10) couponCode = `REV-${Date.now().toString(36).toUpperCase()}`;
     }
 
     // Cadastro publico entra como PENDING: a ativacao (e o pagamento de
     // comissao) so valem apos aprovacao no painel SUPERADMIN.
-    const reseller = await db.reseller.create({
+    const reseller = await prisma.reseller.create({
       data: { name, email, phone: phone || null, couponCode, commissionRate: 10, status: "PENDING" },
     });
 

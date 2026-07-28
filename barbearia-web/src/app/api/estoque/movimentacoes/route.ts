@@ -17,10 +17,6 @@ import {
   resolveTenant,
 } from "@/lib/auth-guard";
 
-// Cast temporario ate o Prisma Client ser regenerado com os modelos de estoque (B2).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
-
 const IN_TYPES = ["PURCHASE", "RETURN", "ADJUSTMENT_IN"] as const;
 const OUT_TYPES = ["CONSUMPTION", "LOSS", "ADJUSTMENT_OUT"] as const;
 const ALL_TYPES = [...IN_TYPES, ...OUT_TYPES, "SALE"] as const;
@@ -55,14 +51,14 @@ export async function GET(request: Request) {
     };
 
     const [movements, total] = await Promise.all([
-      db.stockMovement.findMany({
+      prisma.stockMovement.findMany({
         where,
         include: { product: { select: { id: true, name: true, unit: true } } },
         orderBy: { createdAt: "desc" },
         take,
         skip,
       }),
-      db.stockMovement.count({ where }),
+      prisma.stockMovement.count({ where }),
     ]);
 
     return NextResponse.json({ movements, total });
@@ -122,7 +118,7 @@ export async function POST(request: Request) {
     // sem permitir saldo negativo mesmo com requisicoes simultaneas.
     let result;
     try {
-      result = await db.$transaction(
+      result = await prisma.$transaction(
         async (tx: typeof db) => {
           const product = await tx.product.findFirst({
             where: { id: body.productId, barbershopId: ctx.barbershopId },

@@ -7,10 +7,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { resolveCustomer } from "@/lib/auth-guard";
 
-// Cast temporario ate o Prisma Client ser regenerado com Customer.userId (B2).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
-
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -27,7 +23,7 @@ export async function PATCH(
     }
 
     // So agendamentos do proprio cliente (Customer.userId = usuario logado).
-    const appointment = await db.appointment.findFirst({
+    const appointment = await prisma.appointment.findFirst({
       where: { id, customer: { userId: ctx.userId } },
     });
     if (!appointment) {

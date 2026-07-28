@@ -7,6 +7,19 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 - [`UPLOADS.md`](./UPLOADS.md) — upload de imagem, limites e quando migrar para storage
 - [`SECURITY.md`](./SECURITY.md) — segredos, variáveis de ambiente e rotação de credenciais
 - [`../pm/portal-do-profissional.md`](../pm/portal-do-profissional.md) — Portal do Profissional: decisões, mapa de entrega e pendências
+- [`../pm/recuperacao-de-senha.md`](../pm/recuperacao-de-senha.md) — fluxo de redefinição de senha e configuração de e-mail
+
+## Primeiro setup
+
+```bash
+npm install
+npx prisma migrate deploy   # aplica as migrations
+npx prisma generate         # gera o client (o build e o postinstall já fazem)
+npm run dev
+```
+
+O `generate` é obrigatório antes do primeiro `dev`: o código usa os modelos do
+Prisma sem casts, então o TypeScript acusa erro até o client existir.
 
 ## As três áreas do sistema
 

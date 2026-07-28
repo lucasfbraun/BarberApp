@@ -107,6 +107,12 @@ function LoginForm() {
         {error ? <p className="text-sm text-red-300">{error}</p> : null}
       </form>
 
+      <p className="mt-5 text-center text-sm">
+        <a href="/esqueci-senha" className="text-slate-400 hover:text-cyan-300 hover:underline">
+          Esqueci minha senha
+        </a>
+      </p>
+
       <p className="mt-6 text-center text-sm text-slate-400">
         É cliente e ainda não tem conta?{" "}
         <a

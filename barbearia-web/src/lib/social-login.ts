@@ -12,10 +12,6 @@
 
 import { prisma } from "@/lib/prisma";
 
-// Cast temporario ate o Prisma Client ser regenerado com o model Account (B2).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
-
 /** Codigos devolvidos na querystring de /cliente/login?error=... */
 export type SocialLoginError =
   | "SemEmail"
@@ -63,7 +59,7 @@ export async function resolveSocialUser(profile: SocialProfile): Promise<SocialL
 
   try {
     // 1. Provedor ja vinculado.
-    const linked = await db.account.findUnique({
+    const linked = await prisma.account.findUnique({
       where: {
         provider_providerAccountId: {
           provider: profile.provider,
@@ -94,7 +90,7 @@ export async function resolveSocialUser(profile: SocialProfile): Promise<SocialL
       if (!existing.active) return { ok: false, error: "ContaInativa" };
       if (await isStaffAccount(existing.id)) return { ok: false, error: "ContaDeBarbearia" };
 
-      await db.account.create({
+      await prisma.account.create({
         data: {
           userId: existing.id,
           provider: profile.provider,
@@ -116,7 +112,7 @@ export async function resolveSocialUser(profile: SocialProfile): Promise<SocialL
     // 3. Primeiro acesso: cria a conta sem senha.
     if (!profile.emailVerified) return { ok: false, error: "EmailNaoVerificado" };
 
-    const created = await db.user.create({
+    const created = await prisma.user.create({
       data: {
         name: profile.name?.trim() || fallbackName(email),
         email,

@@ -8,9 +8,11 @@
  * qual barbeiro e o usuario logado.
  *
  * Escolha de fluxo: o gestor define uma senha inicial, em vez de convite por
- * e-mail. O projeto nao tem provedor de e-mail configurado, e um convite que
- * nao chega e pior do que nenhum convite. O convite por token fica registrado
- * como fase 2 (E2 do cronograma).
+ * e-mail. E o caminho que funciona mesmo sem provedor de e-mail configurado.
+ *
+ * Depois do primeiro acesso o barbeiro troca a senha sozinho por
+ * /esqueci-senha (E1) — desde que o envio de e-mail esteja configurado; ver
+ * `lib/mailer.ts`. Convite por token com expiracao continua na fase 2.
  */
 
 import bcrypt from "bcryptjs";

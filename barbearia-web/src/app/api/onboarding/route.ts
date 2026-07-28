@@ -5,8 +5,6 @@ import { UserRole } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { getClientIp, isRateLimited, rateLimitResponse } from "@/lib/rate-limit";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
 
 type OnboardingPayload = {
   barbershopName?: string;
@@ -66,11 +64,28 @@ export async function POST(request: Request) {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
+    // B3: o cupom do revendedor e resolvido ANTES da transacao (so leitura) e
+    // GRAVADO DENTRO dela. Antes o upsert rodava depois, com `.catch(() => null)`:
+    // se falhasse, a barbearia nascia sem vinculo e ninguem ficava sabendo —
+    // comissao perdida em silencio.
+    //
+    // Cupom inexistente nao derruba o cadastro: a barbearia e criada mesmo
+    // assim, e a resposta avisa que o cupom foi ignorado.
+    const couponCode = payload.couponCode?.trim().toUpperCase() || null;
+    let reseller: { id: string } | null = null;
+    if (couponCode) {
+      reseller = await prisma.reseller.findUnique({
+        where: { couponCode },
+        select: { id: true },
+      });
+    }
+
     await prisma.$transaction(async (transaction) => {
       const barbershop = await transaction.barbershop.create({
         data: {
           name: barbershopName,
           slug,
+          couponCode: reseller ? couponCode : null,
           phone: payload.phone?.trim() || null,
           whatsapp: payload.whatsapp?.trim() || null,
           trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -93,25 +108,29 @@ export async function POST(request: Request) {
           role: UserRole.OWNER,
         },
       });
+
+      if (reseller && couponCode) {
+        await transaction.barbershopReseller.create({
+          data: {
+            barbershopId: barbershop.id,
+            resellerId: reseller.id,
+            couponCode,
+          },
+        });
+      }
     });
 
-    // Link reseller if couponCode provided
-    if (payload.couponCode) {
-      const code = payload.couponCode.trim().toUpperCase();
-      const reseller = await db.reseller.findUnique({ where: { couponCode: code } });
-      if (reseller) {
-        const barbershop = await prisma.barbershop.findUnique({ where: { slug } });
-        if (barbershop) {
-          await db.barbershopReseller.upsert({
-            where: { barbershopId: barbershop.id },
-            create: { barbershopId: barbershop.id, resellerId: reseller.id, couponCode: code },
-            update: {},
-          }).catch(() => null);
-        }
-      }
-    }
-
-    return NextResponse.json({ ok: true }, { status: 201 });
+    return NextResponse.json(
+      {
+        ok: true,
+        // Feedback honesto: quem digitou um cupom errado precisa saber.
+        ...(couponCode && !reseller
+          ? { warning: "Cupom nao encontrado. A barbearia foi criada sem vinculo de revendedor." }
+          : {}),
+        ...(reseller ? { couponApplied: couponCode } : {}),
+      },
+      { status: 201 },
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : "Falha inesperada no onboarding.";
     const isDatabaseError = message.includes("Can't reach database server") || message.includes("connect");

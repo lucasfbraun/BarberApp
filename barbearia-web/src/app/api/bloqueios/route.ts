@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { ScheduleBlockType, UserRole } from "@prisma/client";
 import {
   guardRole,
-  MANAGER_ROLES,
   resolveOwnProfessionalId,
   resolveTenant,
 } from "@/lib/auth-guard";

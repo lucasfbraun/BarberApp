@@ -16,10 +16,6 @@ import {
   resolveTenant,
 } from "@/lib/auth-guard";
 
-// Cast temporario ate o Prisma Client ser regenerado com os modelos de estoque (B2).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
-
 export type ProductRow = {
   id: string;
   name: string;
@@ -54,7 +50,7 @@ export async function GET(request: Request) {
   const expiringDays = Number(searchParams.get("expiring") ?? 0);
 
   try {
-    const products = await db.product.findMany({
+    const products = await prisma.product.findMany({
       where: {
         barbershopId: ctx.barbershopId,
         ...(activeParam === null ? {} : { active: activeParam === "1" || activeParam === "true" }),
@@ -148,7 +144,7 @@ export async function POST(request: Request) {
 
     const sku = body.sku?.trim() || null;
     if (sku) {
-      const dup = await db.product.findFirst({
+      const dup = await prisma.product.findFirst({
         where: { barbershopId: ctx.barbershopId, sku },
         select: { id: true },
       });
@@ -164,7 +160,7 @@ export async function POST(request: Request) {
 
     // Cria o produto e, se houver quantidade inicial, ja registra a entrada
     // como movimentacao (historico completo desde o dia zero).
-    const product = await db.$transaction(async (tx: typeof db) => {
+    const product = await prisma.$transaction(async (tx: typeof db) => {
       const created = await tx.product.create({
         data: {
           barbershopId: ctx.barbershopId,

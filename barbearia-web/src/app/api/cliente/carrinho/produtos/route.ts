@@ -12,10 +12,6 @@ import { prisma } from "@/lib/prisma";
 import { resolveCustomer } from "@/lib/auth-guard";
 import { getClientIp, isRateLimited, rateLimitResponse } from "@/lib/rate-limit";
 
-// Cast temporario ate o Prisma Client local ser regenerado (B2).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
-
 async function findBarbershop(slug: string) {
   return prisma.barbershop.findFirst({
     where: { slug, status: "ACTIVE" },
@@ -47,7 +43,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Barbearia nao encontrada." }, { status: 404 });
     }
 
-    const product = await db.product.findFirst({
+    const product = await prisma.product.findFirst({
       where: { id: body.productId, barbershopId: barbershop.id, active: true, sellable: true },
     });
     if (!product) {
@@ -61,11 +57,11 @@ export async function POST(request: Request) {
     }
 
     // Garante o registro Customer do usuario nesta barbearia.
-    let customer = await db.customer.findFirst({
+    let customer = await prisma.customer.findFirst({
       where: { barbershopId: barbershop.id, userId: ctx.userId },
     });
     if (!customer) {
-      customer = await db.customer.create({
+      customer = await prisma.customer.create({
         data: {
           barbershopId: barbershop.id,
           userId: ctx.userId,
@@ -77,7 +73,7 @@ export async function POST(request: Request) {
     }
 
     // Encomenda OPEN do cliente (cria se nao existir).
-    let order = await db.order.findFirst({
+    let order = await prisma.order.findFirst({
       where: {
         barbershopId: barbershop.id,
         status: "OPEN",
@@ -87,7 +83,7 @@ export async function POST(request: Request) {
       include: { items: true },
     });
     if (!order) {
-      order = await db.order.create({
+      order = await prisma.order.create({
         data: {
           barbershopId: barbershop.id,
           customerId: customer.id,
@@ -110,12 +106,12 @@ export async function POST(request: Request) {
           { status: 409 },
         );
       }
-      await db.orderItem.update({
+      await prisma.orderItem.update({
         where: { id: existing.id },
         data: { quantity: newQty, total: Number(existing.unitPrice) * newQty },
       });
     } else {
-      await db.orderItem.create({
+      await prisma.orderItem.create({
         data: {
           orderId: order.id,
           type: "product",
@@ -129,9 +125,9 @@ export async function POST(request: Request) {
     }
 
     // Recalcula totais da encomenda.
-    const items = await db.orderItem.findMany({ where: { orderId: order.id } });
+    const items = await prisma.orderItem.findMany({ where: { orderId: order.id } });
     const subtotal = (items as { total: unknown }[]).reduce((s, i) => s + Number(i.total), 0);
-    await db.order.update({ where: { id: order.id }, data: { subtotal, total: subtotal } });
+    await prisma.order.update({ where: { id: order.id }, data: { subtotal, total: subtotal } });
 
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch {
@@ -151,7 +147,7 @@ export async function DELETE(request: Request) {
 
   try {
     // So remove item de encomenda OPEN do proprio cliente.
-    const item = await db.orderItem.findFirst({
+    const item = await prisma.orderItem.findFirst({
       where: {
         id: itemId,
         order: {
@@ -166,15 +162,15 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Item nao encontrado no carrinho." }, { status: 404 });
     }
 
-    await db.orderItem.delete({ where: { id: item.id } });
+    await prisma.orderItem.delete({ where: { id: item.id } });
 
-    const items = await db.orderItem.findMany({ where: { orderId: item.orderId } });
+    const items = await prisma.orderItem.findMany({ where: { orderId: item.orderId } });
     if (items.length === 0) {
       // Carrinho vazio: remove a encomenda para nao poluir o painel da barbearia.
-      await db.order.delete({ where: { id: item.orderId } });
+      await prisma.order.delete({ where: { id: item.orderId } });
     } else {
       const subtotal = (items as { total: unknown }[]).reduce((s, i) => s + Number(i.total), 0);
-      await db.order.update({ where: { id: item.orderId }, data: { subtotal, total: subtotal } });
+      await prisma.order.update({ where: { id: item.orderId }, data: { subtotal, total: subtotal } });
     }
 
     return NextResponse.json({ ok: true });

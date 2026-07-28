@@ -85,6 +85,30 @@ model User {
   memberships   BarbershopUser[]
   professionals Professional[]
   accounts      Account[]
+  passwordResets PasswordResetToken[]
+}
+
+/// Token de redefinicao de senha (E1).
+///
+/// Guardamos o HASH do token, nunca o valor em claro: se o banco vazar, os
+/// tokens ainda validos nao servem para nada. E o mesmo raciocinio da senha.
+///
+/// `usedAt` marca o consumo em vez de apagar a linha — permite detectar
+/// tentativa de reuso e investigar, o que uma exclusao esconderia.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  /// SHA-256 do token enviado por e-mail.
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  /// IP de quem PEDIU o reset, para investigar abuso.
+  requestIp String?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 /// Vinculo entre um usuario e um provedor de login social (Google/Facebook).

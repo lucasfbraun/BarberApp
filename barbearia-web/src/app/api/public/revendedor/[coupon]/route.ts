@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getClientIp, isRateLimited, rateLimitResponse } from "@/lib/rate-limit";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
 
 export async function GET(req: Request, { params }: { params: Promise<{ coupon: string }> }) {
   // M6: throttle por IP — dificulta enumeracao de cupons.
@@ -12,7 +10,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ coupon: 
 
   const { coupon } = await params;
 
-  const reseller = await db.reseller.findUnique({
+  const reseller = await prisma.reseller.findUnique({
     where: { couponCode: coupon.toUpperCase() },
     include: {
       referrals: {

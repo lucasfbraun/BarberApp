@@ -104,13 +104,7 @@ export const authOptions: NextAuthOptions = {
 
         // Com plano ativo ou isencao (billingExempt), o trial nao se aplica:
         // nao carregamos trialEndsAt no JWT, entao o proxy nunca bloqueia.
-        const shop = activeBarbershop as unknown as {
-          id: string;
-          slug: string;
-          trialEndsAt: Date | null;
-          planId: string | null;
-          billingExempt?: boolean;
-        } | null;
+        const shop = activeBarbershop;
         const hasContract = Boolean(shop?.planId) || shop?.billingExempt === true;
 
         return {

@@ -11,10 +11,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { resolveCustomer } from "@/lib/auth-guard";
 
-// Cast temporario ate o Prisma Client local ser regenerado (B2).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
-
 export async function GET(request: Request) {
   const ctx = await resolveCustomer(request);
   if (ctx instanceof NextResponse) return ctx;
@@ -36,7 +32,7 @@ export async function GET(request: Request) {
 
     const [appointments, order] = await Promise.all([
       // Servicos reservados: agendamentos futuros ainda ativos.
-      db.appointment.findMany({
+      prisma.appointment.findMany({
         where: {
           barbershopId: barbershop.id,
           customer: { userId: ctx.userId },
@@ -54,7 +50,7 @@ export async function GET(request: Request) {
       // Encomenda de produtos: comanda do cliente sem vinculo com agendamento,
       // ainda nao paga. AWAITING_PAYMENT continua no carrinho — foi enviada ao
       // caixa mas o cliente ainda deve o valor.
-      db.order.findFirst({
+      prisma.order.findFirst({
         where: {
           barbershopId: barbershop.id,
           status: { in: ["OPEN", "AWAITING_PAYMENT"] },

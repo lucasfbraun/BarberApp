@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+import { TenantStatus } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import { resolveAdmin } from "@/lib/auth-guard";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
+import { logAudit } from "@/lib/audit";
 
 export async function GET(
   request: Request,
@@ -13,7 +14,7 @@ export async function GET(
 
   const { id } = await params;
 
-  const barbershop = await db.barbershop.findUnique({
+  const barbershop = await prisma.barbershop.findUnique({
     where: { id },
     include: {
       plan: true,
@@ -56,54 +57,148 @@ export async function PATCH(
   if (adminOrError instanceof NextResponse) return adminOrError;
 
   const { id } = await params;
-  const body = await request.json() as {
-    action?: string;
-    days?: number;
-    planId?: string | null;
-    status?: string;
-    exempt?: boolean;
-  };
+  const admin = adminOrError;
 
-  const { action } = body;
+  try {
+    const body = await request.json() as {
+      action?: string;
+      days?: number;
+      planId?: string | null;
+      status?: string;
+      exempt?: boolean;
+    };
 
-  if (action === "extend_trial") {
-    const days = body.days ?? 30;
-    const barbershop = await db.barbershop.findUnique({ where: { id }, select: { trialEndsAt: true } });
-    const base = barbershop?.trialEndsAt && new Date(barbershop.trialEndsAt) > new Date()
-      ? new Date(barbershop.trialEndsAt)
-      : new Date();
-    const newDate = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
-    const updated = await db.barbershop.update({
+    const { action } = body;
+
+    // B7: a barbearia tem de existir antes de qualquer escrita. Sem isto, um
+    // id inexistente virava exceção do Prisma sem try/catch — 500 com stack.
+    const existing = await prisma.barbershop.findUnique({
       where: { id },
-      data: { trialEndsAt: newDate },
+      select: { id: true, trialEndsAt: true, planId: true, status: true, billingExempt: true },
     });
-    return NextResponse.json({ trialEndsAt: updated.trialEndsAt });
-  }
+    if (!existing) {
+      return NextResponse.json({ error: "Barbearia não encontrada." }, { status: 404 });
+    }
 
-  if (action === "set_plan") {
-    const updated = await db.barbershop.update({
-      where: { id },
-      data: { planId: body.planId ?? null },
-    });
-    return NextResponse.json({ planId: updated.planId });
-  }
+    if (action === "extend_trial") {
+      const days = body.days ?? 30;
+      // Teto e piso: um "trial" de 10 anos por dedo escorregado no teclado é
+      // uma assinatura vitalícia grátis, e negativo encurtaria sem aviso.
+      if (!Number.isInteger(days) || days < 1 || days > 365) {
+        return NextResponse.json(
+          { error: "Informe de 1 a 365 dias." },
+          { status: 400 },
+        );
+      }
 
-  if (action === "set_exempt") {
-    // Isencao de contrato: barbearia isenta nunca e bloqueada por trial/cobranca.
-    const updated = await db.barbershop.update({
-      where: { id },
-      data: { billingExempt: body.exempt === true },
-    });
-    return NextResponse.json({ billingExempt: updated.billingExempt });
-  }
+      // Estende a partir do fim atual, se ainda estiver no futuro; senão,
+      // a partir de hoje.
+      const base = existing.trialEndsAt && new Date(existing.trialEndsAt) > new Date()
+        ? new Date(existing.trialEndsAt)
+        : new Date();
+      const newDate = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
 
-  if (action === "set_status") {
-    const updated = await db.barbershop.update({
-      where: { id },
-      data: { status: body.status },
-    });
-    return NextResponse.json({ status: updated.status });
-  }
+      const updated = await prisma.barbershop.update({
+        where: { id },
+        data: { trialEndsAt: newDate },
+      });
 
-  return NextResponse.json({ error: "Ação inválida." }, { status: 400 });
+      await logAudit({
+        barbershopId: id,
+        userId: admin.userId,
+        action: "admin.extend_trial",
+        entity: "Barbershop",
+        entityId: id,
+        before: { trialEndsAt: existing.trialEndsAt },
+        after: { trialEndsAt: newDate, days },
+        request,
+      });
+
+      return NextResponse.json({ trialEndsAt: updated.trialEndsAt });
+    }
+
+    if (action === "set_plan") {
+      // O plano precisa existir — planId inválido deixaria a barbearia
+      // apontando para nada e o trial nunca mais bloquearia.
+      if (body.planId) {
+        const plan = await prisma.plan.findUnique({
+          where: { id: body.planId },
+          select: { id: true },
+        });
+        if (!plan) {
+          return NextResponse.json({ error: "Plano não encontrado." }, { status: 404 });
+        }
+      }
+
+      const updated = await prisma.barbershop.update({
+        where: { id },
+        data: { planId: body.planId ?? null },
+      });
+
+      await logAudit({
+        barbershopId: id,
+        userId: admin.userId,
+        action: "admin.set_plan",
+        entity: "Barbershop",
+        entityId: id,
+        before: { planId: existing.planId },
+        after: { planId: updated.planId },
+        request,
+      });
+
+      return NextResponse.json({ planId: updated.planId });
+    }
+
+    if (action === "set_exempt") {
+      // Isencao de contrato: barbearia isenta nunca e bloqueada por trial/cobranca.
+      const updated = await prisma.barbershop.update({
+        where: { id },
+        data: { billingExempt: body.exempt === true },
+      });
+
+      await logAudit({
+        barbershopId: id,
+        userId: admin.userId,
+        action: "admin.set_exempt",
+        entity: "Barbershop",
+        entityId: id,
+        before: { billingExempt: existing.billingExempt },
+        after: { billingExempt: updated.billingExempt },
+        request,
+      });
+
+      return NextResponse.json({ billingExempt: updated.billingExempt });
+    }
+
+    if (action === "set_status") {
+      // Validado contra o enum: um status arbitrário estourava dentro do
+      // Prisma e voltava como erro genérico.
+      if (!body.status || !(body.status in TenantStatus)) {
+        return NextResponse.json({ error: "Status inválido." }, { status: 400 });
+      }
+
+      const updated = await prisma.barbershop.update({
+        where: { id },
+        data: { status: body.status as TenantStatus },
+      });
+
+      await logAudit({
+        barbershopId: id,
+        userId: admin.userId,
+        action: "admin.set_status",
+        entity: "Barbershop",
+        entityId: id,
+        before: { status: existing.status },
+        after: { status: updated.status },
+        request,
+      });
+
+      return NextResponse.json({ status: updated.status });
+    }
+
+    return NextResponse.json({ error: "Ação inválida." }, { status: 400 });
+  } catch (error) {
+    console.error("[admin/barbearias PATCH]", error);
+    return NextResponse.json({ error: "Não foi possível atualizar." }, { status: 503 });
+  }
 }

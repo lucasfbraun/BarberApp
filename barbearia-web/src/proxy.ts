@@ -36,6 +36,13 @@ const PANEL_ROUTES = [
 
 const PORTAL_ROUTES = ["/profissional"];
 const ADMIN_ROUTES = ["/admin"];
+/**
+ * Rotas so para quem NAO esta logado.
+ *
+ * `/esqueci-senha` e `/redefinir-senha` ficam de fora de proposito: quem esta
+ * logado em outro aparelho e clicou no link do e-mail precisa conseguir abrir
+ * a pagina, nao ser redirecionado para a agenda.
+ */
 const PUBLIC_ONLY_ROUTES = ["/login", "/cadastro"];
 
 /** Para onde mandar cada papel depois do login. */

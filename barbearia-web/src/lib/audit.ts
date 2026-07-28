@@ -49,7 +49,12 @@ export type AuditAction =
   | "professional.profile_update"
   | "professional.access_grant"
   | "professional.access_revoke"
-  | "permissions.update";
+  | "permissions.update"
+  // acoes do admin master sobre a barbearia (dinheiro e acesso)
+  | "admin.extend_trial"
+  | "admin.set_plan"
+  | "admin.set_exempt"
+  | "admin.set_status";
 
 export type AuditEntry = {
   barbershopId: string;

@@ -2,13 +2,21 @@
 
 import { useEffect, useState, useCallback } from "react";
 
+import { todayLocalDate } from "@/lib/date-br";
+
+/**
+ * B4: era `toISOString().slice(0, 10)` — data em UTC. Depois das 21h no
+ * Brasil, o relatório do dia abria no dia seguinte, ainda zerado, dando a
+ * impressão de que o faturamento havia sumido.
+ */
 function todayStr() {
-  return new Date().toISOString().slice(0, 10);
+  return todayLocalDate();
 }
 
 const STATUS_LABELS: Record<string, string> = {
   SCHEDULED: "Agendado",
   CONFIRMED: "Confirmado",
+  ARRIVED: "Cliente chegou",
   IN_PROGRESS: "Em atendimento",
   COMPLETED: "Concluído",
   CANCELLED: "Cancelado",

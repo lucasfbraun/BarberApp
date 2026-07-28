@@ -126,12 +126,43 @@ export async function DELETE(
   }
 
   try {
-    await prisma.professionalService.updateMany({
+    // B1: o POST ja conferia o tenant, o DELETE nao. Sem esta checagem, um
+    // gestor da barbearia A conseguia desativar o vinculo profissional<->
+    // servico da barbearia B, bastando conhecer o id — e o `updateMany`
+    // silenciosamente nao acusaria nada.
+    const professional = await prisma.professional.findFirst({
+      where: { id, barbershopId: ctx.barbershopId },
+      select: { id: true },
+    });
+    if (!professional) {
+      return NextResponse.json({ error: "Profissional nao encontrado." }, { status: 404 });
+    }
+
+    // O servico tambem precisa ser do tenant: senao daria para desativar um
+    // vinculo cruzado que nem deveria existir.
+    const service = await prisma.service.findFirst({
+      where: { id: body.serviceId, barbershopId: ctx.barbershopId },
+      select: { id: true },
+    });
+    if (!service) {
+      return NextResponse.json({ error: "Servico nao encontrado." }, { status: 404 });
+    }
+
+    const result = await prisma.professionalService.updateMany({
       where: { professionalId: id, serviceId: body.serviceId },
       data: { active: false },
     });
+
+    if (result.count === 0) {
+      return NextResponse.json(
+        { error: "Este servico nao estava vinculado ao profissional." },
+        { status: 404 },
+      );
+    }
+
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (error) {
+    console.error("[profissionais/servicos DELETE]", error);
     return NextResponse.json({ error: "Erro ao desvincular servico." }, { status: 503 });
   }
 }

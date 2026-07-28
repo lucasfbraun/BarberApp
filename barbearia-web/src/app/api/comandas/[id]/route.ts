@@ -86,9 +86,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     let itemName = item.name?.trim() || "";
     let unitPrice = item.unitPrice;
     if (item.productId) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const dbAny = prisma as any;
-      const product = await dbAny.product.findFirst({
+      const product = await prisma.product.findFirst({
         where: { id: item.productId, barbershopId: tenant.barbershopId },
       });
       if (!product) {

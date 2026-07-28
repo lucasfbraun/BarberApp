@@ -7,16 +7,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { resolveCustomer } from "@/lib/auth-guard";
 
-// Cast temporario ate o Prisma Client ser regenerado com lastBarbershopId (B2).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
-
 export async function GET(request: Request) {
   const ctx = await resolveCustomer(request);
   if (ctx instanceof NextResponse) return ctx;
 
   try {
-    const user = await db.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: ctx.userId },
       select: { id: true, name: true, email: true, phone: true, lastBarbershopId: true },
     });

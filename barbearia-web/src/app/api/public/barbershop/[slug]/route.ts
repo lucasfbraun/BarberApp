@@ -8,10 +8,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Cast temporario ate o Prisma Client local ser regenerado com Product (B2).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
-
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ slug: string }> },
@@ -76,7 +72,7 @@ export async function GET(
 
   // Produtos à venda (vitrine) e avaliações — consultas separadas.
   const [products, reviews] = await Promise.all([
-    db.product.findMany({
+    prisma.product.findMany({
       where: { barbershopId: barbershop.id, active: true, sellable: true },
       select: {
         id: true, name: true, description: true, category: true,

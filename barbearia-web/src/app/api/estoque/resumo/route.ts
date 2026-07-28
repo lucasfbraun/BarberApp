@@ -10,10 +10,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { guardRole, OPERATION_ROLES, resolveTenant } from "@/lib/auth-guard";
 
-// Cast temporario ate o Prisma Client ser regenerado com os modelos de estoque (B2).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
-
 export async function GET(request: Request) {
   const ctx = await resolveTenant(request);
   if (ctx instanceof NextResponse) return ctx;
@@ -40,14 +36,14 @@ export async function GET(request: Request) {
     };
 
     const [products, sales] = await Promise.all([
-      db.product.findMany({
+      prisma.product.findMany({
         where: { barbershopId: ctx.barbershopId, active: true },
         select: {
           id: true, name: true, unit: true, stockQuantity: true, minStock: true,
           costPrice: true, salePrice: true, expiresAt: true,
         },
       }) as Promise<DbProduct[]>,
-      db.stockMovement.findMany({
+      prisma.stockMovement.findMany({
         where: {
           barbershopId: ctx.barbershopId,
           type: "SALE",

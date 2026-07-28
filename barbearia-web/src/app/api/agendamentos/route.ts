@@ -7,6 +7,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { AppointmentStatus, UserRole } from "@prisma/client";
 import { resolveOwnProfessionalId, resolveTenant } from "@/lib/auth-guard";
+import { dayRangeInTimeZone, DEFAULT_TIMEZONE } from "@/lib/availability";
+import { logAudit } from "@/lib/audit";
 
 // GET — lista agendamentos do dia (com filtro opcional por profissional)
 export async function GET(request: Request) {
@@ -30,14 +32,29 @@ export async function GET(request: Request) {
     professionalId = ownId;
   }
 
-  const startOfDay = new Date(`${dateStr}T00:00:00`);
-  const endOfDay = new Date(`${dateStr}T23:59:59`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return NextResponse.json({ error: "Data invalida." }, { status: 400 });
+  }
 
   try {
+    // B4: o dia civil e o da BARBEARIA, nao o do servidor.
+    // `new Date("2026-07-27T00:00:00")` (sem Z) e interpretado no fuso do
+    // processo — em UTC na Vercel. A janela virava 21:00 do dia anterior as
+    // 20:59 do dia, no horario de Brasilia: atendimento noturno caia no dia
+    // errado e sumia da agenda de quem estava olhando.
+    const barbershop = await prisma.barbershop.findUnique({
+      where: { id: ctx.barbershopId },
+      select: { timezone: true },
+    });
+    const timeZone = barbershop?.timezone || DEFAULT_TIMEZONE;
+    const { start: startOfDay, end: endOfDay } = dayRangeInTimeZone(dateStr, timeZone);
+
     const appointments = await prisma.appointment.findMany({
       where: {
         barbershopId: ctx.barbershopId,
-        startsAt: { gte: startOfDay, lte: endOfDay },
+        // `lt` no fim: dayRangeInTimeZone devolve o inicio do dia seguinte,
+        // entao o intervalo e semiaberto e nao duplica a virada.
+        startsAt: { gte: startOfDay, lt: endOfDay },
         ...(professionalId ? { professionalId } : {}),
       },
       include: {
@@ -207,8 +224,26 @@ export async function POST(request: Request) {
       );
     }
 
+    await logAudit({
+      barbershopId: ctx.barbershopId,
+      userId: ctx.userId,
+      action: "appointment.create",
+      entity: "Appointment",
+      entityId: appointment.id,
+      after: {
+        startsAt,
+        endsAt,
+        professionalId: body.professionalId ?? null,
+        serviceId: body.serviceId ?? null,
+        customerId,
+        source: body.source ?? "admin_panel",
+      },
+      request,
+    });
+
     return NextResponse.json({ appointment }, { status: 201 });
-  } catch {
+  } catch (error) {
+    console.error("[agendamentos POST]", error);
     return NextResponse.json({ error: "Erro ao criar agendamento." }, { status: 503 });
   }
 }

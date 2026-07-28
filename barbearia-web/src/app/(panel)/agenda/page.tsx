@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { todayLocalDate } from "@/lib/date-br";
+
 // ─── tipos ────────────────────────────────────────────────────────────────────
 
 type Appointment = {
@@ -62,8 +64,13 @@ function formatTime(iso: string) {
   });
 }
 
+/**
+ * B4: era `new Date().toISOString().slice(0, 10)`, que devolve a data em UTC.
+ * Depois das 21h no Brasil a agenda abria já no dia seguinte — bem no fim do
+ * expediente, com a barbearia ainda cheia.
+ */
 function todayStr() {
-  return new Date().toISOString().slice(0, 10);
+  return todayLocalDate();
 }
 
 // ─── componente ──────────────────────────────────────────────────────────────

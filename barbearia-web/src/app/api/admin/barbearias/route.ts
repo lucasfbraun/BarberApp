@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { resolveAdmin } from "@/lib/auth-guard";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
 
 export async function GET(request: Request) {
   const adminOrError = await resolveAdmin(request);
@@ -14,7 +12,8 @@ export async function GET(request: Request) {
 
   const now = new Date();
 
-  const barbershops = await db.barbershop.findMany({
+  try {
+  const barbershops = await prisma.barbershop.findMany({
     where: search
       ? {
           OR: [
@@ -76,5 +75,9 @@ export async function GET(request: Request) {
     exempt: rows.filter((b) => b.computedStatus === "exempt").length,
   };
 
-  return NextResponse.json({ summary, barbershops: filtered });
+    return NextResponse.json({ summary, barbershops: filtered });
+  } catch (error) {
+    console.error("[admin/barbearias]", error);
+    return NextResponse.json({ error: "Erro ao carregar barbearias." }, { status: 503 });
+  }
 }

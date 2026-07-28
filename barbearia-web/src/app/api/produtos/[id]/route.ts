@@ -13,10 +13,6 @@ import {
   resolveTenant,
 } from "@/lib/auth-guard";
 
-// Cast temporario ate o Prisma Client ser regenerado com os modelos de estoque (B2).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = prisma as any;
-
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -29,7 +25,7 @@ export async function GET(
   const { id } = await params;
 
   try {
-    const product = await db.product.findFirst({
+    const product = await prisma.product.findFirst({
       where: { id, barbershopId: ctx.barbershopId },
       include: {
         movements: { orderBy: { createdAt: "desc" }, take: 50 },
@@ -56,7 +52,7 @@ export async function PATCH(
   const { id } = await params;
 
   try {
-    const existing = await db.product.findFirst({
+    const existing = await prisma.product.findFirst({
       where: { id, barbershopId: ctx.barbershopId },
     });
     if (!existing) {
@@ -87,7 +83,7 @@ export async function PATCH(
 
     const sku = body.sku === undefined ? undefined : body.sku?.trim() || null;
     if (sku) {
-      const dup = await db.product.findFirst({
+      const dup = await prisma.product.findFirst({
         where: { barbershopId: ctx.barbershopId, sku, id: { not: id } },
         select: { id: true },
       });
@@ -104,7 +100,7 @@ export async function PATCH(
       }
     }
 
-    const product = await db.product.update({
+    const product = await prisma.product.update({
       where: { id },
       data: {
         ...(body.name !== undefined ? { name: body.name.trim() } : {}),
@@ -139,7 +135,7 @@ export async function DELETE(
   const { id } = await params;
 
   try {
-    const existing = await db.product.findFirst({
+    const existing = await prisma.product.findFirst({
       where: { id, barbershopId: ctx.barbershopId },
       include: { _count: { select: { movements: true, orderItems: true } } },
     });
@@ -150,11 +146,11 @@ export async function DELETE(
     // Com historico (movimentacoes/vendas), nao apagamos: desativamos,
     // preservando auditoria e relatorios. Sem historico, exclui de vez.
     if (existing._count.movements > 0 || existing._count.orderItems > 0) {
-      await db.product.update({ where: { id }, data: { active: false } });
+      await prisma.product.update({ where: { id }, data: { active: false } });
       return NextResponse.json({ ok: true, softDeleted: true });
     }
 
-    await db.product.delete({ where: { id } });
+    await prisma.product.delete({ where: { id } });
     return NextResponse.json({ ok: true, softDeleted: false });
   } catch {
     return NextResponse.json({ error: "Erro ao excluir produto." }, { status: 503 });

@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { resolveTenant, guardRole, MANAGER_ROLES } from "@/lib/auth-guard";
+import {
+  dayRangeInTimeZone,
+  DEFAULT_TIMEZONE,
+  todayInTimeZone,
+} from "@/lib/availability";
 
 export async function GET(request: Request) {
   const tenantOrError = await resolveTenant(request);
@@ -12,16 +17,26 @@ export async function GET(request: Request) {
   if (guard) return guard;
 
   const { searchParams } = new URL(request.url);
-  const dateStr = searchParams.get("date") ?? new Date().toISOString().slice(0, 10);
 
-  const start = new Date(dateStr);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(dateStr);
-  end.setHours(23, 59, 59, 999);
+  // B4: dia civil da BARBEARIA. `setHours` opera no relogio do processo — em
+  // UTC na Vercel — e o faturamento do dia fechava com tres horas de defasagem:
+  // comanda das 22h entrava no dia seguinte.
+  const barbershop = await prisma.barbershop.findUnique({
+    where: { id: tenant.barbershopId },
+    select: { timezone: true },
+  });
+  const timeZone = barbershop?.timezone || DEFAULT_TIMEZONE;
+
+  const dateStr = searchParams.get("date") ?? todayInTimeZone(timeZone);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return NextResponse.json({ error: "Data invalida." }, { status: 400 });
+  }
+
+  const { start, end } = dayRangeInTimeZone(dateStr, timeZone);
 
   const [appointments, orders, commissions] = await Promise.all([
     prisma.appointment.findMany({
-      where: { barbershopId: tenant.barbershopId, startsAt: { gte: start, lte: end } },
+      where: { barbershopId: tenant.barbershopId, startsAt: { gte: start, lt: end } },
       include: {
         professional: { select: { id: true, name: true } },
         service: { select: { id: true, name: true, price: true } },
@@ -33,7 +48,7 @@ export async function GET(request: Request) {
       where: {
         barbershopId: tenant.barbershopId,
         status: "CLOSED",
-        closedAt: { gte: start, lte: end },
+        closedAt: { gte: start, lt: end },
       },
       include: {
         professional: { select: { id: true, name: true } },
@@ -45,7 +60,7 @@ export async function GET(request: Request) {
     prisma.commission.findMany({
       where: {
         barbershopId: tenant.barbershopId,
-        createdAt: { gte: start, lte: end },
+        createdAt: { gte: start, lt: end },
       },
       include: {
         professional: { select: { id: true, name: true } },
