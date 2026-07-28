@@ -77,6 +77,8 @@ export default function AgendaPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNew, setShowNew] = useState(false);
+  /** Erro das ações de status (cancelar, iniciar, remarcar). */
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // formulário novo agendamento
   const [form, setForm] = useState<NewAppointmentForm>({
@@ -151,12 +153,38 @@ export default function AgendaPage() {
   // ── ações ─────────────────────────────────────────────────────────────────
 
   async function updateStatus(id: string, status: string, cancellationReason?: string) {
-    await fetch(`/api/agendamentos/${id}`, {
+    const res = await fetch(`/api/agendamentos/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status, ...(cancellationReason ? { cancellationReason } : {}) }),
     });
+
+    // A API passou a recusar em mais casos (papel sem permissão, atendimento
+    // já finalizado, conflito de horário). Antes a resposta era ignorada e o
+    // clique simplesmente não fazia nada — sem nenhuma pista do porquê.
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setActionError(body.error ?? "Não foi possível atualizar o atendimento.");
+      return;
+    }
+
+    setActionError(null);
     await loadAppointments();
+  }
+
+  /**
+   * Cancelamento pede o motivo. A auditoria registra esse texto, e um
+   * "Cancelado pelo painel" fixo em toda linha tornaria o registro inútil
+   * justamente na ação que mais precisa ser explicada depois.
+   */
+  async function cancelAppointment(id: string) {
+    const reason = window.prompt("Motivo do cancelamento:");
+    if (reason === null) return; // desistiu
+    if (!reason.trim()) {
+      setActionError("Informe o motivo do cancelamento.");
+      return;
+    }
+    await updateStatus(id, "CANCELLED", reason.trim());
   }
 
   async function handleCreate(e: React.FormEvent) {
@@ -207,6 +235,19 @@ export default function AgendaPage() {
 
   return (
     <section className="space-y-6">
+
+      {actionError && (
+        <div className="flex items-start gap-3 rounded-2xl border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-200">
+          <span className="flex-1">{actionError}</span>
+          <button
+            onClick={() => setActionError(null)}
+            aria-label="Fechar aviso"
+            className="shrink-0 text-red-300 hover:text-red-100"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Cabeçalho */}
       <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur">
@@ -395,10 +436,13 @@ export default function AgendaPage() {
                             items: a.service ? [{ serviceId: a.service.id, name: a.service.name, quantity: 1, unitPrice: Number(a.service.price) }] : [],
                           }),
                         });
-                        if (res.ok) {
-                          const order = await res.json();
-                          router.push(`/comanda/${order.id}`);
+                        const order = await res.json().catch(() => ({}));
+                        if (!res.ok) {
+                          setActionError(order.error ?? "Não foi possível abrir a comanda.");
+                          return;
                         }
+                        setActionError(null);
+                        router.push(`/comanda/${order.id}`);
                       }}
                       className="rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-xs text-cyan-300 transition hover:bg-cyan-400/20"
                     >
@@ -406,7 +450,7 @@ export default function AgendaPage() {
                     </button>
                   )}
                   {!["COMPLETED", "CANCELLED", "NO_SHOW", "RESCHEDULED"].includes(a.status) && (
-                    <button onClick={() => updateStatus(a.id, "CANCELLED", "Cancelado pelo painel")}
+                    <button onClick={() => cancelAppointment(a.id)}
                       className="rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs text-red-300 transition hover:bg-red-400/20">
                       Cancelar
                     </button>
