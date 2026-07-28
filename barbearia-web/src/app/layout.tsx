@@ -33,8 +33,11 @@ export const metadata: Metadata = {
     title: "BarvioApp",
     statusBarStyle: "default",
   },
-  // Cartão ao compartilhar o link (WhatsApp, redes). Usa o lockup em PNG:
-  // vários leitores de preview ainda não abrem WebP.
+  // Cartão ao compartilhar o link (WhatsApp, redes).
+  //
+  // Imagem OPACA e em PNG, de propósito: as plataformas compõem sobre fundo
+  // branco, e um PNG transparente deixaria o wordmark branco invisível.
+  // 1200×630 é a proporção que elas esperam; WebP nem todas leem.
   openGraph: {
     type: "website",
     siteName: "BarvioApp",
@@ -42,7 +45,7 @@ export const metadata: Metadata = {
     description:
       "Agenda online, comanda, estoque, comissão e app para o cliente.",
     locale: "pt_BR",
-    images: [{ url: "/brand/barvioapp-lockup.png", width: 320, height: 230 }],
+    images: [{ url: "/brand/barvioapp-og.png", width: 1200, height: 630 }],
   },
 };
 

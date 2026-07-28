@@ -86,5 +86,7 @@
 
 | 2026-07-28 | Correcao de 4 erros de tipo que mantinham o build da Vercel quebrado (o site em producao ainda servia a versao antiga, com o nome lbraunapp): usePathname() pode ser null no Next 16 em ProBottomNav; e `type` como string onde o Prisma espera o enum StockMovementType, em 3 pontos de estoque/movimentacoes — consequencia de remover os `any` do B2, que escondiam o problema. Encontrados rodando tsc de verdade num ambiente Linux montado do zero. Doc: pm/type-check.md | Claude | Implementado |
 
+| 2026-07-28 | Build quebrava no favicon: `The PNG is not in RGBA format!`. O ICO fora gerado a partir de imagem RGB e o decodificador do Turbopack exige RGBA. Regenerado em RGBA e enxugado de 6 para 3 tamanhos (16/32/48), de 60 KB para 5 KB. No mesmo passo: lockup passou a ter fundo transparente (embutido, aparecia como retangulo escuro sobre o card do painel) e a imagem de Open Graph virou opaca 1200x630 — transparente, o wordmark branco sumiria no preview do WhatsApp, que compoe sobre branco | Claude | Implementado |
+
 ## Regra
 Toda mudanca de escopo apos o baselining deve ser registrada aqui antes de virar desenvolvimento.

@@ -8,11 +8,18 @@
 
 | Arquivo | Uso |
 |---|---|
-| `public/brand/barvioapp-lockup.webp` | Lockup completo (símbolo + nome + tagline). **Só em fundo escuro** |
-| `public/brand/barvioapp-lockup.png` | Mesmo lockup, fallback e cartão de compartilhamento (Open Graph não lê WebP em todo lugar) |
+| `public/brand/barvioapp-lockup.webp` | Lockup completo, **fundo transparente**. Só em fundo escuro |
+| `public/brand/barvioapp-lockup.png` | Mesmo lockup, opaco. Fallback do `<img>` |
+| `public/brand/barvioapp-og.png` | Cartão de compartilhamento, 1200×630, **opaco** |
 | `public/brand/barvioapp-tile.webp` | Símbolo sobre azulejo escuro arredondado. Para telas claras |
 | `public/icons/icon-192 · icon-512 · icon-maskable-512 · apple-touch-icon` | PWA |
-| `src/app/favicon.ico` | Multi-resolução, de 16 a 256 px |
+| `src/app/favicon.ico` | 16, 32 e 48 px, PNG **RGBA** dentro do ICO |
+
+### Duas armadilhas que já custaram um build
+
+**O ICO precisa ser RGBA.** Gerei primeiro a partir de uma imagem RGB, e o Turbopack quebrou o build inteiro com `The PNG is not in RGBA format!`. O decodificador dele (crate `image` do Rust) recusa PNG sem canal alfa dentro de um ICO. O `src/app/favicon.ico` é o **único** arquivo de imagem que o Next processa — os de `public/` são servidos crus e podem ser RGB à vontade.
+
+**A imagem de Open Graph precisa ser opaca.** WhatsApp e redes sociais compõem o preview sobre fundo branco. Com PNG transparente, o wordmark branco desapareceria e sobraria só o símbolo. Por isso a `-og.png` tem o fundo da marca embutido — e é a única do conjunto que não é transparente por escolha.
 
 O original enviado (1536×1024) não foi versionado — os derivados saem dele. **Guarde o arquivo-fonte fora do repositório**, é dele que sai qualquer variante futura.
 
