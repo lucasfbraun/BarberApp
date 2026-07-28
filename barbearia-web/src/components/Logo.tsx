@@ -18,24 +18,34 @@ import Link from "next/link";
  * de tela leem "Barvio App" sem depender de `alt`.
  */
 
-type Tamanho = "sm" | "md" | "lg";
+type Tamanho = "sm" | "md" | "lg" | "xl";
 
+/**
+ * Escala da marca.
+ *
+ * O arquivo tem 560px de largura, o que cobre 3x de densidade até `xl`
+ * (~130px de altura exibida). Passar disso exige regerar o asset maior,
+ * senão fica borrado em tela retina.
+ */
 const AZULEJO: Record<Tamanho, string> = {
-  sm: "h-8 w-8",
-  md: "h-10 w-10",
-  lg: "h-14 w-14",
+  sm: "h-10 w-10",
+  md: "h-12 w-12",
+  lg: "h-16 w-16",
+  xl: "h-20 w-20",
 };
 
 const NOME: Record<Tamanho, string> = {
-  sm: "text-base",
-  md: "text-lg",
+  sm: "text-lg",
+  md: "text-xl",
   lg: "text-2xl",
+  xl: "text-3xl",
 };
 
 const LOCKUP: Record<Tamanho, string> = {
-  sm: "h-9",
-  md: "h-12",
-  lg: "h-20",
+  sm: "h-12",
+  md: "h-16",
+  lg: "h-28",
+  xl: "h-36",
 };
 
 export function Logo({

@@ -141,7 +141,7 @@ export default function LoginPage() {
         </Suspense>
 
         <aside className="flex flex-col justify-center rounded-3xl border border-white/10 bg-slate-950/70 p-8 shadow-2xl backdrop-blur">
-          <Logo size="lg" />
+          <Logo size="xl" />
 
           <p className="mt-6 text-sm leading-6 text-slate-400">
             Gestão completa para barbearias — da agenda ao caixa, no computador
