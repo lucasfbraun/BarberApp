@@ -88,6 +88,7 @@ export default async function LandingPage() {
             <a href="#funcionalidades" className="transition hover:text-white">Funcionalidades</a>
             <a href="#planos" className="transition hover:text-white">Planos</a>
             <a href="#revendedor" className="transition hover:text-white">Revendedor</a>
+            <Link href="/blog" className="transition hover:text-white">Blog</Link>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm text-slate-300 transition hover:text-white">
@@ -348,6 +349,7 @@ export default async function LandingPage() {
             © 2026 BarvioApp. Todos os direitos reservados.
           </p>
           <div className="flex gap-6 text-xs text-slate-500">
+            <Link href="/blog" className="transition hover:text-white">Blog</Link>
             <Link href="/login" className="transition hover:text-white">Entrar</Link>
             <Link href="/cadastro" className="transition hover:text-white">Cadastrar</Link>
             <Link href="/revendedor/cadastro" className="transition hover:text-white">Revendedor</Link>

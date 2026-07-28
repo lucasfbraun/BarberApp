@@ -619,6 +619,46 @@ model ScheduleBlock {
   @@index([startsAt])
 }
 
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+}
+
+/// Post do blog da landing (sprint 30).
+///
+/// Fica no banco, e nao em markdown no repositorio, por causa da automacao:
+/// o n8n publica com um POST em /api/blog, sem precisar de commit nem de
+/// deploy a cada texto.
+///
+/// `status` nasce DRAFT de proposito — texto gerado por automacao indo direto
+/// ao ar, assinado pela empresa, e como se publica um erro para o mundo ver.
+model Post {
+  id             String     @id @default(cuid())
+  slug           String     @unique
+  title          String
+  excerpt        String?
+  /// Markdown. Renderizado por `lib/markdown.ts`, que escapa o HTML antes de
+  /// converter — o conteudo pode vir de fora, entao nao se confia nele.
+  content        String
+  coverUrl       String?
+  tags           String[]   @default([])
+  status         PostStatus @default(DRAFT)
+  publishedAt    DateTime?
+  authorName     String     @default("Equipe BarvioApp")
+  /// "manual" ou "n8n". Marca o que veio da automacao, para revisar e para
+  /// medir depois o que rende mais.
+  source         String     @default("manual")
+  seoTitle       String?
+  seoDescription String?
+  views          Int        @default(0)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  /// A listagem publica filtra por status + data; este e o indice que ela usa.
+  @@index([status, publishedAt])
+}
+
 model Reseller {
   id             String               @id @default(cuid())
   name           String
