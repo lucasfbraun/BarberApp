@@ -2558,10 +2558,11 @@ A arquitetura recomendada é Next.js na Vercel, PostgreSQL, storage externo para
 - [x] Registro de pagamento.
 - [x] Comissão simples.
 - [x] Relatório diário.
+- [x] Portal do Profissional (MVP) — ver bloco próprio abaixo.
 
 ### Módulos SaaS implementados além do MVP original
 
-- [x] Landing page lbraunapp (hero, funcionalidades, planos, revendedor, CTA).
+- [x] Landing page BarvioApp (hero, funcionalidades, planos, revendedor, CTA).
 - [x] Planos dinâmicos no banco — admin cadastra, landing exibe automaticamente.
 - [x] Programa de revendedores — cadastro público, geração de cupom único, dashboard /revendedor/[coupon].
 - [x] Vínculo cupom no onboarding — campo opcional no cadastro, vincula barbearia ao revendedor.
@@ -2570,6 +2571,30 @@ A arquitetura recomendada é Next.js na Vercel, PostgreSQL, storage externo para
 - [x] Admin: gestão de planos — CRUD completo com features, preço e limite de profissionais.
 - [x] Admin: gestão de barbearias — lista com filtros/busca, status de trial, detalhe com ações (extender trial, trocar plano, ativar/desativar).
 - [x] Admin: gestão de revendedores — lista com receita e comissão acumuladas, ações (aprovar, desativar, editar taxa).
+
+### Portal do Profissional (Sprint 25 — escopo próprio em `pm/portal-profissional-barbeiro.md`)
+
+Área do barbeiro em `/profissional`, mobile-first. Escopo detalhado e decisões em
+`pm/portal-do-profissional.md`.
+
+- [x] Acesso individual do barbeiro — criado pelo gestor na tela de Profissionais (cria `User` + vínculo `PROFESSIONAL` + `Professional.userId`).
+- [x] Permissões configuráveis por barbearia — 11 itens, tela `/permissoes`. O que a seção 23 do escopo proíbe segue como regra fixa de código.
+- [x] Home do dia — próximo cliente, aguardando, contadores, produção e comissão estimada.
+- [x] Agenda diária e semanal com máquina de estados (confirmar, cliente chegou, iniciar, finalizar, remarcar, cancelar com motivo, marcar falta).
+- [x] Encaixe — agendamento fora da grade, sob permissão.
+- [x] Ficha do cliente — histórico, frequência, serviços mais pedidos, observações e preferências de atendimento (alergias e restrições em destaque).
+- [x] Comanda do barbeiro — serviços e produtos, desconto dentro do teto, envio para o caixa.
+- [x] Separação entre concluir atendimento e receber pagamento (`OrderStatus.AWAITING_PAYMENT`); comissão só no recebimento.
+- [x] Tela `/caixa` no painel — recebe as comandas enviadas pelos barbeiros.
+- [x] Comissão própria com detalhamento por atendimento e separação serviço/produto.
+- [x] Avaliações recebidas — média, distribuição e comentários (somente leitura).
+- [x] Perfil — barbeiro edita foto, nome e bio; serviços, preços, comissão e jornada seguem do administrador.
+- [x] Bloqueio da própria agenda (desbloqueio continua exclusivo do gestor).
+- [x] Trilha de auditoria — `AuditLog` append-only cobrindo agendamento, comanda, desconto, bloqueio, cadastro, perfil, acesso e permissões.
+- [ ] Fila de espera, portfólio, controle de jornada, metas e comunicação interna — fase 2 (seção 25 do escopo do portal).
+- [ ] Notificação push real (hoje: consulta periódica, sem push/e-mail/WhatsApp).
+- [ ] Resposta do profissional às avaliações (falta o campo no modelo `Review`).
+- [ ] Tela de consulta da auditoria no painel (a API `/api/auditoria` já existe).
 
 ## Pagamento e faturamento (Sprints 18-20)
 

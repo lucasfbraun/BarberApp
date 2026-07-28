@@ -61,7 +61,7 @@ export function resetEmailBody(name: string, link: string): { text: string; html
   const text = [
     `Ola, ${name}.`,
     "",
-    "Recebemos um pedido para redefinir a sua senha no lbraunapp.",
+    "Recebemos um pedido para redefinir a sua senha no BarvioApp.",
     "Para escolher uma senha nova, abra o link abaixo:",
     "",
     link,
@@ -74,7 +74,7 @@ export function resetEmailBody(name: string, link: string): { text: string; html
   const html = `
     <div style="font-family: system-ui, -apple-system, sans-serif; color: #0f172a; line-height: 1.6;">
       <p>Olá, ${escapeHtml(name)}.</p>
-      <p>Recebemos um pedido para redefinir a sua senha no <strong>lbraunapp</strong>.</p>
+      <p>Recebemos um pedido para redefinir a sua senha no <strong>BarvioApp</strong>.</p>
       <p>
         <a href="${escapeHtml(link)}"
            style="display: inline-block; background: #2563eb; color: #fff; padding: 12px 20px; text-decoration: none;">

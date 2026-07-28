@@ -107,9 +107,10 @@ function AgendaContent() {
   const [data, setData] = useState<AgendaResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<string | null>(params.get("foco"));
+  // `useSearchParams()` pode devolver null no Next 16 — sempre com `?.`.
+  const [expanded, setExpanded] = useState<string | null>(params?.get("foco") ?? null);
   const [busy, setBusy] = useState(false);
-  const [showNew, setShowNew] = useState(params.get("novo") === "1");
+  const [showNew, setShowNew] = useState(params?.get("novo") === "1");
 
   const load = useCallback(async () => {
     setLoading(true);

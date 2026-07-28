@@ -119,7 +119,9 @@ export async function POST(request: Request) {
     let result;
     try {
       result = await prisma.$transaction(
-        async (tx: typeof db) => {
+        // Tipo do `tx` inferido pelo Prisma — antes era `typeof db`, que
+        // apontava para o cast `any` removido no B2.
+        async (tx) => {
           const product = await tx.product.findFirst({
             where: { id: body.productId, barbershopId: ctx.barbershopId },
           });

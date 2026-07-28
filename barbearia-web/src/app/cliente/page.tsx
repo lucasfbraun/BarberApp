@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import ClienteBottomNav from "@/components/ClienteBottomNav";
 import InstallPrompt from "@/components/InstallPrompt";
+import { Logo } from "@/components/Logo";
 import { HEADING, LABEL, MUTED, TITLE } from "@/lib/ui";
 
 /* Home da área do cliente. Linguagem visual em src/lib/ui.ts:
@@ -113,7 +114,10 @@ export default function ClienteHomePage() {
     <div className="min-h-screen bg-slate-50 pb-24 text-slate-900">
       <div className="mx-auto max-w-lg px-5">
         {/* Cabeçalho editorial: data pequena em cima, nome grande embaixo. */}
-        <header className="pt-10">
+        <header className="pt-8">
+          {/* Marca discreta acima da saudação: identifica o app instalado, sem
+              competir com o nome do cliente, que é o que importa aqui. */}
+          <Logo variant="light" size="sm" className="mb-6" />
           <p className={LABEL}>{formatToday()}</p>
           <h1 className={`${TITLE} mt-3`}>
             {firstName ? `Olá, ${firstName}` : "Encontre sua barbearia"}

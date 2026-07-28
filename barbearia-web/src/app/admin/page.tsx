@@ -6,7 +6,7 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-white">Visão geral</h2>
-        <p className="mt-1 text-sm text-slate-400">Painel master do lbraunapp.</p>
+        <p className="mt-1 text-sm text-slate-400">Painel master do BarvioApp.</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         {[

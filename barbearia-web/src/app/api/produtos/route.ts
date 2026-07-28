@@ -160,7 +160,9 @@ export async function POST(request: Request) {
 
     // Cria o produto e, se houver quantidade inicial, ja registra a entrada
     // como movimentacao (historico completo desde o dia zero).
-    const product = await prisma.$transaction(async (tx: typeof db) => {
+    // Tipo do `tx` inferido pelo Prisma — antes era `typeof db`, que apontava
+    // para o cast `any` removido no B2.
+    const product = await prisma.$transaction(async (tx) => {
       const created = await tx.product.create({
         data: {
           barbershopId: ctx.barbershopId,

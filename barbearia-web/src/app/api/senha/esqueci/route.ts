@@ -83,7 +83,7 @@ export async function POST(request: Request) {
 
     const sent = await sendMail({
       to: user.email,
-      subject: "Redefinir sua senha — lbraunapp",
+      subject: "Redefinir sua senha — BarvioApp",
       text,
       html,
     });

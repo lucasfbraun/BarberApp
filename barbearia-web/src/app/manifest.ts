@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     // `id` fixa a identidade do app: mudar start_url no futuro não cria
     // uma instalação duplicada no dispositivo do cliente.
     id: "/cliente",
-    name: "lbraunapp — Agende sua barbearia",
-    short_name: "lbraunapp",
+    name: "BarvioApp — Agende sua barbearia",
+    short_name: "BarvioApp",
     description: "Encontre barbearias, agende horários e reserve produtos.",
     lang: "pt-BR",
     dir: "ltr",
@@ -19,7 +19,9 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#f1f5f9",
+    // Tela de abertura: o mesmo azul quase preto da marca, para o app não
+    // piscar branco antes de carregar.
+    background_color: "#0a0f1e",
     theme_color: "#2563eb",
     categories: ["lifestyle", "business"],
     icons: [

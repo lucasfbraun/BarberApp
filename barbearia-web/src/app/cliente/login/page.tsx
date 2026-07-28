@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
+import { Logo } from "@/components/Logo";
 import { BUTTON, INPUT, LABEL, MUTED, TITLE } from "@/lib/ui";
 
 /* Erros do login social chegam por querystring (ver callbacks.signIn em
@@ -58,6 +59,7 @@ function LoginForm() {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-5 py-12">
+        <Logo variant="light" size="md" className="mb-10" />
         <p className={LABEL}>Cliente</p>
         <h1 className={`${TITLE} mt-3`}>Bem-vindo de volta</h1>
         <p className={`${MUTED} mt-2`}>Entre para agendar seu horário.</p>

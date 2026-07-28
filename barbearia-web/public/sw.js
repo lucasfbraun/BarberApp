@@ -1,5 +1,5 @@
 /*
- * Service worker do lbraunapp (PWA da area do cliente).
+ * Service worker do BarvioApp (PWA da area do cliente).
  *
  * Existe por dois motivos:
  *  1. Instalabilidade — o Chromium so dispara `beforeinstallprompt` (o convite
@@ -18,7 +18,10 @@
  * IMPORTANTE: ao mudar as regras deste arquivo, incremente CACHE_VERSION.
  */
 
-const CACHE_VERSION = "v1";
+/* v2 — marca BarvioApp. Os ícones mudaram de arte; sem subir a versão, quem
+   já tem o app instalado continuaria vendo o logo antigo, porque o `activate`
+   só apaga caches cujo nome não bate com o atual. */
+const CACHE_VERSION = "v2";
 const STATIC_CACHE = `lb-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `lb-runtime-${CACHE_VERSION}`;
 const OFFLINE_URL = "/offline.html";
@@ -29,6 +32,9 @@ const PRECACHE_URLS = [
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/icons/apple-touch-icon.png",
+  // A marca aparece no cabeçalho da área do cliente: sem ela em cache, a tela
+  // offline e o primeiro carregamento ficam com um buraco no lugar do logo.
+  "/brand/barvioapp-tile.webp",
 ];
 
 self.addEventListener("install", (event) => {

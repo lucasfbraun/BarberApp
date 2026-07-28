@@ -32,7 +32,8 @@ export default function RedefinirSenhaPage() {
 function RedefinirSenhaContent() {
   const params = useSearchParams();
   const router = useRouter();
-  const token = params.get("token") ?? "";
+  // `useSearchParams()` pode devolver null no Next 16 — sempre com `?.`.
+  const token = params?.get("token") ?? "";
 
   const [checking, setChecking] = useState(true);
   const [valid, setValid] = useState(false);

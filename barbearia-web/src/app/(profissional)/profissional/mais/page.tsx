@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+import { Logo } from "@/components/Logo";
 import { LABEL, MUTED, TITLE } from "@/lib/ui-pro";
 
 /* Menu "Mais" (secao 22).
@@ -30,7 +31,8 @@ export default function MaisPage() {
 
   return (
     <div>
-      <header className="pt-10">
+      <header className="pt-8">
+        <Logo variant="light" size="sm" className="mb-6" />
         <p className={LABEL}>Menu</p>
         <h1 className={`${TITLE} mt-3`}>{name ?? "Mais"}</h1>
       </header>

@@ -47,7 +47,7 @@ O teto de resolução existe porque o canvas consome ~4 bytes por pixel ao decod
 | `/configuracoes` — preview ao vivo | ✅ |
 | `/cliente/agendamentos` | ❌ a API já manda o `logoUrl`, a tela não usa |
 | `/s/[slug]/agendar` | ❌ nenhuma etapa mostra a marca |
-| Painel da barbearia (barra lateral) | ❌ mostra "lbraunapp / Painel" fixo |
+| Painel da barbearia (barra lateral) | ❌ mostra "BarvioApp / Painel" fixo |
 
 Sem logo salva, o `ShopAvatar` cai no círculo com a inicial do nome.
 

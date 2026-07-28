@@ -44,7 +44,7 @@ O `viewportFit: "cover"` no layout raiz é o que faz `env(safe-area-inset-bottom
 
 - **Sem push notifications** — lembretes de agendamento continuam dependendo de WhatsApp/e-mail (ainda não implementados).
 - **Sem sincronização offline** — sem rede o cliente lê o que já visitou, mas não agenda nem cancela; as rotas `/api` exigem conexão.
-- **Ícone é do lbraunapp, não da barbearia** — o manifesto é único para o sistema. Personalizar por tenant exigiria manifesto dinâmico por slug.
+- **Ícone é do BarvioApp, não da barbearia** — o manifesto é único para o sistema. Personalizar por tenant exigiria manifesto dinâmico por slug.
 - **Escopo na raiz** — o painel da barbearia e o admin também abrem em modo standalone se acessados pelo app instalado. É intencional, mas essas telas não foram desenhadas para isso.
 - **iOS** — cada navegador tem seu armazenamento; instalar pelo Safari não aproveita nada do Chrome.
 

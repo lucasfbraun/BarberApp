@@ -5,10 +5,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useMemo, useState } from "react";
 
-const benefits = [
-  "Acesso ao painel da barbearia",
-  "Proteção por tenant",
-  "Base para perfis e permissões",
+import { Logo } from "@/components/Logo";
+
+/* O painel lateral mostrava "Sprint 1 — Autenticação em construção", texto de
+   desenvolvimento que chegou a ficar visível para quem entra. Trocado pela
+   marca e pelo que o sistema realmente faz hoje. */
+const destaques = [
+  "Agenda e agendamento online",
+  "Comanda, caixa e comissão",
+  "Portal do profissional no celular",
+  "Área do cliente e app instalável",
 ];
 
 function LoginForm() {
@@ -134,24 +140,22 @@ export default function LoginPage() {
           <LoginForm />
         </Suspense>
 
-        <aside className="rounded-3xl border border-white/10 bg-slate-950/70 p-8 shadow-2xl backdrop-blur">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-200">
-            Sprint 1
+        <aside className="flex flex-col justify-center rounded-3xl border border-white/10 bg-slate-950/70 p-8 shadow-2xl backdrop-blur">
+          <Logo size="lg" />
+
+          <p className="mt-6 text-sm leading-6 text-slate-400">
+            Gestão completa para barbearias — da agenda ao caixa, no computador
+            e no celular.
           </p>
-          <h2 className="mt-3 text-2xl font-semibold text-white">Autenticação em construção</h2>
-          <ul className="mt-6 space-y-4 text-sm text-slate-300">
-            {benefits.map((item) => (
+
+          <ul className="mt-8 space-y-4 text-sm text-slate-300">
+            {destaques.map((item) => (
               <li key={item} className="flex gap-3">
-                <span className="mt-2 h-2 w-2 rounded-full bg-emerald-300" />
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-300" />
                 <span>{item}</span>
               </li>
             ))}
           </ul>
-
-          <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-6 text-slate-300">
-            O login agora valida credenciais contra o banco, carrega a barbearia ativa do usuário e
-            redireciona para a área protegida.
-          </div>
         </aside>
       </div>
     </main>

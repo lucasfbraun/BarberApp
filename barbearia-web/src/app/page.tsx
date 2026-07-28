@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { Logo } from "@/components/Logo";
 
 const features = [
   {
@@ -82,9 +83,7 @@ export default async function LandingPage() {
       {/* Nav */}
       <nav className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/80 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-10">
-          <span className="text-xl font-bold tracking-tight text-white">
-            lbraun<span className="text-cyan-400">app</span>
-          </span>
+          <Logo size="sm" />
           <div className="hidden items-center gap-8 text-sm text-slate-400 sm:flex">
             <a href="#funcionalidades" className="transition hover:text-white">Funcionalidades</a>
             <a href="#planos" className="transition hover:text-white">Planos</a>
@@ -164,7 +163,7 @@ export default async function LandingPage() {
               Tudo que sua barbearia precisa
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-slate-400">
-              Do agendamento online ao controle financeiro, o lbraunapp centraliza a gestão do seu negócio.
+              Do agendamento online ao controle financeiro, o BarvioApp centraliza a gestão do seu negócio.
             </p>
           </div>
           <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -265,7 +264,7 @@ export default async function LandingPage() {
               <div className="p-10 lg:p-14">
                 <p className="text-xs font-semibold uppercase tracking-widest text-cyan-400">Programa de revendas</p>
                 <h2 className="mt-4 text-4xl font-bold leading-tight tracking-tight text-white">
-                  Ganhe comissão indicando o lbraunapp
+                  Ganhe comissão indicando o BarvioApp
                 </h2>
                 <p className="mt-4 leading-7 text-slate-400">
                   Cadastre-se como revendedor, receba um cupom exclusivo e ganhe comissão recorrente
@@ -343,10 +342,10 @@ export default async function LandingPage() {
       <footer className="border-t border-white/10 px-6 py-8 sm:px-10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 sm:flex-row">
           <span className="text-sm font-semibold text-white">
-            lbraun<span className="text-cyan-400">app</span>
+            Barvio<span className="text-cyan-400">App</span>
           </span>
           <p className="text-xs text-slate-600">
-            © 2026 lbraunapp. Todos os direitos reservados.
+            © 2026 BarvioApp. Todos os direitos reservados.
           </p>
           <div className="flex gap-6 text-xs text-slate-500">
             <Link href="/login" className="transition hover:text-white">Entrar</Link>

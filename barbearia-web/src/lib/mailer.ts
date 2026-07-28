@@ -31,7 +31,7 @@ export type MailResult =
 
 function fromAddress(): string {
   // Remetente verificado no provedor. Sem isso o envio e recusado.
-  return process.env.MAIL_FROM || "nao-responda@lbraunapp.com.br";
+  return process.env.MAIL_FROM || "nao-responda@barvioapp.com.br";
 }
 
 export async function sendMail(message: MailMessage): Promise<MailResult> {

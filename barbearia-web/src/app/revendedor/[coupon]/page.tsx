@@ -45,7 +45,7 @@ export default function RevendedorDashboard() {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <Link href="/" className="text-xs text-slate-500 hover:text-slate-300">← lbraunapp</Link>
+            <Link href="/" className="text-xs text-slate-500 hover:text-slate-300">← BarvioApp</Link>
             <h1 className="mt-2 text-2xl font-bold text-white">Olá, {data.name}</h1>
             <p className="text-sm text-slate-400">Dashboard do revendedor</p>
           </div>
@@ -80,7 +80,7 @@ export default function RevendedorDashboard() {
           <p className="text-sm text-slate-400">
             Você recebe <span className="font-semibold text-cyan-400">{data.commissionRate}%</span> de comissão sobre
             a receita gerada por cada barbearia que se cadastrou usando seu cupom. Os valores consolidados ficam
-            disponíveis com a equipe lbraunapp.
+            disponíveis com a equipe BarvioApp.
           </p>
         </div>
 

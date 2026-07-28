@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { UserRole } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
+import { LogoLink } from "@/components/Logo";
 
 /**
  * Navegação do painel, filtrada por papel.
@@ -86,10 +87,8 @@ export default async function PanelLayout({
       )}
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-4 sm:px-6 lg:flex-row lg:px-8">
         <aside className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-2xl backdrop-blur lg:w-72">
-          <div className="space-y-2 border-b border-white/10 pb-4">
-            <Link href="/" className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200 hover:text-cyan-300 transition">
-              lbraunapp
-            </Link>
+          <div className="space-y-3 border-b border-white/10 pb-4">
+            <LogoLink size="sm" />
             <h1 className="text-2xl font-semibold text-white">Painel</h1>
             {trialEndsAt && daysRemaining !== null && daysRemaining > 7 && (
               <p className="text-xs text-slate-500">

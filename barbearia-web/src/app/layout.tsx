@@ -14,17 +14,35 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "lbraunapp — Sistema de gestão para barbearias",
+  // `template` faz cada página virar "Agenda · BarvioApp" sem repetir o nome
+  // em toda `metadata` local.
+  title: {
+    default: "BarvioApp — Gestão completa para barbearias",
+    template: "%s · BarvioApp",
+  },
   description:
-    "Agenda online, gestão de profissionais, controle de serviços e relatórios para barbearias.",
+    "Agenda online, comanda, estoque, comissão e app para o cliente. Gestão completa para barbearias.",
+  applicationName: "BarvioApp",
   // PWA: icone do iOS e nome ao adicionar a tela de inicio.
   icons: {
+    icon: "/favicon.ico",
     apple: "/icons/apple-touch-icon.png",
   },
   appleWebApp: {
     capable: true,
-    title: "lbraunapp",
+    title: "BarvioApp",
     statusBarStyle: "default",
+  },
+  // Cartão ao compartilhar o link (WhatsApp, redes). Usa o lockup em PNG:
+  // vários leitores de preview ainda não abrem WebP.
+  openGraph: {
+    type: "website",
+    siteName: "BarvioApp",
+    title: "BarvioApp — Gestão completa para barbearias",
+    description:
+      "Agenda online, comanda, estoque, comissão e app para o cliente.",
+    locale: "pt_BR",
+    images: [{ url: "/brand/barvioapp-lockup.png", width: 320, height: 230 }],
   },
 };
 

@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { LogoLink } from "@/components/Logo";
+
 const nav = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/barbearias", label: "Barbearias" },
@@ -11,10 +13,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 px-4 py-4 sm:px-6 lg:flex-row lg:px-8">
       <aside className="rounded-3xl border border-amber-400/20 bg-amber-400/5 p-5 shadow-2xl lg:w-64">
-        <div className="space-y-1 border-b border-white/10 pb-4">
-          <Link href="/" className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300 hover:text-amber-200 transition">
-            lbraunapp
-          </Link>
+        <div className="space-y-3 border-b border-white/10 pb-4">
+          <LogoLink size="sm" />
           <h1 className="text-lg font-semibold text-white">Admin Master</h1>
         </div>
 

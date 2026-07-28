@@ -36,7 +36,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ coupon: 
     commissionRate: reseller.commissionRate,
     status: reseller.status,
     totalBarbershops: reseller.referrals.length,
-    barbershops: reseller.referrals.map((r: { barbershop: { id: string; name: string; slug: string }; createdAt: string }) => ({
+    // Tipo inferido do Prisma. A anotacao manual daqui dizia
+    // `createdAt: string`, mas o campo e `Date` — so nao quebrava porque o
+    // `reseller` vinha de um cast `any` (removido no B2).
+    barbershops: reseller.referrals.map((r) => ({
       id: r.barbershop.id,
       name: r.barbershop.name,
       slug: r.barbershop.slug,

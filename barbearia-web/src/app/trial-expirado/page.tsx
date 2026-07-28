@@ -9,7 +9,7 @@ export default function TrialExpiradoPage() {
         </div>
         <h1 className="mt-6 text-2xl font-bold text-white">Seu período de teste encerrou</h1>
         <p className="mt-3 text-slate-400">
-          Os 30 dias de teste gratuito do lbraunapp chegaram ao fim.
+          Os 30 dias de teste gratuito do BarvioApp chegaram ao fim.
           Para continuar usando o sistema, escolha um plano.
         </p>
         <div className="mt-8 space-y-3">
