@@ -1,6 +1,20 @@
 # Blog na landing page
 
-**Planejado · 28/07/2026** · Sprint 30
+**Implementado · 28/07/2026** · Sprint 30
+
+> **Status: entregue.** Dois posts publicados na migration. Falta apenas
+> configurar `BLOG_API_TOKEN` para o n8n começar a publicar.
+>
+> | Entregue | Onde |
+> |---|---|
+> | Model `Post` + migration com 2 posts | `prisma/migrations/20260728000001_blog/` |
+> | Renderizador de markdown seguro | `lib/markdown.ts` |
+> | Teste do renderizador (15 vetores de XSS) | `scripts/test-markdown.mjs` |
+> | Listagem, post e tag | `/blog`, `/blog/[slug]`, `/blog/tag/[tag]` |
+> | API pública e do n8n | `GET`/`POST /api/blog`, `PATCH`/`DELETE /api/blog/[id]` |
+> | Revisão e publicação | `/admin/blog` |
+> | SEO | `sitemap.ts`, `robots.ts`, `/blog/rss.xml`, JSON-LD, Open Graph |
+> | Link na landing | menu e rodapé |
 
 Objetivo duplo: atrair barbearias por busca orgânica (o custo de aquisição de um SaaS pequeno é o maior obstáculo) e servir de destino para uma automação de conteúdo no **n8n**.
 
