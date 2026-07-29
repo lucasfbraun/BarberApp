@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
-import { Logo } from "@/components/Logo";
+import { LandingNav } from "@/components/LandingNav";
 import { filtroPublico, CAMPOS_LISTA, formatarData } from "@/lib/blog";
 
 /* Listagem do blog.
@@ -50,27 +50,9 @@ export default async function BlogPage({
 
   return (
     <main className="min-h-screen bg-slate-950">
-      <header className="border-b border-white/10">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5 sm:px-10">
-          <Link href="/">
-            <Logo size="sm" />
-          </Link>
-          <nav className="flex items-center gap-6 text-sm text-slate-400">
-            <Link href="/#funcionalidades" className="transition hover:text-white">
-              Funcionalidades
-            </Link>
-            <Link href="/#planos" className="transition hover:text-white">
-              Planos
-            </Link>
-            <Link
-              href="/cadastro"
-              className="rounded-xl bg-cyan-400 px-4 py-2 font-semibold text-slate-950 transition hover:bg-cyan-300"
-            >
-              Testar grátis
-            </Link>
-          </nav>
-        </div>
-      </header>
+      {/* `base="/"` porque aqui as âncoras precisam voltar para a home antes
+          de rolar — `#planos` sozinho não acharia nada nesta página. */}
+      <LandingNav base="/" />
 
       <div className="mx-auto max-w-5xl px-6 py-16 sm:px-10">
         <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-400">Blog</p>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { Logo } from "@/components/Logo";
+import { LandingNav } from "@/components/LandingNav";
 
 const features = [
   {
@@ -103,32 +103,10 @@ export default async function LandingPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-      {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/80 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-10">
-          <Logo size="sm" />
-          <div className="hidden items-center gap-8 text-sm text-slate-400 sm:flex">
-            <a href="#funcionalidades" className="transition hover:text-white">Funcionalidades</a>
-            <a href="#planos" className="transition hover:text-white">Planos</a>
-            <a href="#revendedor" className="transition hover:text-white">Revendedor</a>
-            <Link href="/blog" className="transition hover:text-white">Blog</Link>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-slate-300 transition hover:text-white">
-              Entrar
-            </Link>
-            <Link
-              href="/cadastro"
-              className="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
-            >
-              Começar grátis
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <LandingNav />
 
       {/* Hero */}
-      <section className="relative overflow-hidden px-6 py-24 sm:px-10 sm:py-36">
+      <section id="topo" className="relative overflow-hidden px-6 py-24 sm:px-10 sm:py-36">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(148,163,184,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.05)_1px,transparent_1px)] bg-[size:72px_72px]" />
         <div className="absolute left-1/2 top-0 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-cyan-400/5 blur-3xl" />
         <div className="relative mx-auto max-w-4xl text-center">
@@ -178,8 +156,77 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* Sobre */}
+      <section id="sobre" className="scroll-mt-20 px-6 py-24 sm:px-10">
+        <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-cyan-400">Sobre</p>
+            <h2 className="mt-4 text-4xl font-bold tracking-tight text-white">
+              O que é o BarvioApp
+            </h2>
+            <div className="mt-6 space-y-4 text-base leading-7 text-slate-400">
+              <p>
+                O BarvioApp é um sistema de gestão online para barbearias. Ele reúne em
+                um só lugar a agenda, os clientes, os serviços, o caixa e o estoque —
+                no lugar de cadernos, planilhas e conversas soltas no WhatsApp.
+              </p>
+              <p>
+                Seu cliente agenda sozinho por uma página própria da barbearia, a
+                qualquer hora. Cada profissional acessa a própria agenda pelo celular,
+                vendo só o que lhe cabe. E o dono acompanha faturamento, comissões e
+                desempenho por relatórios prontos.
+              </p>
+              <p>
+                Funciona pelo navegador, sem instalação e sem servidor para manter. Os
+                dados de cada barbearia ficam isolados dos das demais, e o acesso é
+                liberado por função — recepção, profissional ou gestor.
+              </p>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Link
+                href="/cadastro"
+                className="rounded-2xl bg-cyan-400 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
+              >
+                Testar 30 dias grátis
+              </Link>
+              <a
+                href="#planos"
+                className="rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Ver preços
+              </a>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+            {[
+              {
+                title: "Para quem é",
+                text: "Barbearias de um cadeira a várias unidades, com ou sem equipe.",
+              },
+              {
+                title: "Como funciona",
+                text: "Você cria a conta, cadastra serviços e profissionais, e já compartilha o link de agendamento.",
+              },
+              {
+                title: "Quanto custa",
+                text: "30 dias grátis, sem cartão. Depois, um plano mensal conforme o tamanho da equipe.",
+              },
+            ].map((bloco) => (
+              <div
+                key={bloco.title}
+                className="rounded-3xl border border-white/10 bg-white/5 p-6"
+              >
+                <h3 className="text-base font-semibold text-white">{bloco.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-400">{bloco.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Funcionalidades */}
-      <section id="funcionalidades" className="px-6 py-24 sm:px-10">
+      <section id="funcionalidades" className="scroll-mt-20 px-6 py-24 sm:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="text-center">
             <p className="text-xs font-semibold uppercase tracking-widest text-cyan-400">Funcionalidades</p>
@@ -206,7 +253,7 @@ export default async function LandingPage() {
       </section>
 
       {/* Planos — dinâmicos do banco */}
-      <section id="planos" className="bg-slate-900/50 px-6 py-24 sm:px-10">
+      <section id="planos" className="scroll-mt-20 bg-slate-900/50 px-6 py-24 sm:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="text-center">
             <p className="text-xs font-semibold uppercase tracking-widest text-cyan-400">Planos e preços</p>
@@ -281,7 +328,7 @@ export default async function LandingPage() {
       </section>
 
       {/* Revendedor */}
-      <section id="revendedor" className="px-6 py-24 sm:px-10">
+      <section id="revendedor" className="scroll-mt-20 px-6 py-24 sm:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900">
             <div className="grid lg:grid-cols-2">
@@ -371,7 +418,9 @@ export default async function LandingPage() {
           <p className="text-xs text-slate-600">
             © 2026 BarvioApp. Todos os direitos reservados.
           </p>
-          <div className="flex gap-6 text-xs text-slate-500">
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-slate-500">
+            <a href="#sobre" className="transition hover:text-white">Sobre</a>
+            <a href="#planos" className="transition hover:text-white">Preços</a>
             <Link href="/blog" className="transition hover:text-white">Blog</Link>
             <Link href="/login" className="transition hover:text-white">Entrar</Link>
             <Link href="/cadastro" className="transition hover:text-white">Cadastrar</Link>
