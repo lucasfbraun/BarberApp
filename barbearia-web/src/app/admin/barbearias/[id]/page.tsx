@@ -126,7 +126,10 @@ export default function AdminBarbershopDetailPage() {
             <p className="text-sm text-slate-500">Sem data de trial definida.</p>
           )}
           <div className="flex gap-2">
-            {[7, 30].map((d) => (
+            {/* 15 e 60 entraram porque 7 é pouco para uma barbearia decidir e
+                30 recomeça o teste inteiro. As opções do meio são as que mais
+                se usam numa negociação. */}
+            {[7, 15, 30, 60].map((d) => (
               <button
                 key={d}
                 disabled={saving === "extend_trial"}

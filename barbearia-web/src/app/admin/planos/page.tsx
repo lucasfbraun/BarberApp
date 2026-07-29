@@ -10,6 +10,7 @@ type Plan = {
   maxProfessionals: number;
   features: string[];
   isActive: boolean;
+  highlighted: boolean;
   displayOrder: number;
   _count: { barbershops: number };
 };
@@ -96,11 +97,27 @@ export default function AdminPlanosPage() {
   }
 
   async function toggleActive(plan: Plan) {
-    await fetch(`/api/admin/planos/${plan.id}`, {
+    await patch(plan.id, { isActive: !plan.isActive });
+  }
+
+  /** Marca o selo "Mais popular". A API desmarca os outros — é exclusivo. */
+  async function toggleHighlight(plan: Plan) {
+    await patch(plan.id, { highlighted: !plan.highlighted });
+  }
+
+  async function patch(id: string, payload: Record<string, unknown>) {
+    const res = await fetch(`/api/admin/planos/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isActive: !plan.isActive }),
+      body: JSON.stringify(payload),
     });
+    // A resposta era ignorada: erro de validação não aparecia em lugar nenhum.
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setError(body.error ?? "Não foi possível atualizar o plano.");
+      return;
+    }
+    setError("");
     await load();
   }
 
@@ -238,6 +255,11 @@ export default function AdminPlanosPage() {
                   {!plan.isActive && (
                     <span className="rounded-full bg-slate-700 px-2 py-0.5 text-xs text-slate-400">Inativo</span>
                   )}
+                  {plan.highlighted && (
+                    <span className="rounded-full bg-cyan-400/15 px-2 py-0.5 text-xs text-cyan-300">
+                      Mais popular
+                    </span>
+                  )}
                 </div>
                 <p className="mt-0.5 text-sm text-slate-400">
                   R$ {Number(plan.price).toFixed(2)}/mês · {plan.maxProfessionals === -1 ? "Ilimitado" : `até ${plan.maxProfessionals}`} profissionais · {plan._count.barbershops} barbearias
@@ -255,6 +277,17 @@ export default function AdminPlanosPage() {
                   className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-300 transition hover:text-white"
                 >
                   {plan.isActive ? "Desativar" : "Ativar"}
+                </button>
+                <button
+                  onClick={() => toggleHighlight(plan)}
+                  title="Selo destacado na landing. Só um plano por vez."
+                  className={`rounded-xl border px-3 py-2 text-xs transition ${
+                    plan.highlighted
+                      ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-300"
+                      : "border-white/10 bg-white/5 text-slate-300 hover:text-white"
+                  }`}
+                >
+                  {plan.highlighted ? "★ Popular" : "☆ Popular"}
                 </button>
                 <button
                   onClick={() => deletePlan(plan.id)}

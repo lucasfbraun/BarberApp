@@ -44,7 +44,22 @@ type Plan = {
   maxProfessionals: number;
   features: string[];
   displayOrder: number;
+  highlighted: boolean;
 };
+
+/**
+ * A landing é regerada a cada 60 segundos.
+ *
+ * Sem isto, o Next gera a página no BUILD e ela congela: os planos vinham do
+ * banco, mas o resultado ficava preso ao último deploy. Editar preço em
+ * /admin/planos não mudava nada no site — e é por isso que os planos
+ * pareciam estáticos.
+ *
+ * 60s equilibra as duas coisas: a página continua servida de cache (rápida
+ * para quem chega pelo Google) e a mudança de preço aparece em um minuto,
+ * sem exigir deploy.
+ */
+export const revalidate = 60;
 
 async function getPlans(): Promise<Plan[]> {
   try {
@@ -60,6 +75,7 @@ async function getPlans(): Promise<Plan[]> {
         maxProfessionals: true,
         features: true,
         displayOrder: true,
+        highlighted: true,
       },
     });
     return plans.map((p) => ({
@@ -75,8 +91,15 @@ async function getPlans(): Promise<Plan[]> {
 export default async function LandingPage() {
   const plans = await getPlans();
 
-  // Highlight the middle plan
-  const highlighted = plans.length > 1 ? plans[Math.floor(plans.length / 2)]?.id : null;
+  /* O selo "Mais popular" agora vem do banco, escolhido no admin. Antes era
+     o plano do meio da lista — o que mudava sozinho ao criar ou desativar um
+     plano, e tirava a decisão de quem vende. */
+  const highlighted = plans.find((p) => p.highlighted)?.id ?? null;
+
+  /* A grade se adapta à quantidade. Estava fixa em 3 colunas: criar um quarto
+     plano deixaria um card sozinho na segunda linha. */
+  const colunas =
+    plans.length >= 4 ? "lg:grid-cols-4" : plans.length === 2 ? "lg:grid-cols-2" : "lg:grid-cols-3";
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -195,7 +218,7 @@ export default async function LandingPage() {
             </p>
           </div>
           {plans.length > 0 ? (
-            <div className="mt-16 grid gap-8 lg:grid-cols-3">
+            <div className={`mt-16 grid gap-8 sm:grid-cols-2 ${colunas}`}>
               {plans.map((plan) => {
                 const isHighlighted = plan.id === highlighted;
                 return (

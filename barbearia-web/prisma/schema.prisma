@@ -135,6 +135,10 @@ model Plan {
   maxProfessionals Int          @default(-1)
   features         Json         @default("[]")
   isActive         Boolean      @default(true)
+  /// Selo "Mais popular" na landing. Era calculado automaticamente (o plano
+  /// do meio da lista), o que tirava a decisao do admin — e mudava sozinho
+  /// ao criar ou desativar um plano.
+  highlighted      Boolean      @default(false)
   displayOrder     Int          @default(0)
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt

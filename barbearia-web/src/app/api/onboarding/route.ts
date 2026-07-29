@@ -105,8 +105,19 @@ export async function POST(request: Request) {
     const couponCode = payload.couponCode?.trim().toUpperCase() || null;
     let reseller: { id: string } | null = null;
     if (couponCode) {
-      reseller = await prisma.reseller.findUnique({
-        where: { couponCode },
+      /**
+       * SÓ revendedor ATIVO tem cupom valendo.
+       *
+       * Faltava o filtro de status, e isso anulava na prática o A4 do
+       * cronograma: o cadastro público de revendedor nasce `PENDING`
+       * justamente para que nada valha antes da aprovação — mas o cupom já
+       * funcionava desde o primeiro minuto, gerando vínculo e direito a
+       * comissão sem ninguém ter aprovado nada.
+       *
+       * Pelo mesmo motivo, desativar um revendedor não parava o cupom dele.
+       */
+      reseller = await prisma.reseller.findFirst({
+        where: { couponCode, status: "ACTIVE" },
         select: { id: true },
       });
     }

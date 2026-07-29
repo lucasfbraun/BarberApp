@@ -104,6 +104,13 @@ export async function PATCH(
       data.isActive = body.isActive;
     }
 
+    if ("highlighted" in body) {
+      if (typeof body.highlighted !== "boolean") {
+        return NextResponse.json({ error: "highlighted inválido." }, { status: 400 });
+      }
+      data.highlighted = body.highlighted;
+    }
+
     if ("displayOrder" in body) {
       const order = Number(body.displayOrder);
       if (!Number.isInteger(order)) {
@@ -114,6 +121,20 @@ export async function PATCH(
 
     if (Object.keys(data).length === 0) {
       return NextResponse.json({ error: "Nada para atualizar." }, { status: 400 });
+    }
+
+    /* "Mais popular" é exclusivo: marcar um tem que desmarcar o resto, senão
+       a landing mostraria dois selos e o destaque perderia o sentido. As duas
+       escritas vão na mesma transação. */
+    if (data.highlighted === true) {
+      const plan = await prisma.$transaction(async (tx) => {
+        await tx.plan.updateMany({
+          where: { highlighted: true, NOT: { id } },
+          data: { highlighted: false },
+        });
+        return tx.plan.update({ where: { id }, data });
+      });
+      return NextResponse.json(plan);
     }
 
     const plan = await prisma.plan.update({ where: { id }, data });

@@ -38,6 +38,8 @@ export default function AdminRevendedoresPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [editCommission, setEditCommission] = useState<{ id: string; value: string } | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -56,14 +58,30 @@ export default function AdminRevendedoresPage() {
 
   async function act(id: string, action: string, extra?: Record<string, unknown>) {
     setSaving(id + action);
-    await fetch(`/api/admin/revendedores/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, ...extra }),
-    });
-    setSaving(null);
-    setEditCommission(null);
-    await load();
+    try {
+      const res = await fetch(`/api/admin/revendedores/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, ...extra }),
+      });
+      const body = await res.json().catch(() => ({}));
+
+      // A resposta era ignorada: taxa fora da faixa, por exemplo, voltava 400
+      // e o botão simplesmente não fazia nada, sem dizer por quê.
+      if (!res.ok) {
+        setErro(body.error ?? "Não foi possível concluir a ação.");
+        return;
+      }
+
+      setErro(null);
+      if (action === "revoke_coupon" && body.couponCode) {
+        setAviso(`Novo cupom de ${body.couponCode}. O anterior deixou de valer.`);
+      }
+      await load();
+    } finally {
+      setSaving(null);
+      setEditCommission(null);
+    }
   }
 
   return (
@@ -72,6 +90,20 @@ export default function AdminRevendedoresPage() {
         <h2 className="text-2xl font-bold text-white">Revendedores</h2>
         <p className="mt-1 text-sm text-slate-400">Gestão do programa de revendas.</p>
       </div>
+
+      {erro && (
+        <p className="rounded-2xl border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-200">
+          {erro}
+        </p>
+      )}
+      {aviso && (
+        <div className="flex items-start gap-3 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-200">
+          <span className="flex-1">{aviso}</span>
+          <button onClick={() => setAviso(null)} className="shrink-0 hover:text-amber-100">
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Summary */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -225,6 +257,23 @@ export default function AdminRevendedoresPage() {
                       Reativar
                     </button>
                   )}
+
+                  {/* Revogar o cupom sem desativar a parceria — para quando o
+                      código vazou, mas o revendedor continua. */}
+                  <button
+                    disabled={!!saving}
+                    onClick={() => {
+                      const ok = window.confirm(
+                        `Gerar um cupom novo para ${r.name}?\n\n` +
+                          `O código atual (${r.couponCode}) para de funcionar imediatamente.\n` +
+                          `As barbearias já indicadas continuam vinculadas e a comissão segue.`,
+                      );
+                      if (ok) act(r.id, "revoke_coupon");
+                    }}
+                    className="ml-auto rounded-xl border border-amber-400/20 bg-amber-400/5 px-3 py-2 text-xs text-amber-300 transition hover:bg-amber-400/10 disabled:opacity-50"
+                  >
+                    Revogar cupom
+                  </button>
                 </div>
               </div>
             );

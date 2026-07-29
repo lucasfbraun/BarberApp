@@ -12,6 +12,21 @@ import { NextResponse } from "next/server";
 import { resolveAdmin } from "@/lib/auth-guard";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Mesmo formato do cadastro público (`NOME-XXXX`), para o revendedor
+ * reconhecer o próprio cupom depois de uma troca.
+ */
+function gerarCupom(nome: string): string {
+  const base = nome
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 6);
+  const sufixo = Math.random().toString(36).toUpperCase().slice(2, 6);
+  return `${base || "REV"}-${sufixo}`;
+}
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -26,7 +41,7 @@ export async function PATCH(
     // sem try/catch — 500 com stack em vez de 404.
     const existing = await prisma.reseller.findUnique({
       where: { id },
-      select: { id: true, status: true, commissionRate: true, name: true },
+      select: { id: true, status: true, commissionRate: true, name: true, couponCode: true },
     });
     if (!existing) {
       return NextResponse.json({ error: "Revendedor não encontrado." }, { status: 404 });
@@ -67,6 +82,46 @@ export async function PATCH(
         data: { commissionRate: rate },
       });
       return NextResponse.json({ commissionRate: updated.commissionRate });
+    }
+
+    /**
+     * Revoga o cupom SEM desativar o revendedor.
+     *
+     * Serve para quando o código vazou — foi publicado num grupo, virou
+     * "cupom de desconto" na internet — mas a parceria continua. Gera um
+     * código novo: o antigo para de funcionar na hora.
+     *
+     * As barbearias já indicadas NÃO são afetadas. O vínculo é por
+     * `resellerId`, e o `BarbershopReseller.couponCode` guarda o código
+     * usado na época, como registro histórico. A comissão continua.
+     *
+     * Para parar de valer sem trocar o código, use `deactivate`: desde a
+     * correção de hoje, cupom de revendedor inativo não é mais aceito no
+     * cadastro.
+     */
+    if (body.action === "revoke_coupon") {
+      let novoCodigo = gerarCupom(existing.name);
+      let tentativas = 0;
+      while (await prisma.reseller.findUnique({ where: { couponCode: novoCodigo } })) {
+        novoCodigo = gerarCupom(existing.name);
+        if (++tentativas > 10) {
+          novoCodigo = `REV-${Date.now().toString(36).toUpperCase()}`;
+          break;
+        }
+      }
+
+      const updated = await prisma.reseller.update({
+        where: { id },
+        data: { couponCode: novoCodigo },
+        select: { couponCode: true },
+      });
+
+      return NextResponse.json({
+        couponCode: updated.couponCode,
+        anterior: existing.couponCode,
+        aviso:
+          "O código antigo parou de valer. As barbearias já indicadas continuam vinculadas.",
+      });
     }
 
     return NextResponse.json({ error: "Ação inválida." }, { status: 400 });
