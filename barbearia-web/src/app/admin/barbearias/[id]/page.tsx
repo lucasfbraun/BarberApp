@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { AdminLink } from "@/components/AdminPath";
+import { formatBRL } from "@/lib/money";
 
 type Plan = { id: string; name: string; price: number; isActive?: boolean };
 type Barbershop = {
@@ -147,7 +148,7 @@ export default function AdminBarbershopDetailPage() {
           <h3 className="font-semibold text-white">Plano</h3>
           <p className="text-sm text-slate-400">
             Atual: <span className="text-white">{shop.plan?.name ?? "Nenhum"}</span>
-            {shop.plan && <span className="ml-2 text-slate-500">R$ {Number(shop.plan.price).toFixed(2)}/mês</span>}
+            {shop.plan && <span className="ml-2 text-slate-500">{formatBRL(Number(shop.plan.price))}/mês</span>}
           </p>
           <div className="flex flex-wrap gap-2">
             {plans.filter((p) => p.isActive !== false).map((p) => (
@@ -196,7 +197,7 @@ export default function AdminBarbershopDetailPage() {
           <h3 className="font-semibold text-white">Financeiro</h3>
           <p className="text-sm text-slate-400">
             Receita total (comandas fechadas):{" "}
-            <span className="font-semibold text-white">R$ {shop.totalRevenue.toFixed(2)}</span>
+            <span className="font-semibold text-white">{formatBRL(shop.totalRevenue)}</span>
           </p>
           <div className="border-t border-white/10 pt-4">
             <p className="mb-2 text-xs text-slate-500">Ações</p>

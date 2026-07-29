@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
+import { formatBRL } from "@/lib/money";
 
 type OrderItem = {
   id: string;
@@ -259,11 +260,11 @@ export default function ComandaPage() {
             <div>
               <p className="text-sm font-medium text-white">{item.name}</p>
               <p className="text-xs text-slate-400">
-                {item.quantity}x — R$ {Number(item.unitPrice).toFixed(2)}
+                {item.quantity}x — {formatBRL(Number(item.unitPrice))}
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold text-white">R$ {Number(item.total).toFixed(2)}</span>
+              <span className="text-sm font-semibold text-white">{formatBRL(Number(item.total))}</span>
               {!isClosed && (
                 <button
                   onClick={() => removeItem(item.id)}
@@ -280,22 +281,22 @@ export default function ComandaPage() {
         <div className="space-y-2 border-t border-white/10 px-5 py-4">
           <div className="flex justify-between text-sm text-slate-400">
             <span>Subtotal</span>
-            <span>R$ {Number(order.subtotal).toFixed(2)}</span>
+            <span>{formatBRL(Number(order.subtotal))}</span>
           </div>
           {isClosed && order.discountValue && (
             <div className="flex justify-between text-sm text-slate-400">
               <span>Desconto</span>
-              <span>- R$ {Number(order.discountValue).toFixed(2)}</span>
+              <span>- {formatBRL(Number(order.discountValue))}</span>
             </div>
           )}
           <div className="flex justify-between text-base font-bold text-white">
             <span>Total</span>
-            <span>R$ {Number(order.total).toFixed(2)}</span>
+            <span>{formatBRL(Number(order.total))}</span>
           </div>
           {commission && (
             <div className="flex justify-between text-sm text-cyan-300">
               <span>Comissão ({commission.label})</span>
-              <span>R$ {commission.amount.toFixed(2)}</span>
+              <span>{formatBRL(commission.amount)}</span>
             </div>
           )}
         </div>
@@ -315,7 +316,7 @@ export default function ComandaPage() {
               <option value="">Selecione o produto...</option>
               {catalog.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.name} — R$ {Number(p.salePrice).toFixed(2)} (saldo: {p.stockQuantity})
+                  {p.name} — {formatBRL(Number(p.salePrice))} (saldo: {p.stockQuantity})
                 </option>
               ))}
             </select>
@@ -384,7 +385,7 @@ export default function ComandaPage() {
           {order.payments.map((p) => (
             <div key={p.id} className="flex justify-between text-sm">
               <span className="text-slate-400">{PAYMENT_LABELS[p.method] ?? p.method}</span>
-              <span className="font-semibold text-white">R$ {Number(p.amount).toFixed(2)}</span>
+              <span className="font-semibold text-white">{formatBRL(Number(p.amount))}</span>
             </div>
           ))}
         </div>
@@ -446,16 +447,18 @@ export default function ComandaPage() {
               <div className="rounded-xl border border-white/10 bg-slate-950 p-3 text-sm">
                 <div className="flex justify-between text-slate-400">
                   <span>Subtotal</span>
-                  <span>R$ {Number(order.subtotal).toFixed(2)}</span>
+                  <span>{formatBRL(Number(order.subtotal))}</span>
                 </div>
                 <div className="mt-1 flex justify-between font-bold text-white">
                   <span>Total a cobrar</span>
-                  <span>R$ {previewTotal.toFixed(2)}</span>
+                  <span>{formatBRL(previewTotal)}</span>
                 </div>
                 {commission && (
                   <div className="mt-1 flex justify-between text-cyan-300">
                     <span>Comissão</span>
-                    <span>R$ {calcCommission(previewTotal)?.amount.toFixed(2)}</span>
+                    {/* `?.` porque calcCommission pode nao achar a regra; sem
+                        o fallback isso viraria "R$ NaN" na tela de fechamento. */}
+                    <span>{formatBRL(calcCommission(previewTotal)?.amount ?? 0)}</span>
                   </div>
                 )}
               </div>

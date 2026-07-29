@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { LandingNav } from "@/components/LandingNav";
+import { splitBRL } from "@/lib/money";
 
 const features = [
   {
@@ -286,9 +287,14 @@ export default async function LandingPage() {
                       </div>
                     )}
                     <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">{plan.name}</p>
+                    {/* Centavos em corpo menor: cabe "19,90" sem espremer o
+                        número, e principalmente sem arredondar — era
+                        `toFixed(0)`, que anunciava R$ 19,90 como "R$ 20". */}
                     <div className="mt-3 flex items-end gap-1">
                       <span className="text-4xl font-bold text-white">
-                        R$ {Number(plan.price).toFixed(0)}
+                        <span className="align-top text-xl font-semibold text-slate-400">R$ </span>
+                        {splitBRL(plan.price).reais}
+                        <span className="text-xl font-semibold">,{splitBRL(plan.price).centavos}</span>
                       </span>
                       <span className="mb-1 text-slate-400">/mês</span>
                     </div>

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
+import { formatBRL } from "@/lib/money";
 
 type Summary = { total: number; active: number; pending: number; inactive: number };
 type Referral = { barbershopId: string; barbershop: { name: string; slug: string } };
@@ -204,11 +205,11 @@ export default function AdminRevendedoresPage() {
                       <p className="text-xs text-slate-500">barbearias</p>
                     </div>
                     <div>
-                      <p className="text-lg font-bold text-white">R$ {r.totalRevenue.toFixed(0)}</p>
+                      <p className="text-lg font-bold text-white">{formatBRL(r.totalRevenue)}</p>
                       <p className="text-xs text-slate-500">receita</p>
                     </div>
                     <div>
-                      <p className="text-lg font-bold text-cyan-400">R$ {r.totalCommission.toFixed(0)}</p>
+                      <p className="text-lg font-bold text-cyan-400">{formatBRL(r.totalCommission)}</p>
                       <p className="text-xs text-slate-500">comissão</p>
                     </div>
                   </div>

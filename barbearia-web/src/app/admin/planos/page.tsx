@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
+import { formatBRL } from "@/lib/money";
 
 type Plan = {
   id: string;
@@ -262,7 +263,7 @@ export default function AdminPlanosPage() {
                   )}
                 </div>
                 <p className="mt-0.5 text-sm text-slate-400">
-                  R$ {Number(plan.price).toFixed(2)}/mês · {plan.maxProfessionals === -1 ? "Ilimitado" : `até ${plan.maxProfessionals}`} profissionais · {plan._count.barbershops} barbearias
+                  {formatBRL(Number(plan.price))}/mês · {plan.maxProfessionals === -1 ? "Ilimitado" : `até ${plan.maxProfessionals}`} profissionais · {plan._count.barbershops} barbearias
                 </p>
               </div>
               <div className="flex shrink-0 gap-2">
