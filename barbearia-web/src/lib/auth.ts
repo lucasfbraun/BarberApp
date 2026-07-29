@@ -3,11 +3,27 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
 import bcrypt from "bcryptjs";
+import { UserRole } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { resolveSocialUser } from "@/lib/social-login";
 
 type ProviderList = NextAuthOptions["providers"];
+
+/**
+ * Ordem de precedencia quando o usuario tem mais de um vinculo ativo.
+ * Menor numero ganha.
+ *
+ * O SUPERADMIN vem primeiro porque o painel do SaaS nao pode depender de
+ * sorte na ordenacao do banco. Os demais seguem a hierarquia natural.
+ */
+const PRIORIDADE_DE_PAPEL: Record<UserRole, number> = {
+  SUPERADMIN: 0,
+  OWNER: 1,
+  MANAGER: 2,
+  RECEPTION: 3,
+  PROFESSIONAL: 4,
+};
 
 /**
  * Provedores sociais so entram na lista se as credenciais existirem no
@@ -59,10 +75,20 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "E-mail", type: "email" },
         password: { label: "Senha", type: "password" },
+        /**
+         * `"admin"` quando o login veio da porta do painel do SaaS.
+         *
+         * E o que permite ao MESMO e-mail servir aos dois papeis: entrando
+         * pelo `/login` a pessoa e dona da propria barbearia; entrando pela
+         * porta do admin, ela e SUPERADMIN. O destino e decidido pela porta,
+         * nao por adivinhacao.
+         */
+        scope: { label: "Escopo", type: "text" },
       },
       async authorize(credentials) {
         const email = credentials?.email?.toString().trim().toLowerCase();
         const password = credentials?.password?.toString();
+        const querPainelDoSaas = credentials?.scope === "admin";
 
         if (!email || !password) {
           return null;
@@ -97,9 +123,29 @@ export const authOptions: NextAuthOptions = {
         // Seleciona apenas um vinculo ATIVO em barbearia ATIVA.
         // Sem fallback para memberships[0]: desativar o vinculo (active=false)
         // nao deve conceder acesso ao painel/tenant.
-        const membership = user.memberships.find(
-          (item) => item.active && item.barbershop.status === "ACTIVE",
-        );
+        //
+        const ativos = user.memberships
+          .filter((item) => item.active && item.barbershop.status === "ACTIVE")
+          .sort((a, b) => PRIORIDADE_DE_PAPEL[a.role] - PRIORIDADE_DE_PAPEL[b.role]);
+
+        // A PORTA DECIDE O PAPEL.
+        //
+        // Pela entrada do painel do SaaS, so o vinculo SUPERADMIN serve — sem
+        // ele, o login falha. Pela entrada normal, o SUPERADMIN e IGNORADO,
+        // para que quem administra o SaaS e tambem tem barbearia consiga
+        // operar as duas coisas com o mesmo e-mail.
+        //
+        // A excecao no final evita trancar para fora quem SO tem o vinculo de
+        // admin: entra e o middleware o redireciona para o painel do SaaS.
+        let membership;
+        if (querPainelDoSaas) {
+          membership = ativos.find((item) => item.role === UserRole.SUPERADMIN);
+          if (!membership) return null;
+        } else {
+          membership =
+            ativos.find((item) => item.role !== UserRole.SUPERADMIN) ?? ativos[0];
+        }
+
         const activeBarbershop = membership?.barbershop ?? null;
 
         // Com plano ativo ou isencao (billingExempt), o trial nao se aplica:

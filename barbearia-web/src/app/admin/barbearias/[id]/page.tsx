@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
+
+import { AdminLink } from "@/components/AdminPath";
 
 type Plan = { id: string; name: string; price: number; isActive?: boolean };
 type Barbershop = {
@@ -71,9 +72,9 @@ export default function AdminBarbershopDetailPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <Link href="/admin/barbearias" className="text-xs text-slate-500 hover:text-slate-300">
+          <AdminLink to="/barbearias" className="text-xs text-slate-500 hover:text-slate-300">
             ← Barbearias
-          </Link>
+          </AdminLink>
           <h2 className="mt-1 text-2xl font-bold text-white">{shop.name}</h2>
           <p className="text-sm text-slate-400">{shop.slug} · {shop.city ?? ""} {shop.state ?? ""}</p>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
-import Link from "next/link";
+
+import { AdminLink } from "@/components/AdminPath";
 
 type Summary = { total: number; trial: number; active: number; expired: number; inactive: number; exempt: number };
 type Barbershop = {
@@ -163,12 +164,14 @@ export default function AdminBarbeariasPage() {
                       {new Date(b.createdAt).toLocaleDateString("pt-BR")}
                     </td>
                     <td className="px-4 py-3">
-                      <Link
-                        href={`/admin/barbearias/${b.id}`}
+                      {/* AdminLink, e não Link com "/admin" fixo: o painel
+                          pode estar num caminho próprio (ADMIN_PATH). */}
+                      <AdminLink
+                        to={`/barbearias/${b.id}`}
                         className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 transition hover:text-white"
                       >
                         Detalhe
-                      </Link>
+                      </AdminLink>
                     </td>
                   </tr>
                 );

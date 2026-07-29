@@ -56,7 +56,38 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Slug da barbearia ja existe." }, { status: 409 });
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        memberships: {
+          where: { role: UserRole.SUPERADMIN, active: true },
+          select: { id: true },
+        },
+      },
+    });
+
+    /**
+     * E-mail de SUPERADMIN nao abre barbearia.
+     *
+     * A checagem seguinte ("e-mail ja cadastrado") ja barraria este caso hoje,
+     * porque o onboarding recusa qualquer e-mail existente. Mas ela e uma
+     * regra de outro assunto: no dia em que existir "usuario existente cria
+     * uma segunda barbearia" — uma evolucao natural —, a protecao do admin
+     * sumiria junto, sem ninguem perceber.
+     *
+     * Por isso a verificacao e explicita e vem ANTES: e uma invariante do
+     * sistema, nao um efeito colateral de outra regra.
+     *
+     * A mensagem nao diz "este e-mail e de um administrador": isso confirmaria
+     * a quem esta sondando que aquele endereco tem poder no sistema.
+     */
+    if (existingUser && existingUser.memberships.length > 0) {
+      return NextResponse.json(
+        { error: "Este e-mail nao pode ser usado para criar uma barbearia." },
+        { status: 409 },
+      );
+    }
 
     if (existingUser) {
       return NextResponse.json({ error: "E-mail ja cadastrado." }, { status: 409 });

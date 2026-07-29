@@ -28,9 +28,26 @@ Prisma sem casts, então o TypeScript acusa erro até o client existir.
 | Painel | `/agenda`, `/caixa`, `/estoque`… | Dono, gerente, recepção | Escuro |
 | Portal do Profissional | `/profissional` | Barbeiro (e dono que atende) | Claro, mobile-first |
 | Área do cliente | `/cliente`, `/s/[slug]` | Cliente final | Claro, PWA instalável |
-| Admin master | `/admin` | SUPERADMIN (dono do SaaS) | Escuro/âmbar |
+| Admin master | `/admin` (ou `ADMIN_PATH`) | SUPERADMIN (dono do SaaS) | Escuro/âmbar |
 
 O papel do usuário define para onde ele vai depois do login (`src/proxy.ts`).
+
+### Criando o acesso ao painel do SaaS
+
+O painel `/admin` (todas as barbearias, planos, revendedores, blog) exige o
+papel `SUPERADMIN`, que **nenhuma rota do sistema cria** — de propósito. Rode
+uma vez:
+
+```powershell
+node scripts/criar-superadmin.mjs seu@email.com "sua-senha" "Seu Nome"
+```
+
+Depois entre pela porta do admin — `/admin/login`, ou `<ADMIN_PATH>/login` se
+você tiver movido o painel. **O `/login` comum leva ao painel da barbearia**, e
+é isso que permite ao mesmo e-mail servir aos dois papéis.
+
+Para tirar o painel das varreduras automáticas, defina `ADMIN_PATH` — ver
+`../pm/rota-do-admin.md`.
 
 ### Criando o acesso de um barbeiro
 
