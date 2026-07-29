@@ -87,6 +87,21 @@
 - 5B.5 /admin/blog para revisar e publicar
 - 5B.6 SEO: sitemap, robots, JSON-LD, Open Graph por post e RSS
 
+## 5C. Operacao do SaaS — superadmin (sprints 31-32)
+- 5C.1 Login separado em /admin/login (credencial `scope`)
+- 5C.2 Caminho do admin configuravel por ADMIN_PATH
+- 5C.3 Bloqueio do e-mail do superadmin no onboarding
+- 5C.4 Scripts de operacao (criar superadmin, transferir/excluir/listar barbearia)
+- 5C.5 Renovacao de trial pelo admin (7/15/30/60 dias)
+- 5C.6 Revogacao de cupom de revendedor
+- 5C.7 Planos da landing editaveis (preco, ordem, selo e ativacao)
+
+## 5D. Site publico (sprint 33)
+- 5D.1 `revalidate` nas paginas publicas que leem do banco
+- 5D.2 Barra de navegacao com menu de celular
+- 5D.3 Secao Sobre
+- 5D.4 Formatacao de dinheiro em ponto unico (lib/money.ts)
+
 ## 6A. Portal do Profissional — fase 2 (secao 25 do escopo)
 - 6A.1 Fila de espera (novo modelo WaitingQueue)
 - 6A.2 Indicadores de desempenho e metas
